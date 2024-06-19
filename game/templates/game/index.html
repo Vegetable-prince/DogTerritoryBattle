@@ -1,14 +1,28 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Dog Battle</title>
+    <meta charset="UTF-8">
+    <title>Dog Territory Battle</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'game/css/styles.css' %}">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 </head>
 <body>
-    <h1>Dog Battle</h1>
-    <ul>
+    <h1>Dog Territory Battle</h1>
+    <div id="game-board">
         {% for dog in dogs %}
-            <li>{{ dog.name }}: {{ dog.movement }}</li>
+        <div class="dog" data-dog-id="{{ dog.id }}" style="left: {{ dog.left }}px; top: {{ dog.top }}px;">
+            {{ dog.name }}
+        </div>
         {% endfor %}
-    </ul>
+    </div>
+
+    <script>
+        var moveDogUrl = "{% url 'game:move_dog' %}";
+        var csrf_token = '{{ csrf_token }}';
+    </script>
+    <script src="{% static 'game/js/scripts.js' %}"></script>
 </body>
 </html>
