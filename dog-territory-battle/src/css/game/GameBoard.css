@@ -1,0 +1,27 @@
+#game-board {
+  position: relative;
+  width: 400px;  /* 4x4のマス目の合計幅 */
+  height: 400px; /* 4x4のマス目の合計高さ */
+  border: 1px solid black; /* 枠線をつける */
+}
+
+.dog {
+  position: absolute;
+  width: 100px;  /* マス目の幅 */
+  height: 100px; /* マス目の高さ */
+  background-color: lightgray;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid black; /* タイルの枠線 */
+  box-sizing: border-box;  /* パディングとボーダーを含むボックスサイズ */
+}
+
+.valid-move {
+  position: absolute;
+  width: 100px;  /* マス目の幅 */
+  height: 100px; /* マス目の高さ */
+  background-color: rgba(0, 255, 0, 0.3); /* 緑色の半透明 */
+  border: 1px solid green;
+  box-sizing: border-box;  /* パディングとボーダーを含むボックスサイズ */
+}

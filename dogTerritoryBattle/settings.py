@@ -40,8 +40,8 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:3000',
 ]
 
 ROOT_URLCONF = "dogTerritoryBattle.urls"
@@ -49,7 +49,7 @@ ROOT_URLCONF = "dogTerritoryBattle.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR, 'game', 'templates')],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -113,7 +113,7 @@ USE_TZ = True
 STATIC_URL = "/static/"
 
 STATICFILES_DIRS = [
-    BASE_DIR / "dogTerritoryBattle" / "game" / "static",
+    os.path.join(BASE_DIR, 'dog-territory-battle/build/static'),
 ]
 
 # Add this line to define the directory where static files will be collected

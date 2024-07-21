@@ -1,28 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import HomePage from './components/HomePage';
+import GamePage from './components/GamePage';
+import './App.css';
 
 function App() {
-    const [dogs, setDogs] = useState([]);
-
-    useEffect(() => {
-        axios.get('http://127.0.0.1:8000/api/dogs/')  // 正しいAPIエンドポイントを設定
-            .then(response => {
-                setDogs(response.data);
-            })
-            .catch(error => {
-                console.error('There was an error fetching the data!', error);
-            });
-    }, []);
-
     return (
-        <div className="App">
-            <h1>Dog Territory Battle</h1>
-            {dogs.map(dog => (
-                <div key={dog.id} className="dog">
-                    {dog.name}
-                </div>
-            ))}
-        </div>
+        <Router>
+            <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/game/:game_id" element={<GamePage />} />
+            </Routes>
+        </Router>
     );
 }
 
