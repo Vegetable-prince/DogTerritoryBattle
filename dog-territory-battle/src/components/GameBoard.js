@@ -73,7 +73,6 @@ const GameBoard = ({ initialData }) => {
             dog_id: selectedDog.id,
             x: move.x,
             y: move.y,
-            csrfmiddlewaretoken: document.querySelector('input[name="csrfmiddlewaretoken"]').value
         })
         .then(response => {
             if (response.data.success) {

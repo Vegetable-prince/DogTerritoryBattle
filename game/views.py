@@ -1,10 +1,10 @@
 import logging
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
-from .models import Dog, Player, DogType, Game
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from .models import Dog, Player, DogType, Game
 from .serializers import DogSerializer, PlayerSerializer, DogTypeSerializer, GameSerializer
 
 class PlayerViewSet(viewsets.ModelViewSet):
@@ -15,30 +15,6 @@ class DogTypeViewSet(viewsets.ModelViewSet):
     queryset = DogType.objects.all()
     serializer_class = DogTypeSerializer
 
-    @action(detail=True, methods=['post'])
-    def move(self, request, pk=None):
-        dog = self.get_object()
-        new_x = request.data.get("x")
-        new_y = request.data.get("y")
-
-        if not new_x or not new_y:
-            return Response({"error": "Missing parameters"}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            new_x = int(new_x)
-            new_y = int(new_y)
-        except ValueError:
-            return Response({"error": "Invalid parameters"}, status=status.HTTP_400_BAD_REQUEST)
-
-        if new_x < 0 or new_x > 3 or new_y < 0 or new_y > 3:
-            return Response({"error": "Invalid move"}, status=status.HTTP_400_BAD_REQUEST)
-
-        dog.x_position = new_x
-        dog.y_position = new_y
-        dog.save()
-
-        return Response({"success": True})
-
 class GameViewSet(viewsets.ModelViewSet):
     queryset = Game.objects.all()
     serializer_class = GameSerializer
@@ -46,6 +22,32 @@ class GameViewSet(viewsets.ModelViewSet):
 class DogViewSet(viewsets.ModelViewSet):
     queryset = Dog.objects.all()
     serializer_class = DogSerializer
+
+    @action(detail=False, methods=['post'])
+    def move(self, request):
+        dog_id = request.data.get("dog_id")
+        new_x = request.data.get("x")
+        new_y = request.data.get("y")
+
+        if not dog_id or new_x is None or new_y is None:
+            return Response({"error": "Missing parameters"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            new_x = int(new_x)
+            new_y = int(new_y)
+            dog_id = int(dog_id)
+        except ValueError:
+            return Response({"error": "Invalid parameters"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if new_x < 1 or new_x > 4 or new_y < 1 or new_y > 4:
+            return Response({"error": "Invalid move"}, status=status.HTTP_400_BAD_REQUEST)
+
+        dog = get_object_or_404(Dog, id=dog_id)
+        dog.x_position = new_x
+        dog.y_position = new_y
+        dog.save()
+
+        return Response({"success": True})
 
 logger = logging.getLogger(__name__)
 
@@ -72,5 +74,4 @@ def game_view(request, game_id):
         },
         'dogs': dogs_with_position,
     }
-    # print(context)
     return JsonResponse(context)

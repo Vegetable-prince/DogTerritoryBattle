@@ -14,4 +14,5 @@ urlpatterns = [
     path('', home_view, name='home'),
     path('api/', include(router.urls)),
     path('game/<int:game_id>/', game_view, name='game_view'),
+    path('move_dog/', DogViewSet.as_view({'post': 'move'}), name='move_dog'),  # 追加
 ]
