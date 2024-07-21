@@ -1,8 +1,15 @@
+#game-board-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
 #game-board {
   position: relative;
   width: 400px;  /* 4x4のマス目の合計幅 */
   height: 400px; /* 4x4のマス目の合計高さ */
-  border: 1px solid black; /* 枠線をつける */
 }
 
 .dog {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../css/game/GameBoard.css';
 
@@ -7,6 +7,24 @@ const GameBoard = ({ initialData }) => {
     const [dogs, setDogs] = useState(initialData.dogs || []);
     const [selectedDog, setSelectedDog] = useState(null);
     const [validMoves, setValidMoves] = useState([]);
+    const [boardWidthVisible, setBoardWidthVisible] = useState(false);
+    const [boardHeightVisible, setBoardHeightVisible] = useState(false);
+
+    useEffect(() => {
+        // コマが4つの列または行に並んでいるかをチェック
+        const rows = new Set(dogs.map(dog => dog.top));
+        const cols = new Set(dogs.map(dog => dog.left));
+        if (cols.size >= 4) {
+            setBoardWidthVisible(true);
+        } else {
+            setBoardWidthVisible(false);
+        }
+        if (rows.size >= 4) {
+            setBoardHeightVisible(true);
+        } else {
+            setBoardHeightVisible(false);
+        }
+    }, [dogs]);
 
     const handleDogClick = (dog) => {
         if (selectedDog && selectedDog.id === dog.id) {
@@ -34,7 +52,7 @@ const GameBoard = ({ initialData }) => {
 
         const moves = possibleMoves.map(move => {
             return { x: x + move.dx, y: y + move.dy };
-        }).filter(move => isValidMove(move.x, move.y));
+        }).filter(move => isValidMove(move.x, move.y) && !isOccupied(move.x, move.y));
 
         setValidMoves(moves.map(move => ({
             x: move.x, // 位置をそのまま使用
@@ -66,6 +84,10 @@ const GameBoard = ({ initialData }) => {
         return true;
     };
 
+    const isOccupied = (x, y) => {
+        return dogs.some(dog => dog.left / 100 === x && dog.top / 100 === y);
+    };
+
     const handleMoveClick = (move) => {
         if (!selectedDog) return;
 
@@ -94,25 +116,35 @@ const GameBoard = ({ initialData }) => {
     };
 
     return (
-        <div id="game-board">
-            {dogs.map(dog => (
-                <div
-                    key={dog.id}
-                    className="dog"
-                    style={{ left: `${(dog.left - 100)}px`, top: `${(dog.top - 100)}px` }}  // 位置を0ベースに変換
-                    onClick={() => handleDogClick(dog)}
-                >
-                    {dog.name}
-                </div>
-            ))}
-            {validMoves.map((move, index) => (
-                <div
-                    key={index}
-                    className="valid-move"
-                    style={{ left: `${(move.x - 1) * 100}px`, top: `${(move.y - 1) * 100}px` }}  // 位置を0ベースに変換
-                    onClick={() => handleMoveClick(move)}
-                />
-            ))}
+        <div id="game-board-container">
+            <div 
+                id="game-board" 
+                style={{ 
+                    borderLeft: boardWidthVisible ? '1px solid black' : 'none',
+                    borderRight: boardWidthVisible ? '1px solid black' : 'none',
+                    borderTop: boardHeightVisible ? '1px solid black' : 'none',
+                    borderBottom: boardHeightVisible ? '1px solid black' : 'none'
+                }}
+            >
+                {dogs.map(dog => (
+                    <div
+                        key={dog.id}
+                        className="dog"
+                        style={{ left: `${(dog.left - 100)}px`, top: `${(dog.top - 100)}px` }}  // 位置を0ベースに変換
+                        onClick={() => handleDogClick(dog)}
+                    >
+                        {dog.name}
+                    </div>
+                ))}
+                {validMoves.map((move, index) => (
+                    <div
+                        key={index}
+                        className="valid-move"
+                        style={{ left: `${(move.x - 1) * 100}px`, top: `${(move.y - 1) * 100}px` }}  // 位置を0ベースに変換
+                        onClick={() => handleMoveClick(move)}
+                    />
+                ))}
+            </div>
         </div>
     );
 };
