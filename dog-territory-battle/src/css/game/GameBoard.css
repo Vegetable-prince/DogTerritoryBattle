@@ -1,34 +1,35 @@
 #game-board-container {
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
 }
 
 #game-board {
-  position: relative;
-  width: 400px;  /* 4x4のマス目の合計幅 */
-  height: 400px; /* 4x4のマス目の合計高さ */
+  position: absolute;
+  transform: translate(-50%, -50%);
 }
 
 .dog {
   position: absolute;
-  width: 100px;  /* マス目の幅 */
-  height: 100px; /* マス目の高さ */
+  width: 100px;
+  height: 100px;
   background-color: lightgray;
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 1px solid black; /* タイルの枠線 */
-  box-sizing: border-box;  /* パディングとボーダーを含むボックスサイズ */
+  border: 1px solid black;
+  box-sizing: border-box;
 }
 
 .valid-move {
   position: absolute;
-  width: 100px;  /* マス目の幅 */
-  height: 100px; /* マス目の高さ */
-  background-color: rgba(0, 255, 0, 0.3); /* 緑色の半透明 */
+  width: 100px;
+  height: 100px;
+  background-color: rgba(0, 255, 0, 0.3);
   border: 1px solid green;
-  box-sizing: border-box;  /* パディングとボーダーを含むボックスサイズ */
+  box-sizing: border-box;
 }
