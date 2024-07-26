@@ -1,16 +1,20 @@
 #game-board-container {
   position: relative;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
 }
 
 #game-board {
-  position: absolute;
-  transform: translate(-50%, -50%);
+  position: relative;
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .dog {
@@ -32,4 +36,27 @@
   background-color: rgba(0, 255, 0, 0.3);
   border: 1px solid green;
   box-sizing: border-box;
+}
+
+.hand-area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100px;
+  background-color: #eee;
+  border: 1px solid #ccc;
+  margin: 10px 0;
+}
+
+.hand-dog {
+  width: 80px;
+  height: 80px;
+  background-color: lightblue;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid blue;
+  margin: 5px;
+  cursor: pointer;
 }

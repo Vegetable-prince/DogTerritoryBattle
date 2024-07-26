@@ -15,4 +15,6 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('game/<int:game_id>/', game_view, name='game_view'),
     path('api/dogs/<int:pk>/move/', DogViewSet.as_view({'post': 'move'}), name='dog-move'),
+    path('api/dogs/<int:pk>/remove_from_board/', DogViewSet.as_view({'post': 'remove_from_board'}), name='dog-remove-from-board'),
+    path('api/dogs/<int:pk>/place_on_board/', DogViewSet.as_view({'post': 'place_on_board'}), name='dog-place-on-board'),
 ]
