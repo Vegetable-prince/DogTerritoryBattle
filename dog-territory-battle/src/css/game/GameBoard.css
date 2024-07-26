@@ -60,3 +60,19 @@
   margin: 5px;
   cursor: pointer;
 }
+
+#top-hand,
+#bottom-hand {
+    transition: background-color 0.3s ease;
+}
+
+#top-hand.highlight, #bottom-hand.highlight {
+  background-color: rgba(0, 255, 0, 0.3); /* 半透明の緑色でハイライト */
+  transition: background-color 0.3s ease;
+}
+
+/* GameBoard.css */
+.hand-area.highlighted {
+  background-color: rgba(144, 238, 144, 0.5);
+  transition: background-color 0.3s ease;
+}

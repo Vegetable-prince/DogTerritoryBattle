@@ -1,6 +1,27 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import '../css/game/GameBoard.css';
+import { generateValidMoves, generateValidMovesForHandPiece, shouldAddSpace } from '../utils/rules';
+
+const useHighlightHand = (selectedDog, game) => {
+    const [highlightedHand, setHighlightedHand] = useState(null);
+
+    useEffect(() => {
+        if (selectedDog && !selectedDog.is_in_hand) {
+            if (selectedDog.player === game.player1) {
+                setHighlightedHand('player1');
+            } else if (selectedDog.player === game.player2) {
+                setHighlightedHand('player2');
+            } else {
+                setHighlightedHand(null);
+            }
+        } else {
+            setHighlightedHand(null);
+        }
+    }, [selectedDog, game]);
+
+    return highlightedHand;
+};
 
 const GameBoard = ({ initialData }) => {
     const [player1Dogs, setPlayer1Dogs] = useState(initialData.player1_dogs || []);
@@ -45,92 +66,41 @@ const GameBoard = ({ initialData }) => {
         updateBoardBounds();
     }, [boardDogs, updateBoardBounds]);
 
-    const handleDogClick = (dog, player) => {
-        console.log("handleDogClick:", { dog, player });
+    const handleDogClick = (dog) => {
         if (selectedDog && selectedDog.id === dog.id) {
             setSelectedDog(null);
             setValidMoves([]);
         } else {
-            setSelectedDog({ ...dog, player });
-            highlightValidMoves(dog, player);
+            setSelectedDog(dog);
+            if (dog.is_in_hand) {
+                setValidMoves(generateValidMovesForHandPiece(boardDogs, boardBounds));
+            } else {
+                setValidMoves(generateValidMoves(dog, boardDogs, boardBounds));
+            }
         }
-    };
-
-    const highlightValidMoves = (dog, player) => {
-        console.log("highlightValidMoves:", { dog, player });
-        const x = dog.left / 100;
-        const y = dog.top / 100;
-        const possibleMoves = generatePossibleMoves(dog, x, y);
-        const validMoves = possibleMoves.filter(move => isValidMove(move.x, move.y) && !isOccupied(move.x, move.y));
-    
-        if (!dog.is_in_hand) {
-            // ボード上の駒の場合、手札の枠を追加
-            validMoves.push({ x: -1, y: -1 });
-        }
-    
-        setValidMoves(validMoves);
-    };
-
-    const generatePossibleMoves = (dog, x = 0, y = 0) => {
-        const possibleMoves = [
-            { dx: 0, dy: -1 },
-            { dx: 0, dy: 1 },
-            { dx: -1, dy: 0 },
-            { dx: 1, dy: 0 },
-            { dx: -1, dy: -1 },
-            { dx: 1, dy: -1 },
-            { dx: -1, dy: 1 },
-            { dx: 1, dy: 1 }
-        ];
-
-        return possibleMoves.map(move => ({
-            x: x + move.dx,
-            y: y + move.dy
-        }));
-    };
-
-    const isValidMove = (x, y) => {
-        const newBoardBounds = {
-            minX: Math.min(boardBounds.minX, x),
-            maxX: Math.max(boardBounds.maxX, x),
-            minY: Math.min(boardBounds.minY, y),
-            maxY: Math.max(boardBounds.maxY, y)
-        };
-
-        if (newBoardBounds.maxX - newBoardBounds.minX >= 4 || newBoardBounds.maxY - newBoardBounds.minY >= 4) {
-            return false;
-        }
-        return true;
-    };
-
-    const isOccupied = (x, y) => {
-        return boardDogs.some(dog => dog.left / 100 === x && dog.top / 100 === y);
     };
 
     const handleMoveClick = (move) => {
         if (!selectedDog) return;
-    
-        const currentPlayerDogs = selectedDog.player === 1 ? player1Dogs : player2Dogs;
-    
+
+        const currentPlayerDogs = selectedDog.player === initialData.game.player1 ? player1Dogs : player2Dogs;
+
         if (selectedDog.is_in_hand) {
-            console.log("place_on_board:", { selectedDog, move });
             axios.post(`/api/dogs/${selectedDog.id}/place_on_board/`, {
                 x: move.x,
                 y: move.y
             }).then(response => {
                 if (response.data.success) {
-                    const updatedDogs = currentPlayerDogs.map(dog => {
-                        if (dog.id === selectedDog.id) {
-                            return { ...dog, left: move.x * 100, top: move.y * 100, is_in_hand: false };
-                        }
-                        return dog;
-                    });
-                    if (selectedDog.player === 1) {
+                    const updatedDogs = currentPlayerDogs.filter(dog => dog.id !== selectedDog.id);
+                    const newDog = { ...selectedDog, left: move.x * 100, top: move.y * 100, is_in_hand: false };
+
+                    if (selectedDog.player === initialData.game.player1) {
                         setPlayer1Dogs(updatedDogs);
                     } else {
                         setPlayer2Dogs(updatedDogs);
                     }
-                    setBoardDogs([...boardDogs, { ...selectedDog, left: move.x * 100, top: move.y * 100, is_in_hand: false }]);
+
+                    setBoardDogs([...boardDogs, newDog]);
                     setSelectedDog(null);
                     setValidMoves([]);
                     updateBoardBounds();
@@ -141,7 +111,6 @@ const GameBoard = ({ initialData }) => {
                 console.log("Move failed: " + error);
             });
         } else {
-            console.log("move:", { selectedDog, move });
             axios.post(`/api/dogs/${selectedDog.id}/move/`, {
                 x: move.x,
                 y: move.y
@@ -153,14 +122,19 @@ const GameBoard = ({ initialData }) => {
                         }
                         return dog;
                     });
-                    if (selectedDog.player === 1) {
+                    if (selectedDog.player === initialData.game.player1) {
                         setPlayer1Dogs(updatedDogs);
                     } else {
                         setPlayer2Dogs(updatedDogs);
                     }
-                    setBoardDogs(boardDogs.map(dog => dog.id === selectedDog.id ? { ...dog, left: move.x * 100, top: move.y * 100 } : dog));
                     setSelectedDog(null);
                     setValidMoves([]);
+                    setBoardDogs(boardDogs.map(dog => {
+                        if (dog.id === selectedDog.id) {
+                            return { ...dog, left: move.x * 100, top: move.y * 100 };
+                        }
+                        return dog;
+                    }));
                     updateBoardBounds();
                 } else {
                     console.log("Move failed: " + response.data.error);
@@ -173,22 +147,21 @@ const GameBoard = ({ initialData }) => {
 
     const handleReturnToHandClick = () => {
         if (!selectedDog) return;
-    
-        console.log("remove_from_board:", { selectedDog });
+
         axios.post(`/api/dogs/${selectedDog.id}/remove_from_board/`, {
         }).then(response => {
             if (response.data.success) {
-                const currentPlayerDogs = selectedDog.player === 1 ? player1Dogs : player2Dogs;
+                const currentPlayerDogs = selectedDog.player === initialData.game.player1 ? player1Dogs : player2Dogs;
                 const updatedDogs = currentPlayerDogs.map(dog => {
                     if (dog.id === selectedDog.id) {
                         return { ...dog, is_in_hand: true, left: null, top: null };
                     }
                     return dog;
                 });
-                if (selectedDog.player === 1) {
-                    setPlayer1Dogs(updatedDogs);
+                if (selectedDog.player === initialData.game.player1) {
+                    setPlayer1Dogs([...updatedDogs, { ...selectedDog, is_in_hand: true, left: null, top: null }]);
                 } else {
-                    setPlayer2Dogs(updatedDogs);
+                    setPlayer2Dogs([...updatedDogs, { ...selectedDog, is_in_hand: true, left: null, top: null }]);
                 }
                 setBoardDogs(boardDogs.filter(dog => dog.id !== selectedDog.id));
                 setSelectedDog(null);
@@ -202,14 +175,21 @@ const GameBoard = ({ initialData }) => {
         });
     };
 
+    const spaceNeeded = shouldAddSpace(boardBounds);
+    const highlightedHand = useHighlightHand(selectedDog, initialData.game);
+
     return (
         <div id="game-board-container">
-            <div className="hand-area top-hand">
+            <div
+                id="top-hand"
+                className={`hand-area top-hand ${highlightedHand === 'player1' ? 'highlighted' : ''}`}
+                onClick={highlightedHand === 'player1' ? handleReturnToHandClick : null}
+            >
                 {player1Dogs.map(dog => (
                     <div
                         key={dog.id}
                         className={`hand-dog ${selectedDog && selectedDog.id === dog.id ? 'selected' : ''}`}
-                        onClick={() => handleDogClick(dog, 1)}
+                        onClick={() => handleDogClick(dog)}
                     >
                         {dog.name}
                     </div>
@@ -224,8 +204,8 @@ const GameBoard = ({ initialData }) => {
                     borderRight: showVerticalBorders ? '1px solid black' : 'none',
                     borderTop: showHorizontalBorders ? '1px solid black' : 'none',
                     borderBottom: showHorizontalBorders ? '1px solid black' : 'none',
-                    marginTop: 'auto',
-                    marginBottom: 'auto'
+                    marginTop: spaceNeeded ? '110px' : '20px',
+                    marginBottom: spaceNeeded ? '110px' : '20px'
                 }}
             >
                 {boardDogs.map(dog => (
@@ -233,7 +213,7 @@ const GameBoard = ({ initialData }) => {
                         key={dog.id}
                         className="dog"
                         style={{ left: `${(dog.left - boardBounds.minX * 100)}px`, top: `${(dog.top - boardBounds.minY * 100)}px` }}
-                        onClick={() => handleDogClick(dog, dog.player)}
+                        onClick={() => handleDogClick(dog)}
                     >
                         {dog.name}
                     </div>
@@ -247,12 +227,16 @@ const GameBoard = ({ initialData }) => {
                     />
                 ))}
             </div>
-            <div className="hand-area bottom-hand">
+            <div
+                id="bottom-hand"
+                className={`hand-area bottom-hand ${highlightedHand === 'player2' ? 'highlighted' : ''}`}
+                onClick={highlightedHand === 'player2' ? handleReturnToHandClick : null}
+            >
                 {player2Dogs.map(dog => (
                     <div
                         key={dog.id}
                         className={`hand-dog ${selectedDog && selectedDog.id === dog.id ? 'selected' : ''}`}
-                        onClick={() => handleDogClick(dog, 2)}
+                        onClick={() => handleDogClick(dog)}
                     >
                         {dog.name}
                     </div>

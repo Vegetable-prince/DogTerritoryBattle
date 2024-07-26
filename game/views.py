@@ -59,7 +59,7 @@ class DogViewSet(viewsets.ModelViewSet):
         dog.is_in_hand = False
         dog.save()
 
-        return Response({"success": True})
+        return Response({"success": True, 'dog': DogSerializer(dog).data})
 
     @action(detail=True, methods=['post'])
     def remove_from_board(self, request, pk=None):
@@ -69,7 +69,7 @@ class DogViewSet(viewsets.ModelViewSet):
         dog.is_in_hand = True
         dog.save()
         
-        return Response({"success": True})
+        return Response({"success": True, 'dog': DogSerializer(dog).data})
 
     @action(detail=True, methods=['post'])
     def place_on_board(self, request, pk=None):
@@ -86,24 +86,12 @@ class DogViewSet(viewsets.ModelViewSet):
         except ValueError:
             return Response({"error": "Invalid parameters"}, status=status.HTTP_400_BAD_REQUEST)
 
-        dogs_in_game = Dog.objects.filter(game=dog.game, is_in_hand=False)
-        xs = [d.x_position for d in dogs_in_game]
-        ys = [d.y_position for d in dogs_in_game]
-
-        min_x = min(xs)
-        max_x = max(xs)
-        min_y = min(ys)
-        max_y = max(ys)
-
-        if new_x < min_x - 1 or new_x > max_x + 1 or new_y < min_y - 1 or new_y > max_y + 1:
-            return Response({"error": "Invalid move"}, status=status.HTTP_400_BAD_REQUEST)
-
         dog.x_position = new_x
         dog.y_position = new_y
         dog.is_in_hand = False
         dog.save()
 
-        return Response({"success": True})
+        return Response({"success": True, 'dog': DogSerializer(dog).data})
 
 def home_view(request):
     return render(request, 'index.html')
@@ -114,22 +102,19 @@ def game_view(request, game_id):
     player1_dogs = []
     player2_dogs = []
     for dog in dogs:
+        dog_data = {
+            'id': dog.id,
+            'name': dog.dog_type.name,
+            'left': dog.x_position * 100 if dog.x_position is not None else None,
+            'top': dog.y_position * 100 if dog.y_position is not None else None,
+            'is_in_hand': dog.is_in_hand,
+            'player': dog.player.id  # プレイヤーIDを追加
+        }
         if dog.player == game.player1:
-            player1_dogs.append({
-                'id': dog.id,
-                'name': dog.dog_type.name,
-                'left': dog.x_position * 100 if dog.x_position is not None else None,
-                'top': dog.y_position * 100 if dog.y_position is not None else None,
-                'is_in_hand': dog.is_in_hand
-            })
+            player1_dogs.append(dog_data)
         else:
-            player2_dogs.append({
-                'id': dog.id,
-                'name': dog.dog_type.name,
-                'left': dog.x_position * 100 if dog.x_position is not None else None,
-                'top': dog.y_position * 100 if dog.y_position is not None else None,
-                'is_in_hand': dog.is_in_hand
-            })
+            player2_dogs.append(dog_data)
+    
     context = {
         'game': {
             'id': game.id,
@@ -142,4 +127,3 @@ def game_view(request, game_id):
         'board_dogs': [dog for dog in player1_dogs + player2_dogs if not dog['is_in_hand']]
     }
     return JsonResponse(context)
-
