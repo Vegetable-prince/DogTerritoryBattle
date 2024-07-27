@@ -35,8 +35,9 @@ class Dog(TimeStampedModel):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     dog_type = models.ForeignKey(DogType, on_delete=models.CASCADE)
-    x_position = models.IntegerField()
-    y_position = models.IntegerField()
+    x_position = models.IntegerField(null=True, blank=True)
+    y_position = models.IntegerField(null=True, blank=True)
+    is_in_hand = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.dog_type.name} at ({self.x_position}, {self.y_position})"
+        return f"{self.dog_type.name} at ({self.x_position}, {self.y_position})" if not self.is_in_hand else f"{self.dog_type.name} in hand"

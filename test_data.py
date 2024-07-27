@@ -11,16 +11,20 @@ from game.models import Player, DogType, Game, Dog
 
 # 管理者ユーザーを作成する
 if not User.objects.filter(username='admin').exists():
-    admin_user = User.objects.create_superuser('admin', 'admin@example.com', 'adminpassword')
+    User.objects.create_superuser('admin', 'admin@example.com', 'adminpassword')
 
 # プレイヤーを作成する
 if not User.objects.filter(username='player1').exists():
     user1 = User.objects.create_user('player1', 'player1@example.com', 'password1')
     player1 = Player.objects.create(user=user1)
+else:
+    player1 = Player.objects.get(user__username='player1')
 
 if not User.objects.filter(username='player2').exists():
     user2 = User.objects.create_user('player2', 'player2@example.com', 'password2')
     player2 = Player.objects.create(user=user2)
+else:
+    player2 = Player.objects.get(user__username='player2')
 
 # 犬の種類を作成する
 dog_types = [
@@ -38,13 +42,26 @@ for dog_type in dog_types:
 # ゲームを作成する
 if not Game.objects.exists():
     game = Game.objects.create(player1=player1, player2=player2, current_turn=player1)
+else:
+    game = Game.objects.first()  # 既存のゲームがある場合、最初のゲームを取得する
 
 # 犬のピースを作成する
 dog_positions = [
-    {'game': game, 'player': player1, 'dog_type': DogType.objects.get(name='ボス犬'), 'x_position': 1, 'y_position': 1},
-    {'game': game, 'player': player2, 'dog_type': DogType.objects.get(name='アニキ犬'), 'x_position': 2, 'y_position': 2},
-    {'game': game, 'player': player1, 'dog_type': DogType.objects.get(name='ヤイ犬'), 'x_position': 3, 'y_position': 3},
-    {'game': game, 'player': player2, 'dog_type': DogType.objects.get(name='豆でっぽう犬'), 'x_position': 4, 'y_position': 4},
+    # Player 1's dogs
+    {'game': game, 'player': player1, 'dog_type': DogType.objects.get(name='ボス犬'), 'x_position': 2, 'y_position': 1, 'is_in_hand': False},
+    {'game': game, 'player': player1, 'dog_type': DogType.objects.get(name='アニキ犬'), 'x_position': None, 'y_position': None},
+    {'game': game, 'player': player1, 'dog_type': DogType.objects.get(name='ヤイ犬'), 'x_position': None, 'y_position': None},
+    {'game': game, 'player': player1, 'dog_type': DogType.objects.get(name='豆でっぽう犬'), 'x_position': None, 'y_position': None},
+    {'game': game, 'player': player1, 'dog_type': DogType.objects.get(name='トツ犬'), 'x_position': None, 'y_position': None},
+    {'game': game, 'player': player1, 'dog_type': DogType.objects.get(name='ハジケ犬'), 'x_position': None, 'y_position': None},
+
+    # Player 2's dogs
+    {'game': game, 'player': player2, 'dog_type': DogType.objects.get(name='ボス犬'), 'x_position': 2, 'y_position': 3, 'is_in_hand': False},
+    {'game': game, 'player': player2, 'dog_type': DogType.objects.get(name='アニキ犬'), 'x_position': None, 'y_position': None},
+    {'game': game, 'player': player2, 'dog_type': DogType.objects.get(name='ヤイ犬'), 'x_position': None, 'y_position': None},
+    {'game': game, 'player': player2, 'dog_type': DogType.objects.get(name='豆でっぽう犬'), 'x_position': None, 'y_position': None},
+    {'game': game, 'player': player2, 'dog_type': DogType.objects.get(name='トツ犬'), 'x_position': None, 'y_position': None},
+    {'game': game, 'player': player2, 'dog_type': DogType.objects.get(name='ハジケ犬'), 'x_position': None, 'y_position': None},
 ]
 
 for dog in dog_positions:

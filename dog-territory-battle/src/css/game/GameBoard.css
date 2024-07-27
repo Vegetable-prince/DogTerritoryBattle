@@ -1,0 +1,78 @@
+#game-board-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+#game-board {
+  position: relative;
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.dog {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background-color: lightgray;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid black;
+  box-sizing: border-box;
+}
+
+.valid-move {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background-color: rgba(0, 255, 0, 0.3);
+  border: 1px solid green;
+  box-sizing: border-box;
+}
+
+.hand-area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100px;
+  background-color: #eee;
+  border: 1px solid #ccc;
+  margin: 10px 0;
+}
+
+.hand-dog {
+  width: 80px;
+  height: 80px;
+  background-color: lightblue;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid blue;
+  margin: 5px;
+  cursor: pointer;
+}
+
+#top-hand,
+#bottom-hand {
+    transition: background-color 0.3s ease;
+}
+
+#top-hand.highlight, #bottom-hand.highlight {
+  background-color: rgba(0, 255, 0, 0.3); /* 半透明の緑色でハイライト */
+  transition: background-color 0.3s ease;
+}
+
+/* GameBoard.css */
+.hand-area.highlighted {
+  background-color: rgba(144, 238, 144, 0.5);
+  transition: background-color 0.3s ease;
+}

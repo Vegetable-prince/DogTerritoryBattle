@@ -1,0 +1,9 @@
+/* index.css */
+.App {
+  text-align: center;
+}
+
+.dog {
+  padding: 10px;
+  border: 1px solid #000;
+}
