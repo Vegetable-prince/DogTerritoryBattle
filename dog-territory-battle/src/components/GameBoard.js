@@ -3,6 +3,13 @@ import axios from 'axios';
 import '../css/game/GameBoard.css';
 import { generateValidMoves, generateValidMovesForHandPiece, shouldAddSpace } from '../utils/rules';
 
+/**
+ * 手札をハイライトするカスタムフック
+ *
+ * @param {Object} selectedDog - 選択された犬のオブジェクト
+ * @param {Object} game - ゲームのオブジェクト
+ * @returns {string} - ハイライトされる手札のプレイヤー ('player1' または 'player2')
+ */
 const useHighlightHand = (selectedDog, game) => {
     const [highlightedHand, setHighlightedHand] = useState(null);
 
@@ -23,9 +30,15 @@ const useHighlightHand = (selectedDog, game) => {
     return highlightedHand;
 };
 
+/**
+ * ゲームボードを表示するコンポーネント
+ *
+ * @param {Object} initialData - 初期データ
+ * @returns {JSX.Element} - ゲームボードのJSX要素
+ */
 const GameBoard = ({ initialData }) => {
-    const [player1Dogs, setPlayer1Dogs] = useState(initialData.player1_dogs || []);
-    const [player2Dogs, setPlayer2Dogs] = useState(initialData.player2_dogs || []);
+    const [player1HandDogs, setPlayer1HandDogs] = useState(initialData.player1_hand_dogs || []);
+    const [player2HandDogs, setPlayer2HandDogs] = useState(initialData.player2_hand_dogs || []);
     const [boardDogs, setBoardDogs] = useState(initialData.board_dogs || []);
     const [selectedDog, setSelectedDog] = useState(null);
     const [validMoves, setValidMoves] = useState([]);
@@ -33,6 +46,9 @@ const GameBoard = ({ initialData }) => {
     const [showVerticalBorders, setShowVerticalBorders] = useState(false);
     const [showHorizontalBorders, setShowHorizontalBorders] = useState(false);
 
+    /**
+     * ボードの境界を更新する関数
+     */
     const updateBoardBounds = useCallback(() => {
         if (boardDogs.length === 0) return;
         const xs = boardDogs.map(dog => dog.left / 100);
@@ -42,30 +58,21 @@ const GameBoard = ({ initialData }) => {
         const minY = Math.min(...ys);
         const maxY = Math.max(...ys);
 
-        setBoardBounds({
-            minX,
-            maxX,
-            minY,
-            maxY
-        });
+        setBoardBounds({ minX, maxX, minY, maxY });
 
-        if (maxX - minX >= 3) {
-            setShowVerticalBorders(true);
-        } else {
-            setShowVerticalBorders(false);
-        }
-
-        if (maxY - minY >= 3) {
-            setShowHorizontalBorders(true);
-        } else {
-            setShowHorizontalBorders(false);
-        }
+        setShowVerticalBorders(maxX - minX >= 3);
+        setShowHorizontalBorders(maxY - minY >= 3);
     }, [boardDogs]);
 
     useEffect(() => {
         updateBoardBounds();
     }, [boardDogs, updateBoardBounds]);
 
+    /**
+     * 犬をクリックしたときのハンドラ
+     *
+     * @param {Object} dog - クリックされた犬のオブジェクト
+     */
     const handleDogClick = (dog) => {
         if (selectedDog && selectedDog.id === dog.id) {
             setSelectedDog(null);
@@ -80,99 +87,88 @@ const GameBoard = ({ initialData }) => {
         }
     };
 
+    /**
+     * 有効な移動先をクリックしたときのハンドラ
+     *
+     * @param {Object} move - クリックされた移動先のオブジェクト
+     */
     const handleMoveClick = (move) => {
         if (!selectedDog) return;
 
-        const currentPlayerDogs = selectedDog.player === initialData.game.player1 ? player1Dogs : player2Dogs;
+        const currentPlayerDogs = selectedDog.player === initialData.game.player1 ? player1HandDogs : player2HandDogs;
 
         if (selectedDog.is_in_hand) {
-            axios.post(`/api/dogs/${selectedDog.id}/place_on_board/`, {
-                x: move.x,
-                y: move.y
-            }).then(response => {
-                if (response.data.success) {
-                    const updatedDogs = currentPlayerDogs.filter(dog => dog.id !== selectedDog.id);
-                    const newDog = { ...selectedDog, left: move.x * 100, top: move.y * 100, is_in_hand: false };
+            axios.post(`/api/dogs/${selectedDog.id}/place_on_board/`, { x: move.x, y: move.y })
+                .then(response => {
+                    if (response.data.success) {
+                        const updatedDogs = currentPlayerDogs.filter(dog => dog.id !== selectedDog.id);
+                        const newDog = { ...selectedDog, left: move.x * 100, top: move.y * 100, is_in_hand: false };
 
-                    if (selectedDog.player === initialData.game.player1) {
-                        setPlayer1Dogs(updatedDogs);
+                        selectedDog.player === initialData.game.player1 ? setPlayer1HandDogs(updatedDogs) : setPlayer2HandDogs(updatedDogs);
+                        setBoardDogs([...boardDogs, newDog]);
+                        setSelectedDog(null);
+                        setValidMoves([]);
+                        updateBoardBounds();
                     } else {
-                        setPlayer2Dogs(updatedDogs);
+                        console.log("Move failed: " + response.data.error);
                     }
-
-                    setBoardDogs([...boardDogs, newDog]);
-                    setSelectedDog(null);
-                    setValidMoves([]);
-                    updateBoardBounds();
-                } else {
-                    console.log("Move failed: " + response.data.error);
-                }
-            }).catch(error => {
-                console.log("Move failed: " + error);
-            });
+                })
+                .catch(error => {
+                    console.log("Move failed: " + error);
+                });
         } else {
-            axios.post(`/api/dogs/${selectedDog.id}/move/`, {
-                x: move.x,
-                y: move.y
-            }).then(response => {
-                if (response.data.success) {
-                    const updatedDogs = currentPlayerDogs.map(dog => {
-                        if (dog.id === selectedDog.id) {
-                            return { ...dog, left: move.x * 100, top: move.y * 100 };
-                        }
-                        return dog;
-                    });
-                    if (selectedDog.player === initialData.game.player1) {
-                        setPlayer1Dogs(updatedDogs);
+            axios.post(`/api/dogs/${selectedDog.id}/move/`, { x: move.x, y: move.y })
+                .then(response => {
+                    if (response.data.success) {
+                        const updatedDogs = currentPlayerDogs.map(dog => dog.id === selectedDog.id ? { ...dog, left: move.x * 100, top: move.y * 100 } : dog);
+                        selectedDog.player === initialData.game.player1 ? setPlayer1HandDogs(updatedDogs) : setPlayer2HandDogs(updatedDogs);
+                        setBoardDogs(boardDogs.map(dog => dog.id === selectedDog.id ? { ...dog, left: move.x * 100, top: move.y * 100 } : dog));
+                        setSelectedDog(null);
+                        setValidMoves([]);
+                        updateBoardBounds();
                     } else {
-                        setPlayer2Dogs(updatedDogs);
+                        console.log("Move failed: " + response.data.error);
                     }
-                    setSelectedDog(null);
-                    setValidMoves([]);
-                    setBoardDogs(boardDogs.map(dog => {
-                        if (dog.id === selectedDog.id) {
-                            return { ...dog, left: move.x * 100, top: move.y * 100 };
-                        }
-                        return dog;
-                    }));
-                    updateBoardBounds();
-                } else {
-                    console.log("Move failed: " + response.data.error);
-                }
-            }).catch(error => {
-                console.log("Move failed: " + error);
-            });
+                })
+                .catch(error => {
+                    console.log("Move failed: " + error);
+                });
         }
     };
 
+    /**
+     * 犬を手札に戻すときのハンドラ
+     */
     const handleReturnToHandClick = () => {
         if (!selectedDog) return;
 
-        axios.post(`/api/dogs/${selectedDog.id}/remove_from_board/`, {
-        }).then(response => {
-            if (response.data.success) {
-                const currentPlayerDogs = selectedDog.player === initialData.game.player1 ? player1Dogs : player2Dogs;
-                const updatedDogs = currentPlayerDogs.map(dog => {
-                    if (dog.id === selectedDog.id) {
-                        return { ...dog, is_in_hand: true, left: null, top: null };
+        axios.post(`/api/dogs/${selectedDog.id}/remove_from_board/`)
+            .then(response => {
+                if (response.data.success) {
+                    const currentPlayerDogs = selectedDog.player === initialData.game.player1 ? player1HandDogs : player2HandDogs;
+                    // 手札に戻る犬を新しく作成
+                    const updatedDog = { ...selectedDog, is_in_hand: true, left: null, top: null };
+                    // 現在の手札に新しい犬を追加
+                    const updatedDogs = [...currentPlayerDogs, updatedDog];
+
+                    if (selectedDog.player === initialData.game.player1) {
+                        setPlayer1HandDogs(updatedDogs);
+                    } else {
+                        setPlayer2HandDogs(updatedDogs);
                     }
-                    return dog;
-                });
-                if (selectedDog.player === initialData.game.player1) {
-                    setPlayer1Dogs([...updatedDogs, { ...selectedDog, is_in_hand: true, left: null, top: null }]);
+
+                    // ボードから犬を削除
+                    setBoardDogs(boardDogs.filter(dog => dog.id !== selectedDog.id));
+                    setSelectedDog(null);
+                    setValidMoves([]);
+                    updateBoardBounds();
                 } else {
-                    setPlayer2Dogs([...updatedDogs, { ...selectedDog, is_in_hand: true, left: null, top: null }]);
+                    console.log("Move failed: " + response.data.error);
                 }
-                setBoardDogs(boardDogs.filter(dog => dog.id !== selectedDog.id));
-                setSelectedDog(null);
-                setValidMoves([]);
-                updateBoardBounds();
-            } else {
-                console.log("Move failed: " + response.data.error);
-            }
-        }).catch(error => {
-            console.log("Move failed: " + error);
-        });
+            })
+            .catch(error => {
+                console.log("Move failed: " + error);
+            });
     };
 
     const spaceNeeded = shouldAddSpace(boardBounds);
@@ -185,7 +181,7 @@ const GameBoard = ({ initialData }) => {
                 className={`hand-area top-hand ${highlightedHand === 'player1' ? 'highlighted' : ''}`}
                 onClick={highlightedHand === 'player1' ? handleReturnToHandClick : null}
             >
-                {player1Dogs.map(dog => (
+                {player1HandDogs.map(dog => (
                     <div
                         key={dog.id}
                         className={`hand-dog ${selectedDog && selectedDog.id === dog.id ? 'selected' : ''}`}
@@ -232,7 +228,7 @@ const GameBoard = ({ initialData }) => {
                 className={`hand-area bottom-hand ${highlightedHand === 'player2' ? 'highlighted' : ''}`}
                 onClick={highlightedHand === 'player2' ? handleReturnToHandClick : null}
             >
-                {player2Dogs.map(dog => (
+                {player2HandDogs.map(dog => (
                     <div
                         key={dog.id}
                         className={`hand-dog ${selectedDog && selectedDog.id === dog.id ? 'selected' : ''}`}

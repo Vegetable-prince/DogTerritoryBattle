@@ -10,23 +10,45 @@ from .serializers import DogSerializer, PlayerSerializer, DogTypeSerializer, Gam
 logger = logging.getLogger(__name__)
 
 class PlayerViewSet(viewsets.ModelViewSet):
+    """
+    プレイヤーのCRUD操作を提供するViewSet。
+    """
     queryset = Player.objects.all()
     serializer_class = PlayerSerializer
 
 class DogTypeViewSet(viewsets.ModelViewSet):
+    """
+    犬の種類のCRUD操作を提供するViewSet。
+    """
     queryset = DogType.objects.all()
     serializer_class = DogTypeSerializer
 
 class GameViewSet(viewsets.ModelViewSet):
+    """
+    ゲームのCRUD操作を提供するViewSet。
+    """
     queryset = Game.objects.all()
     serializer_class = GameSerializer
 
 class DogViewSet(viewsets.ModelViewSet):
+    """
+    犬のCRUD操作を提供するViewSet。
+    """
     queryset = Dog.objects.all()
     serializer_class = DogSerializer
 
     @action(detail=True, methods=['post'])
     def move(self, request, pk=None):
+        """
+        犬を新しい位置に移動するアクション。
+
+        Args:
+            request (Request): HTTPリクエストオブジェクト。
+            pk (int, optional): 犬のプライマリキー。
+
+        Returns:
+            Response: 成功時に犬の情報を含むレスポンス。失敗時にエラーメッセージを含むレスポンス。
+        """
         dog = self.get_object()
         new_x = request.data.get("x")
         new_y = request.data.get("y")
@@ -43,13 +65,10 @@ class DogViewSet(viewsets.ModelViewSet):
             return Response({"error": "Invalid parameters"}, status=status.HTTP_400_BAD_REQUEST)
 
         dogs_in_game = Dog.objects.filter(game=dog.game, is_in_hand=False)
-        xs = [d.x_position for d in dogs_in_game]
-        ys = [d.y_position for d in dogs_in_game]
+        xs, ys = [d.x_position for d in dogs_in_game], [d.y_position for d in dogs_in_game]
 
-        min_x = min(xs)
-        max_x = max(xs)
-        min_y = min(ys)
-        max_y = max(ys)
+        min_x, max_x = min(xs), max(xs)
+        min_y, max_y = min(ys), max(ys)
 
         if new_x < min_x - 1 or new_x > max_x + 1 or new_y < min_y - 1 or new_y > max_y + 1:
             return Response({"error": "Invalid move"}, status=status.HTTP_400_BAD_REQUEST)
@@ -63,6 +82,16 @@ class DogViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def remove_from_board(self, request, pk=None):
+        """
+        ボードから犬を取り除くアクション。
+
+        Args:
+            request (Request): HTTPリクエストオブジェクト。
+            pk (int, optional): 犬のプライマリキー。
+
+        Returns:
+            Response: 成功時に犬の情報を含むレスポンス。失敗時にエラーメッセージを含むレスポンス。
+        """
         dog = self.get_object()
         dog.x_position = None
         dog.y_position = None
@@ -73,6 +102,16 @@ class DogViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def place_on_board(self, request, pk=None):
+        """
+        犬をボードに配置するアクション。
+
+        Args:
+            request (Request): HTTPリクエストオブジェクト。
+            pk (int, optional): 犬のプライマリキー。
+
+        Returns:
+            Response: 成功時に犬の情報を含むレスポンス。失敗時にエラーメッセージを含むレスポンス。
+        """
         dog = self.get_object()
         new_x = request.data.get("x")
         new_y = request.data.get("y")
@@ -94,13 +133,32 @@ class DogViewSet(viewsets.ModelViewSet):
         return Response({"success": True, 'dog': DogSerializer(dog).data})
 
 def home_view(request):
+    """
+    ホームページをレンダリングするビュー。
+
+    Args:
+        request (HttpRequest): HTTPリクエストオブジェクト。
+
+    Returns:
+        HttpResponse: レンダリングされたHTMLを含むレスポンス。
+    """
     return render(request, 'index.html')
 
 def game_view(request, game_id):
+    """
+    指定されたゲームの状態をJSON形式で返すビュー。
+
+    Args:
+        request (HttpRequest): HTTPリクエストオブジェクト。
+        game_id (int): ゲームのプライマリキー。
+
+    Returns:
+        JsonResponse: ゲームの状態を含むJSONレスポンス。
+    """
     game = get_object_or_404(Game, id=game_id)
     dogs = Dog.objects.filter(game=game)
-    player1_dogs = []
-    player2_dogs = []
+    player1_hand_dogs, player2_hand_dogs = [], []
+
     for dog in dogs:
         dog_data = {
             'id': dog.id,
@@ -108,12 +166,12 @@ def game_view(request, game_id):
             'left': dog.x_position * 100 if dog.x_position is not None else None,
             'top': dog.y_position * 100 if dog.y_position is not None else None,
             'is_in_hand': dog.is_in_hand,
-            'player': dog.player.id  # プレイヤーIDを追加
+            'player': dog.player.id
         }
         if dog.player == game.player1:
-            player1_dogs.append(dog_data)
+            player1_hand_dogs.append(dog_data)
         else:
-            player2_dogs.append(dog_data)
+            player2_hand_dogs.append(dog_data)
     
     context = {
         'game': {
@@ -122,8 +180,8 @@ def game_view(request, game_id):
             'player1': game.player1.id,
             'player2': game.player2.id,
         },
-        'player1_dogs': [dog for dog in player1_dogs if dog['is_in_hand']],
-        'player2_dogs': [dog for dog in player2_dogs if dog['is_in_hand']],
-        'board_dogs': [dog for dog in player1_dogs + player2_dogs if not dog['is_in_hand']]
+        'player1_hand_dogs': [dog for dog in player1_hand_dogs if dog['is_in_hand']],
+        'player2_hand_dogs': [dog for dog in player2_hand_dogs if dog['is_in_hand']],
+        'board_dogs': [dog for dog in player1_hand_dogs + player2_hand_dogs if not dog['is_in_hand']]
     }
     return JsonResponse(context)
