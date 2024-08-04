@@ -73,12 +73,44 @@ class DogViewSet(viewsets.ModelViewSet):
         if new_x < min_x - 1 or new_x > max_x + 1 or new_y < min_y - 1 or new_y > max_y + 1:
             return Response({"error": "Invalid move"}, status=status.HTTP_400_BAD_REQUEST)
 
+        # 指定されたマスに犬が移動できるかどうか確認している
+        if not self.is_valid_move(dog, new_x, new_y):
+            return Response({"error": "Invalid move for this dog type"}, status=status.HTTP_400_BAD_REQUEST)
+
         dog.x_position = new_x
         dog.y_position = new_y
         dog.is_in_hand = False
         dog.save()
 
         return Response({"success": True, 'dog': DogSerializer(dog).data})
+
+    def is_valid_move(self, dog, new_x, new_y):
+        """
+        指定した移動先のマスがゲームルールに従っているかどうかを確認するメソッド。
+
+        Args:
+            dog (Dog): 移動させる犬のオブジェクト。
+            new_x (int): 移動先マスのx座標。
+            new_y (int): 移動先マスのy座標。
+
+        Returns:
+            bool: 移動が有効である場合はTrue、無効である場合はFalseを返す。
+        """
+        movement_type = dog.dog_type.movement_type
+        max_steps = dog.dog_type.max_steps
+
+        dx = abs(new_x - dog.x_position)
+        dy = abs(new_y - dog.y_position)
+
+        if movement_type == 'diagonal':
+            return dx == dy and (max_steps is None or dx <= max_steps)
+        elif movement_type == 'orthogonal':
+            return (dx == 0 or dy == 0) and (max_steps is None or dx + dy <= max_steps)
+        elif movement_type == 'diagonal_orthogonal':
+            return (dx == dy or dx == 0 or dy == 0) and (max_steps is None or max(dx, dy) <= max_steps)
+        elif movement_type == 'special_hajike':
+            return (dx, dy) in [(1, 2), (2, 1)]
+        return False
 
     @action(detail=True, methods=['post'])
     def remove_from_board(self, request, pk=None):
@@ -166,7 +198,9 @@ def game_view(request, game_id):
             'left': dog.x_position * 100 if dog.x_position is not None else None,
             'top': dog.y_position * 100 if dog.y_position is not None else None,
             'is_in_hand': dog.is_in_hand,
-            'player': dog.player.id
+            'player': dog.player.id,
+            'movement_type': dog.dog_type.movement_type,
+            'max_steps': dog.dog_type.max_steps
         }
         if dog.player == game.player1:
             player1_hand_dogs.append(dog_data)
