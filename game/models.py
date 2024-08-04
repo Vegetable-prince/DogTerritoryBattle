@@ -17,7 +17,8 @@ class Player(TimeStampedModel):
 
 class DogType(TimeStampedModel):
     name = models.CharField(max_length=100)
-    movement_pattern = models.TextField()
+    movement_type = models.CharField(max_length=50)
+    max_steps = models.IntegerField(null=True, blank=True)
     
     def __str__(self):
         return self.name

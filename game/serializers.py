@@ -9,7 +9,7 @@ class PlayerSerializer(serializers.ModelSerializer):
 class DogTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = DogType
-        fields = ['id', 'name', 'movement_pattern', 'created_at', 'updated_at', 'deleted_at']
+        fields = ['id', 'name', 'movement_type', 'max_steps', 'created_at', 'updated_at', 'deleted_at']
 
 class GameSerializer(serializers.ModelSerializer):
     player1 = PlayerSerializer()

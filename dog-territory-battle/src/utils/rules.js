@@ -9,39 +9,95 @@
 export const generateValidMoves = (dog, boardDogs, boardBounds) => {
     const x = dog.left / 100;
     const y = dog.top / 100;
-    const possibleMoves = [
-        { dx: 0, dy: -1 },
-        { dx: 0, dy: 1 },
-        { dx: -1, dy: 0 },
-        { dx: 1, dy: 0 },
-        { dx: -1, dy: -1 },
-        { dx: 1, dy: -1 },
-        { dx: -1, dy: 1 },
-        { dx: 1, dy: 1 }
-    ];
+    const moves = [];
 
-    return possibleMoves
-        .map(move => ({
-            x: x + move.dx,
-            y: y + move.dy
-        }))
-        .filter(move => {
-            // 新しいボードの境界を計算
+    const movementType = dog.movement_type;
+    const maxSteps = dog.max_steps;
+    const directions = getDirections(movementType);
+
+    directions.forEach(direction => {
+        let steps = 0;
+        while (steps < (maxSteps || Infinity)) {
+            const newX = x + direction.dx * (steps + 1);
+            const newY = y + direction.dy * (steps + 1);
             const newBoardBounds = {
-                minX: Math.min(boardBounds.minX, move.x),
-                maxX: Math.max(boardBounds.maxX, move.x),
-                minY: Math.min(boardBounds.minY, move.y),
-                maxY: Math.max(boardBounds.maxY, move.y)
+                minX: Math.min(boardBounds.minX, newX),
+                maxX: Math.max(boardBounds.maxX, newX),
+                minY: Math.min(boardBounds.minY, newY),
+                maxY: Math.max(boardBounds.maxY, newY)
             };
 
-            // 新しい移動がボードのサイズを超えていないかチェック
+            // ボードのサイズ制限を超えていないかチェック
             if (newBoardBounds.maxX - newBoardBounds.minX >= 4 || newBoardBounds.maxY - newBoardBounds.minY >= 4) {
-                return false;
+                break;
             }
 
-            // 他の駒が既にその位置に存在していないかチェック
-            return !boardDogs.some(dog => dog.left / 100 === move.x && dog.top / 100 === move.y);
-        });
+            // 他の駒がその位置に存在しないかチェック
+            if (boardDogs.some(dog => dog.left / 100 === newX && dog.top / 100 === newY)) {
+                break;
+            }
+
+            // 移動可能な座標を追加
+            moves.push({ x: newX, y: newY });
+            steps++;
+        }
+    });
+
+    return moves;
+};
+
+/**
+ * 犬ごとの移動先を生成する関数
+ *
+ * @param {String} type - 移動させる犬のタイプ文字列
+ * @returns {Array} - 移動可能な座標のリスト
+ */
+const getDirections = (type) => {
+    switch (type) {
+        case 'diagonal_orthogonal':
+            // 対角線と直線方向への移動
+            return [
+                { dx: -1, dy: -1 },
+                { dx: 1, dy: -1 },
+                { dx: -1, dy: 1 },
+                { dx: 1, dy: 1 },
+                { dx: 0, dy: -1 },
+                { dx: 0, dy: 1 },
+                { dx: -1, dy: 0 },
+                { dx: 1, dy: 0 }
+            ];
+        case 'diagonal':
+            // 対角線方向への移動
+            return [
+                { dx: -1, dy: -1 },
+                { dx: 1, dy: -1 },
+                { dx: -1, dy: 1 },
+                { dx: 1, dy: 1 }
+            ];
+        case 'orthogonal':
+            // 直線方向への移動
+            return [
+                { dx: 0, dy: -1 },
+                { dx: 0, dy: 1 },
+                { dx: -1, dy: 0 },
+                { dx: 1, dy: 0 }
+            ];
+        case 'special_hajike':
+            // 特殊なハジケ犬の移動 (L字型)
+            return [
+                { dx: 1, dy: 2 },
+                { dx: 1, dy: -2 },
+                { dx: -1, dy: 2 },
+                { dx: -1, dy: -2 },
+                { dx: 2, dy: 1 },
+                { dx: 2, dy: -1 },
+                { dx: -2, dy: 1 },
+                { dx: -2, dy: -1 }
+            ];
+        default:
+            // それ以外のタイプの場合、移動できない
+            return [];
+    }
 };
 
 /**
