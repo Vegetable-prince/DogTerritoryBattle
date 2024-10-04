@@ -69,6 +69,13 @@ const GameBoard = ({ initialData }) => {
         updateBoardBounds();
     }, [boardDogs, updateBoardBounds]);
 
+    useEffect(() => {
+        const winner = checkWinner({ ...initialData.game, dogs: boardDogs });
+        if (winner) {
+            setWinner(winner);
+        }
+    }, [boardDogs]);
+
     /**
      * 犬をクリックしたときのハンドラ
      *
@@ -110,11 +117,6 @@ const GameBoard = ({ initialData }) => {
                         setSelectedDog(null);
                         setValidMoves([]);
                         updateBoardBounds();
-
-                        const winner = checkWinner({ ...initialData.game, dogs: boardDogs });
-                        if (winner) {
-                            setWinner(winner);
-                        }
                     } else {
                         console.log("Move failed: " + response.data.error);
                     }
@@ -132,11 +134,6 @@ const GameBoard = ({ initialData }) => {
                         setSelectedDog(null);
                         setValidMoves([]);
                         updateBoardBounds();
-
-                        const winner = checkWinner({ ...initialData.game, dogs: boardDogs });
-                        if (winner) {
-                            setWinner(winner);
-                        }
                     } else {
                         console.log("Move failed: " + response.data.error);
                     }

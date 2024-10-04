@@ -157,10 +157,10 @@ export const generateValidMovesForHandPiece = (boardDogs, boardBounds) => {
  * @returns {String|null} - 勝者のプレイヤーID。勝者がいない場合はnullを返す。
  */
 export const checkWinner = (game) => {
-    const bossDogs = game.dogs.filter(dog => dog.dog_type.name === 'ボス犬');
+    const bossDogs = game.dogs.filter(dog => dog.name === 'ボス犬');
     for (const boss of bossDogs) {
-        const x = boss.x_position;
-        const y = boss.y_position;
+        const x = boss.left / 100;
+        const y = boss.top / 100;
         const adjacentPositions = [
             { x: x, y: y - 1 },
             { x: x, y: y + 1 },
@@ -170,7 +170,10 @@ export const checkWinner = (game) => {
 
         const blocked = adjacentPositions.every(pos => 
             pos.x < 0 || pos.x >= 4 || pos.y < 0 || pos.y >= 4 || 
-            game.dogs.some(dog => dog.x_position === pos.x && dog.y_position === pos.y)
+            game.dogs.some(dog => 
+                (dog.left / 100 === pos.x) && 
+                (dog.top / 100 === pos.y)
+            )
         );
 
         if (blocked) {
