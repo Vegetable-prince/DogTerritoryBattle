@@ -37,6 +37,17 @@ class DogViewSet(viewsets.ModelViewSet):
     queryset = Dog.objects.all()
     serializer_class = DogSerializer
 
+    def update_current_turn(self, game):
+        """
+        ゲームのcurrent_turnを更新するヘルパーメソッド。
+        """
+        if game.current_turn == game.player1:
+            game.current_turn = game.player2
+        else:
+            game.current_turn = game.player1
+        game.save()
+        return game.current_turn.id
+
     @action(detail=True, methods=['post'])
     def move(self, request, pk=None):
         """
@@ -50,6 +61,9 @@ class DogViewSet(viewsets.ModelViewSet):
             Response: 成功時に犬の情報を含むレスポンス。失敗時にエラーメッセージを含むレスポンス。
         """
         dog = self.get_object()
+        if dog.game.current_turn != dog.player:
+            return Response({"error": "まだあなたのターンではありません！"}, status=status.HTTP_400_BAD_REQUEST)
+        
         new_x = request.data.get("x")
         new_y = request.data.get("y")
 
@@ -90,7 +104,12 @@ class DogViewSet(viewsets.ModelViewSet):
             game.save()
             return Response({"success": True, 'dog': DogSerializer(dog).data, 'winner': winner.user.username})
 
-        return Response({"success": True, 'dog': DogSerializer(dog).data})
+        new_turn_id = self.update_current_turn(dog.game)
+        return Response({
+            "success": True,
+            'dog': DogSerializer(dog).data,
+            'current_turn': new_turn_id
+        })
 
     def is_valid_move(self, dog, new_x, new_y):
         """
@@ -162,12 +181,20 @@ class DogViewSet(viewsets.ModelViewSet):
             Response: 成功時に犬の情報を含むレスポンス。失敗時にエラーメッセージを含むレスポンス。
         """
         dog = self.get_object()
+        if dog.game.current_turn != dog.player:
+            return Response({"error": "まだあなたのターンではありません！"}, status=status.HTTP_400_BAD_REQUEST)
+        
         dog.x_position = None
         dog.y_position = None
         dog.is_in_hand = True
         dog.save()
-        
-        return Response({"success": True, 'dog': DogSerializer(dog).data})
+
+        new_turn_id = self.update_current_turn(dog.game)
+        return Response({
+            "success": True,
+            'dog': DogSerializer(dog).data,
+            'current_turn': new_turn_id
+        })
 
     @action(detail=True, methods=['post'])
     def place_on_board(self, request, pk=None):
@@ -182,6 +209,9 @@ class DogViewSet(viewsets.ModelViewSet):
             Response: 成功時に犬の情報を含むレスポンス。失敗時にエラーメッセージを含むレスポンス。
         """
         dog = self.get_object()
+        if dog.game.current_turn != dog.player:
+            return Response({"error": "まだあなたのターンではありません！"}, status=status.HTTP_400_BAD_REQUEST)
+
         new_x = request.data.get("x")
         new_y = request.data.get("y")
 
@@ -199,7 +229,12 @@ class DogViewSet(viewsets.ModelViewSet):
         dog.is_in_hand = False
         dog.save()
 
-        return Response({"success": True, 'dog': DogSerializer(dog).data})
+        new_turn_id = self.update_current_turn(dog.game)
+        return Response({
+            "success": True,
+            'dog': DogSerializer(dog).data,
+            'current_turn': new_turn_id
+        })
 
 def home_view(request):
     """

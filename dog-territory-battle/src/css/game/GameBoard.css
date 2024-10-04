@@ -71,6 +71,14 @@
   transition: background-color 0.3s ease;
 }
 
+.dog.current-turn {
+  border: 2px solid green;
+}
+
+.hand-area.current-turn-hand {
+  border: 2px solid green;
+}
+
 #game-board-container {
   position: relative;
   display: flex;
@@ -88,6 +96,10 @@
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+#game-board-container h2 {
+  margin-top: 20px;
 }
 
 .dog {

@@ -39,6 +39,7 @@ const useHighlightHand = (selectedDog, game) => {
 const GameBoard = ({ initialData }) => {
     const [player1HandDogs, setPlayer1HandDogs] = useState(initialData.player1_hand_dogs || []);
     const [player2HandDogs, setPlayer2HandDogs] = useState(initialData.player2_hand_dogs || []);
+    const [currentTurn, setCurrentTurn] = useState(initialData.game.current_turn);
     const [boardDogs, setBoardDogs] = useState(initialData.board_dogs || []);
     const [selectedDog, setSelectedDog] = useState(null);
     const [validMoves, setValidMoves] = useState([]);
@@ -46,6 +47,9 @@ const GameBoard = ({ initialData }) => {
     const [showVerticalBorders, setShowVerticalBorders] = useState(false);
     const [showHorizontalBorders, setShowHorizontalBorders] = useState(false);
     const [winner, setWinner] = useState(null);
+
+    const player1Id = initialData.game.player1;
+    const player2Id = initialData.game.player2;
 
     /**
      * ボードの境界を更新する関数
@@ -82,6 +86,11 @@ const GameBoard = ({ initialData }) => {
      * @param {Object} dog - クリックされた犬のオブジェクト
      */
     const handleDogClick = (dog) => {
+        if (currentTurn !== dog.player) {
+            alert("まだあなたのターンではありません！");
+            return;
+        }
+
         if (selectedDog && selectedDog.id === dog.id) {
             setSelectedDog(null);
             setValidMoves([]);
@@ -113,6 +122,7 @@ const GameBoard = ({ initialData }) => {
                         const newDog = { ...selectedDog, left: move.x * 100, top: move.y * 100, is_in_hand: false };
 
                         selectedDog.player === initialData.game.player1 ? setPlayer1HandDogs(updatedDogs) : setPlayer2HandDogs(updatedDogs);
+                        setCurrentTurn(response.data.current_turn);
                         setBoardDogs([...boardDogs, newDog]);
                         setSelectedDog(null);
                         setValidMoves([]);
@@ -130,6 +140,7 @@ const GameBoard = ({ initialData }) => {
                     if (response.data.success) {
                         const updatedDogs = currentPlayerDogs.map(dog => dog.id === selectedDog.id ? { ...dog, left: move.x * 100, top: move.y * 100 } : dog);
                         selectedDog.player === initialData.game.player1 ? setPlayer1HandDogs(updatedDogs) : setPlayer2HandDogs(updatedDogs);
+                        setCurrentTurn(response.data.current_turn);
                         setBoardDogs(boardDogs.map(dog => dog.id === selectedDog.id ? { ...dog, left: move.x * 100, top: move.y * 100 } : dog));
                         setSelectedDog(null);
                         setValidMoves([]);
@@ -166,6 +177,7 @@ const GameBoard = ({ initialData }) => {
                     }
 
                     // ボードから犬を削除
+                    setCurrentTurn(response.data.current_turn);
                     setBoardDogs(boardDogs.filter(dog => dog.id !== selectedDog.id));
                     setSelectedDog(null);
                     setValidMoves([]);
@@ -184,9 +196,10 @@ const GameBoard = ({ initialData }) => {
 
     return (
         <div id="game-board-container">
+            <h2>現在のターン: {currentTurn === player1Id ? 'Player 1' : 'Player 2'}</h2>
             <div
                 id="top-hand"
-                className={`hand-area top-hand ${highlightedHand === 'player1' ? 'highlighted' : ''}`}
+                className={`hand-area top-hand ${highlightedHand === 'player1' ? 'highlighted' : ''} ${currentTurn === player1Id ? 'current-turn-hand' : ''}`}
                 onClick={highlightedHand === 'player1' ? handleReturnToHandClick : null}
             >
                 {player1HandDogs.map(dog => (
@@ -215,7 +228,7 @@ const GameBoard = ({ initialData }) => {
                 {boardDogs.map(dog => (
                     <div
                         key={dog.id}
-                        className="dog"
+                        className={`dog ${dog.player === currentTurn ? 'current-turn' : ''}`}
                         style={{ left: `${(dog.left - boardBounds.minX * 100)}px`, top: `${(dog.top - boardBounds.minY * 100)}px` }}
                         onClick={() => handleDogClick(dog)}
                     >
@@ -233,7 +246,7 @@ const GameBoard = ({ initialData }) => {
             </div>
             <div
                 id="bottom-hand"
-                className={`hand-area bottom-hand ${highlightedHand === 'player2' ? 'highlighted' : ''}`}
+                className={`hand-area bottom-hand ${highlightedHand === 'player2' ? 'highlighted' : ''} ${currentTurn === player2Id ? 'current-turn-hand' : ''}`}
                 onClick={highlightedHand === 'player2' ? handleReturnToHandClick : null}
             >
                 {player2HandDogs.map(dog => (
