@@ -151,6 +151,36 @@ export const generateValidMovesForHandPiece = (boardDogs, boardBounds) => {
 };
 
 /**
+ * ボス犬が囲まれているかどうかをチェックする関数
+ *
+ * @param {Object} game - ゲームオブジェクト
+ * @returns {String|null} - 勝者のプレイヤーID。勝者がいない場合はnullを返す。
+ */
+export const checkWinner = (game) => {
+    const bossDogs = game.dogs.filter(dog => dog.dog_type.name === 'ボス犬');
+    for (const boss of bossDogs) {
+        const x = boss.x_position;
+        const y = boss.y_position;
+        const adjacentPositions = [
+            { x: x, y: y - 1 },
+            { x: x, y: y + 1 },
+            { x: x - 1, y: y },
+            { x: x + 1, y: y }
+        ];
+
+        const blocked = adjacentPositions.every(pos => 
+            pos.x < 0 || pos.x >= 4 || pos.y < 0 || pos.y >= 4 || 
+            game.dogs.some(dog => dog.x_position === pos.x && dog.y_position === pos.y)
+        );
+
+        if (blocked) {
+            return boss.player === game.player1 ? game.player2 : game.player1;
+        }
+    }
+    return null;
+};
+
+/**
  * スペースを追加する必要があるかをチェックする関数
  *
  * @param {Object} boardBounds - ボードの境界情報

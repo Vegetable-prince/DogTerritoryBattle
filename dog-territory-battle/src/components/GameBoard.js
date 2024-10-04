@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import '../css/game/GameBoard.css';
-import { generateValidMoves, generateValidMovesForHandPiece, shouldAddSpace } from '../utils/rules';
+import { generateValidMoves, generateValidMovesForHandPiece, checkWinner, shouldAddSpace } from '../utils/rules';
 
 /**
  * 手札をハイライトするカスタムフック
@@ -45,6 +45,7 @@ const GameBoard = ({ initialData }) => {
     const [boardBounds, setBoardBounds] = useState({ minX: 1, maxX: 1, minY: 1, maxY: 1 });
     const [showVerticalBorders, setShowVerticalBorders] = useState(false);
     const [showHorizontalBorders, setShowHorizontalBorders] = useState(false);
+    const [winner, setWinner] = useState(null);
 
     /**
      * ボードの境界を更新する関数
@@ -109,6 +110,11 @@ const GameBoard = ({ initialData }) => {
                         setSelectedDog(null);
                         setValidMoves([]);
                         updateBoardBounds();
+
+                        const winner = checkWinner({ ...initialData.game, dogs: boardDogs });
+                        if (winner) {
+                            setWinner(winner);
+                        }
                     } else {
                         console.log("Move failed: " + response.data.error);
                     }
@@ -126,6 +132,11 @@ const GameBoard = ({ initialData }) => {
                         setSelectedDog(null);
                         setValidMoves([]);
                         updateBoardBounds();
+
+                        const winner = checkWinner({ ...initialData.game, dogs: boardDogs });
+                        if (winner) {
+                            setWinner(winner);
+                        }
                     } else {
                         console.log("Move failed: " + response.data.error);
                     }
@@ -238,6 +249,15 @@ const GameBoard = ({ initialData }) => {
                     </div>
                 ))}
             </div>
+
+            {winner && (
+                <div className="modal">
+                    <div className="modal-content">
+                        <h2>おめでとうございます、{winner}さんが勝ちました！</h2>
+                        <button onClick={() => setWinner(null)}>閉じる</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

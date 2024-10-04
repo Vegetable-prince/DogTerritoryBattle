@@ -73,7 +73,6 @@ class DogViewSet(viewsets.ModelViewSet):
         if new_x < min_x - 1 or new_x > max_x + 1 or new_y < min_y - 1 or new_y > max_y + 1:
             return Response({"error": "Invalid move"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 指定されたマスに犬が移動できるかどうか確認している
         if not self.is_valid_move(dog, new_x, new_y):
             return Response({"error": "Invalid move for this dog type"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -81,6 +80,15 @@ class DogViewSet(viewsets.ModelViewSet):
         dog.y_position = new_y
         dog.is_in_hand = False
         dog.save()
+
+        # 勝敗の判定
+        winner = self.check_winner(dog.game)
+        if winner:
+            logger.debug({winner})
+            game = dog.game
+            game.winner = winner
+            game.save()
+            return Response({"success": True, 'dog': DogSerializer(dog).data, 'winner': winner.user.username})
 
         return Response({"success": True, 'dog': DogSerializer(dog).data})
 
@@ -111,6 +119,35 @@ class DogViewSet(viewsets.ModelViewSet):
         elif movement_type == 'special_hajike':
             return (dx, dy) in [(1, 2), (2, 1)]
         return False
+
+    def check_winner(self, game):
+        """
+        ボス犬が囲まれているかをチェックし、勝者を判定するメソッド。
+
+        Args:
+            game (Game): ゲームオブジェクト。
+
+        Returns:
+            Player: 勝者のプレイヤーオブジェクト。勝者がいない場合はNoneを返す。
+        """
+        boss_dogs = Dog.objects.filter(game=game, dog_type__name='ボス犬')
+        logger.debug({boss_dogs})
+        for boss in boss_dogs:
+            x, y = boss.x_position, boss.y_position
+            adjacent_positions = [
+                (x, y - 1),
+                (x, y + 1),
+                (x - 1, y),
+                (x + 1, y)
+            ]
+            blocked = all(
+                pos[0] < 0 or pos[0] >= 4 or pos[1] < 0 or pos[1] >= 4 or
+                Dog.objects.filter(game=game, x_position=pos[0], y_position=pos[1]).exists()
+                for pos in adjacent_positions
+            )
+            if blocked:
+                return game.player2 if boss.player == game.player1 else game.player1
+        return None
 
     @action(detail=True, methods=['post'])
     def remove_from_board(self, request, pk=None):
