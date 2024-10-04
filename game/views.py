@@ -184,6 +184,9 @@ class DogViewSet(viewsets.ModelViewSet):
         if dog.game.current_turn != dog.player:
             return Response({"error": "まだあなたのターンではありません！"}, status=status.HTTP_400_BAD_REQUEST)
         
+        if dog.dog_type.id == 1:
+            return Response({"error": "ボス犬は手札に戻せません！"}, status=status.HTTP_400_BAD_REQUEST)
+
         dog.x_position = None
         dog.y_position = None
         dog.is_in_hand = True
@@ -270,6 +273,12 @@ def game_view(request, game_id):
             'left': dog.x_position * 100 if dog.x_position is not None else None,
             'top': dog.y_position * 100 if dog.y_position is not None else None,
             'is_in_hand': dog.is_in_hand,
+            'dog_type': {
+                'id': dog.dog_type.id,
+                'name': dog.dog_type.name,
+                'movement_type': dog.dog_type.movement_type,
+                'max_steps': dog.dog_type.max_steps
+            },
             'player': dog.player.id,
             'movement_type': dog.dog_type.movement_type,
             'max_steps': dog.dog_type.max_steps

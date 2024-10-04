@@ -161,6 +161,12 @@ const GameBoard = ({ initialData }) => {
     const handleReturnToHandClick = () => {
         if (!selectedDog) return;
 
+        // ボス犬の場合は手札に戻せない
+        if (selectedDog.dog_type.id === 1) {
+            alert('ボス犬は手札に戻せません！');
+            return;
+        }
+
         axios.post(`/api/dogs/${selectedDog.id}/remove_from_board/`)
             .then(response => {
                 if (response.data.success) {
