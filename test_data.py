@@ -28,16 +28,16 @@ else:
 
 # 犬の種類を作成する
 dog_types = [
-    {'name': 'ボス犬', 'movement_pattern': '縦横斜め8方向に1マス移動'},
-    {'name': 'アニキ犬', 'movement_pattern': '縦横斜め8方向に1マス移動'},
-    {'name': 'ヤイ犬', 'movement_pattern': '縦横4方向に1マス移動'},
-    {'name': '豆でっぽう犬', 'movement_pattern': '斜め4方向に1マス移動'},
-    {'name': 'トツ犬', 'movement_pattern': '縦横4方向に好きな数だけ移動'},
-    {'name': 'ハジケ犬', 'movement_pattern': '縦横4方向に2マス進み、その後も縦横いずれかに1マス曲がる（3マス移動が可能）'}
+    {'name': 'ボス犬', 'movement_type': 'diagonal_orthogonal', 'max_steps': 1},
+    {'name': 'アニキ犬', 'movement_type': 'diagonal_orthogonal', 'max_steps': 1},
+    {'name': 'ヤイバ犬', 'movement_type': 'orthogonal', 'max_steps': 1},
+    {'name': '豆でっぽう犬', 'movement_type': 'diagonal', 'max_steps': 1},
+    {'name': 'トツ犬', 'movement_type': 'orthogonal', 'max_steps': None},  # 制限なし
+    {'name': 'ハジケ犬', 'movement_type': 'special_hajike', 'max_steps': None}
 ]
 
 for dog_type in dog_types:
-    DogType.objects.get_or_create(name=dog_type['name'], movement_pattern=dog_type['movement_pattern'])
+    DogType.objects.get_or_create(name=dog_type['name'], movement_type=dog_type['movement_type'], max_steps=dog_type['max_steps'])
 
 # ゲームを作成する
 if not Game.objects.exists():
@@ -50,7 +50,7 @@ dog_positions = [
     # Player 1's dogs
     {'game': game, 'player': player1, 'dog_type': DogType.objects.get(name='ボス犬'), 'x_position': 2, 'y_position': 1, 'is_in_hand': False},
     {'game': game, 'player': player1, 'dog_type': DogType.objects.get(name='アニキ犬'), 'x_position': None, 'y_position': None},
-    {'game': game, 'player': player1, 'dog_type': DogType.objects.get(name='ヤイ犬'), 'x_position': None, 'y_position': None},
+    {'game': game, 'player': player1, 'dog_type': DogType.objects.get(name='ヤイバ犬'), 'x_position': None, 'y_position': None},
     {'game': game, 'player': player1, 'dog_type': DogType.objects.get(name='豆でっぽう犬'), 'x_position': None, 'y_position': None},
     {'game': game, 'player': player1, 'dog_type': DogType.objects.get(name='トツ犬'), 'x_position': None, 'y_position': None},
     {'game': game, 'player': player1, 'dog_type': DogType.objects.get(name='ハジケ犬'), 'x_position': None, 'y_position': None},
@@ -58,7 +58,7 @@ dog_positions = [
     # Player 2's dogs
     {'game': game, 'player': player2, 'dog_type': DogType.objects.get(name='ボス犬'), 'x_position': 2, 'y_position': 3, 'is_in_hand': False},
     {'game': game, 'player': player2, 'dog_type': DogType.objects.get(name='アニキ犬'), 'x_position': None, 'y_position': None},
-    {'game': game, 'player': player2, 'dog_type': DogType.objects.get(name='ヤイ犬'), 'x_position': None, 'y_position': None},
+    {'game': game, 'player': player2, 'dog_type': DogType.objects.get(name='ヤイバ犬'), 'x_position': None, 'y_position': None},
     {'game': game, 'player': player2, 'dog_type': DogType.objects.get(name='豆でっぽう犬'), 'x_position': None, 'y_position': None},
     {'game': game, 'player': player2, 'dog_type': DogType.objects.get(name='トツ犬'), 'x_position': None, 'y_position': None},
     {'game': game, 'player': player2, 'dog_type': DogType.objects.get(name='ハジケ犬'), 'x_position': None, 'y_position': None},

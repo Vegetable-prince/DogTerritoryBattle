@@ -3,9 +3,11 @@
 *.pot
 *.pyc
 __pycache__/
+*.py[cod]
 db.sqlite3
 media/
 
 # Environments
 .env
 venv/
+
