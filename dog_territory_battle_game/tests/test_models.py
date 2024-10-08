@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
-from game.models import Player, DogType, Game, Dog
+from dog_territory_battle_game.models import Player, DogType, Game, Dog
 
 class GameModelTestCase(TestCase):
     def setUp(self):

@@ -1,7 +1,13 @@
+import os
+import django
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dogTerritoryBattle.settings')
+django.setup()
+
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db import migrations
-from game.models import DogType, Player, Game
+from dog_territory_battle_game.models import DogType, Player, Game
 
 def load_test_data():
     # auth_user テーブルのデータ
@@ -16,10 +22,10 @@ def load_test_data():
     ContentType.objects.get_or_create(app_label='auth', model='user')
     ContentType.objects.get_or_create(app_label='contenttypes', model='contenttype')
     ContentType.objects.get_or_create(app_label='sessions', model='session')
-    ContentType.objects.get_or_create(app_label='game', model='player')
-    ContentType.objects.get_or_create(app_label='game', model='dogtype')
-    ContentType.objects.get_or_create(app_label='game', model='game')
-    ContentType.objects.get_or_create(app_label='game', model='dog')
+    ContentType.objects.get_or_create(app_label='dog_territory_battle_game', model='player')
+    ContentType.objects.get_or_create(app_label='dog_territory_battle_game', model='dogtype')
+    ContentType.objects.get_or_create(app_label='dog_territory_battle_game', model='game')
+    ContentType.objects.get_or_create(app_label='dog_territory_battle_game', model='dog')
 
     # django_migrations テーブルのデータは通常テストで再現しないため省略
 
@@ -38,7 +44,7 @@ def load_test_data():
     Player.objects.create(user=player2)
 
     # game_game テーブルのデータ
-    game = Game.objects.create(current_turn_id=2, player1_id=player1.id, player2_id=player2.id, winner_id=None, test=None)
+    game = Game.objects.create(current_turn_id=2, player1_id=player1.id, player2_id=player2.id, winner_id=None)
 
 if __name__ == "__main__":
     load_test_data()

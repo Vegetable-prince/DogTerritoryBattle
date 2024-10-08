@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("game", "0001_initial"),
+        ("dog_territory_battle_game", "0001_initial"),
     ]
 
     operations = [

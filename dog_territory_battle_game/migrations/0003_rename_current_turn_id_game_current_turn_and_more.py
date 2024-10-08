@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("game", "0002_rename_current_turn_game_current_turn_id_and_more"),
+        ("dog_territory_battle_game", "0002_rename_current_turn_game_current_turn_id_and_more"),
     ]
 
     operations = [

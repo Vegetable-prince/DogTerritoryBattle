@@ -8,7 +8,7 @@ const GamePage = () => {
     const [initialData, setInitialData] = useState(null);
 
     useEffect(() => {
-        fetch(`http://localhost:8000/game/${game_id}/`)
+        fetch(`http://localhost:8000/api/games/${game_id}/`)
             .then(response => response.json())
             .then(data => setInitialData(data))
             .catch(error => console.error('Error fetching initial data:', error));

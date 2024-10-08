@@ -83,7 +83,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="current_turn_games",
-                        to="game.player",
+                        to="dog_territory_battle_game.player",
                     ),
                 ),
                 (
@@ -91,7 +91,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="player1_games",
-                        to="game.player",
+                        to="dog_territory_battle_game.player",
                     ),
                 ),
                 (
@@ -99,7 +99,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="player2_games",
-                        to="game.player",
+                        to="dog_territory_battle_game.player",
                     ),
                 ),
                 (
@@ -109,7 +109,7 @@ class Migration(migrations.Migration):
                         null=True,
                         on_delete=django.db.models.deletion.SET_NULL,
                         related_name="won_games",
-                        to="game.player",
+                        to="dog_territory_battle_game.player",
                     ),
                 ),
             ],
@@ -137,19 +137,19 @@ class Migration(migrations.Migration):
                 (
                     "dog_type",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="game.dogtype"
+                        on_delete=django.db.models.deletion.CASCADE, to="dog_territory_battle_game.dogtype"
                     ),
                 ),
                 (
                     "game",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="game.game"
+                        on_delete=django.db.models.deletion.CASCADE, to="dog_territory_battle_game.game"
                     ),
                 ),
                 (
                     "player",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="game.player"
+                        on_delete=django.db.models.deletion.CASCADE, to="dog_territory_battle_game.player"
                     ),
                 ),
             ],

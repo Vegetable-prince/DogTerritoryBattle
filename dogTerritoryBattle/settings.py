@@ -24,7 +24,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     'rest_framework',
-    'game',
+    'dog_territory_battle_game',
     'corsheaders',
 ]
 
@@ -49,7 +49,7 @@ ROOT_URLCONF = "dogTerritoryBattle.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, 'game', 'templates')],
+        "DIRS": [os.path.join(BASE_DIR, 'dog_territory_battle_game', 'build')],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -113,7 +113,7 @@ USE_TZ = True
 STATIC_URL = "/static/"
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'dog-territory-battle/build/static'),
+    os.path.join(BASE_DIR, 'dog-territory-battle', 'build', 'static'),
 ]
 
 # Add this line to define the directory where static files will be collected
@@ -143,7 +143,7 @@ LOGGING = {
             'level': 'WARNING',
             'propagate': False,
         },
-        'game': {  # ここにアプリ名を入れてください
+        'dog_territory_battle_game': {  # ここにアプリ名を入れてください
             'handlers': ['console'],
             'level': 'DEBUG',  # DEBUG レベルのログを出力
             'propagate': False,

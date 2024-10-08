@@ -30,6 +30,62 @@ class GameViewSet(viewsets.ModelViewSet):
     queryset = Game.objects.all()
     serializer_class = GameSerializer
 
+    def retrieve(self, request, pk=None):
+        """
+        ゲームの詳細情報を取得するメソッド。
+
+        Args:
+            request (Request): HTTPリクエストオブジェクト。
+            pk (int, optional): ゲームのプライマリキー。
+
+        Returns:
+            Response: ゲームの詳細情報を含むレスポンス。
+        """
+        game = get_object_or_404(Game, pk=pk)
+        dogs = Dog.objects.filter(game=game)
+        player1_hand_dogs, player2_hand_dogs = [], []
+
+        for dog in dogs:
+            dog_data = {
+                'id': dog.id,
+                'name': dog.dog_type.name,
+                'left': dog.x_position * 100 if dog.x_position is not None else None,
+                'top': dog.y_position * 100 if dog.y_position is not None else None,
+                'is_in_hand': dog.is_in_hand,
+                'dog_type': {
+                    'id': dog.dog_type.id,
+                    'name': dog.dog_type.name,
+                    'movement_type': dog.dog_type.movement_type,
+                    'max_steps': dog.dog_type.max_steps
+                },
+                'player': dog.player.id,
+                'movement_type': dog.dog_type.movement_type,
+                'max_steps': dog.dog_type.max_steps
+            }
+            if dog.player == game.player1:
+                if dog.is_in_hand:
+                    player1_hand_dogs.append(dog_data)
+                else:
+                    player1_hand_dogs.append(dog_data)
+            else:
+                if dog.is_in_hand:
+                    player2_hand_dogs.append(dog_data)
+                else:
+                    player2_hand_dogs.append(dog_data)
+        
+        context = {
+            'game': {
+                'id': game.id,
+                'current_turn': game.current_turn.id,
+                'player1': game.player1.id,
+                'player2': game.player2.id,
+            },
+            'player1_hand_dogs': [dog for dog in player1_hand_dogs if dog['is_in_hand']],
+            'player2_hand_dogs': [dog for dog in player2_hand_dogs if dog['is_in_hand']],
+            'board_dogs': [dog for dog in player1_hand_dogs + player2_hand_dogs if not dog['is_in_hand']]
+        }
+        return Response(context)
+
 class DogViewSet(viewsets.ModelViewSet):
     """
     犬のCRUD操作を提供するViewSet。
@@ -250,53 +306,3 @@ def home_view(request):
         HttpResponse: レンダリングされたHTMLを含むレスポンス。
     """
     return render(request, 'index.html')
-
-def game_view(request, game_id):
-    """
-    指定されたゲームの状態をJSON形式で返すビュー。
-
-    Args:
-        request (HttpRequest): HTTPリクエストオブジェクト。
-        game_id (int): ゲームのプライマリキー。
-
-    Returns:
-        JsonResponse: ゲームの状態を含むJSONレスポンス。
-    """
-    game = get_object_or_404(Game, id=game_id)
-    dogs = Dog.objects.filter(game=game)
-    player1_hand_dogs, player2_hand_dogs = [], []
-
-    for dog in dogs:
-        dog_data = {
-            'id': dog.id,
-            'name': dog.dog_type.name,
-            'left': dog.x_position * 100 if dog.x_position is not None else None,
-            'top': dog.y_position * 100 if dog.y_position is not None else None,
-            'is_in_hand': dog.is_in_hand,
-            'dog_type': {
-                'id': dog.dog_type.id,
-                'name': dog.dog_type.name,
-                'movement_type': dog.dog_type.movement_type,
-                'max_steps': dog.dog_type.max_steps
-            },
-            'player': dog.player.id,
-            'movement_type': dog.dog_type.movement_type,
-            'max_steps': dog.dog_type.max_steps
-        }
-        if dog.player == game.player1:
-            player1_hand_dogs.append(dog_data)
-        else:
-            player2_hand_dogs.append(dog_data)
-    
-    context = {
-        'game': {
-            'id': game.id,
-            'current_turn': game.current_turn.id,
-            'player1': game.player1.id,
-            'player2': game.player2.id,
-        },
-        'player1_hand_dogs': [dog for dog in player1_hand_dogs if dog['is_in_hand']],
-        'player2_hand_dogs': [dog for dog in player2_hand_dogs if dog['is_in_hand']],
-        'board_dogs': [dog for dog in player1_hand_dogs + player2_hand_dogs if not dog['is_in_hand']]
-    }
-    return JsonResponse(context)
