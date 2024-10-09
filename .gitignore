@@ -10,5 +10,4 @@ media/
 # Environments
 .env
 venv/
-
 node_modules
