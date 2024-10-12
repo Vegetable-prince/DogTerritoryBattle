@@ -7,7 +7,7 @@ def parse_gitignore(gitignore_path):
     さらに、'node_modules' と '__pycache__' を常に無視するように追加します。
     """
     # 常に無視するディレクトリ
-    always_ignored = {'venv', 'node_modules', '__pycache__', 'vendor', 'rest_framework', '.git', 'logs', 'img'}
+    always_ignored = {'venv', 'node_modules', '__pycache__', 'vendor', 'rest_framework', '.git', 'logs', 'img', '.DS_Store', '__MACOSX'}
     ignored_dirs = set(always_ignored)
     
     if not os.path.exists(gitignore_path):
