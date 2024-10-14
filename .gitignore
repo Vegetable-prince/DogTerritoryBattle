@@ -12,3 +12,4 @@ media/
 venv/
 node_modules
 dog-territory-battle/.env.development
+dog-territory-battle/cypress/screenshots

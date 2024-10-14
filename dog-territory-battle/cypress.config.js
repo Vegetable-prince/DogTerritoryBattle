@@ -6,6 +6,7 @@ module.exports = defineConfig({
   projectId: 'n2v2ju',
   e2e: {
     baseUrl: 'http://localhost:3000', // フロントエンドのURL
+    specPattern: 'cypress/e2e/**/*.{js,jsx,ts,tsx}',
     supportFile: 'cypress/support/e2e.js', // サポートファイルのパス
     setupNodeEvents(on, config) {
       codeCoverageTask(on, config);
