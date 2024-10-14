@@ -24,34 +24,39 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.10'
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
+      - name: Migrate database
+        run: |
+          python manage.py migrate
       - name: Run tests
-        env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
         run: |
           python manage.py test
 
   frontend-test:
-  runs-on: ubuntu-latest
-  steps:
-    - uses: actions/checkout@v2
-    - name: Use Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '14'
-    - name: Install dependencies
-      run: |
-        npm install
-    - name: Run unit tests
-      run: |
-        npm test -- --coverage
-    - name: Run Cypress tests
-      run: |
-        npx cypress run
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14'
+      - name: Install dependencies
+        working-directory: ./dog-territory-battle
+        run: |
+          npm install
+      - name: Run unit tests
+        working-directory: ./dog-territory-battle
+        run: |
+          npm test -- --coverage
+      - name: Run Cypress tests
+        working-directory: ./dog-territory-battle
+        run: |
+          npx cypress run

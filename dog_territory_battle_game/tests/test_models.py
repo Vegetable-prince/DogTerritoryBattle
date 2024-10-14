@@ -1,38 +1,26 @@
-from django.test import TestCase
+# dog_territory_battle_game/tests/test_models.py
+
+from .base_test import BaseTestCase
 from django.contrib.auth.models import User
 from dog_territory_battle_game.models import Player, DogType, Game, Dog
 
-class GameModelTestCase(TestCase):
-    def setUp(self):
-        # ユーザーとプレイヤーの作成
-        self.user1 = User.objects.create_user(username='player1', password='password')
-        self.user2 = User.objects.create_user(username='player2', password='password')
-        self.player1 = Player.objects.create(user=self.user1)
-        self.player2 = Player.objects.create(user=self.user2)
+class GameModelTestCase(BaseTestCase):
+    def test_user_creation(self):
+        self.assertEqual(User.objects.count(), 3)
+        self.assertTrue(self.user1.is_active)
+        self.assertEqual(self.admin_user.username, 'admin')
 
-        # 犬の種類の作成
-        self.dog_type_boss = DogType.objects.create(
-            name='ボス犬',
-            movement_type='diagonal_orthogonal',
-            max_steps=1
-        )
+    def test_dog_type_creation(self):
+        self.assertEqual(DogType.objects.count(), 6)
+        self.assertEqual(self.dog_type_boss.name, 'ボス犬')
+        self.assertEqual(self.dog_type_hajike.movement_type, 'special_hajike')
 
-        # ゲームの作成
-        self.game = Game.objects.create(
-            player1=self.player1,
-            player2=self.player2,
-            current_turn=self.player1
-        )
+    def test_player_creation(self):
+        self.assertEqual(Player.objects.count(), 2)
+        self.assertEqual(self.player1.user.username, 'player1')
 
-        # 犬の作成
-        self.dog1 = Dog.objects.create(
-            game=self.game,
-            player=self.player1,
-            dog_type=self.dog_type_boss,
-            is_in_hand=True
-        )
-
-    def test_dog_creation(self):
-        self.assertEqual(Dog.objects.count(), 1)
-        self.assertEqual(self.dog1.player, self.player1)
-        self.assertEqual(self.dog1.dog_type.name, 'ボス犬')
+    def test_game_creation(self):
+        self.assertEqual(Game.objects.count(), 1)
+        self.assertEqual(self.game.player1, self.player1)
+        self.assertEqual(self.game.current_turn, self.player2)
+        self.assertIsNone(self.game.winner)
