@@ -1,6 +1,5 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
-from django.contrib.contenttypes.models import ContentType
 from ..models import (
     DogType, Player, Game, Dog
 )
@@ -8,21 +7,14 @@ from ..models import (
 class BaseTestCase(TestCase):
     def setUp(self):
         # ユーザーの作成
-        self.admin_user = User.objects.create_superuser(
-            username='admin', email='admin@example.com',
-            password='adminpassword'
-        )
         self.user1 = User.objects.create_user(
             username='player1', email='player1@example.com',
-            password='player1password', is_active=True
+            password='player1password'
         )
         self.user2 = User.objects.create_user(
             username='player2', email='player2@example.com',
-            password='player2password', is_active=True
+            password='player2password'
         )
-
-        # コンテントタイプの作成（必要に応じて）
-        ContentType.objects.get_for_model(User)
 
         # 犬種の作成
         self.dog_type_boss = DogType.objects.create(

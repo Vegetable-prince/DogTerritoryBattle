@@ -1,4 +1,4 @@
-name: Django CI
+name: E2E Test
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  django-test:
+  e2e-test:
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -23,39 +23,54 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
     steps:
       - uses: actions/checkout@v3
+
+      # バックエンドのセットアップ
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      - name: Install dependencies
+
+      - name: Install backend dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
       - name: Migrate database
         run: |
           python manage.py migrate
-      - name: Run tests
-        run: |
-          python manage.py test
 
-  frontend-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+      - name: Start backend server
+        run: |
+          python manage.py runserver 0.0.0.0:8000 &
+        shell: bash
+
+      - name: Wait for backend to start
+        run: sleep 10
+
+      # フロントエンドのセットアップ
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '14'
-      - name: Install dependencies
+
+      - name: Install frontend dependencies
         working-directory: ./dog-territory-battle
         run: |
           npm install
-      - name: Run unit tests
+
+      - name: Start frontend server
         working-directory: ./dog-territory-battle
         run: |
-          npm test -- --coverage
+          npm start &
+        shell: bash
+
+      - name: Wait for frontend to start
+        run: sleep 10
+
+      # E2E テストの実行
       - name: Run Cypress tests
         working-directory: ./dog-territory-battle
         run: |

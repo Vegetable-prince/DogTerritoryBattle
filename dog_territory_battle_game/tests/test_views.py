@@ -2,6 +2,7 @@ from .base_test import BaseTestCase
 from rest_framework.test import APIClient
 from rest_framework import status
 from dog_territory_battle_game.models import Dog
+from django.urls import reverse
 
 class DogTerritoryBattleViewsTest(BaseTestCase):
     def setUp(self):
@@ -26,12 +27,10 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
         )
 
         # プレイヤー1が相手のコマを動かそうとする
-        response = self.client.post(
-            f'/api/dogs/{opponent_dog.id}/move/',
-            {'x': 0, 'y': 1}
-        )
+        url = reverse('dog-move', args=[opponent_dog.id])  # URL名を適切に設定してください
+        response = self.client.post(url, {'x': 0, 'y': 1})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertIn('他のプレイヤーのコマは操作できません。', response.data['detail'])
+        self.assertIn('他のプレイヤーのコマは操作できません。', response.data.get('detail', ''))
 
     def test_turn_switches_after_each_operation(self):
         """

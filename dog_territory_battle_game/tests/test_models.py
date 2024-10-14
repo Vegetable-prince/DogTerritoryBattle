@@ -1,14 +1,11 @@
-# dog_territory_battle_game/tests/test_models.py
-
 from .base_test import BaseTestCase
 from django.contrib.auth.models import User
-from dog_territory_battle_game.models import Player, DogType, Game, Dog
+from dog_territory_battle_game.models import Player, DogType, Game
 
 class GameModelTestCase(BaseTestCase):
     def test_user_creation(self):
-        self.assertEqual(User.objects.count(), 3)
+        self.assertEqual(User.objects.count(), 2)
         self.assertTrue(self.user1.is_active)
-        self.assertEqual(self.admin_user.username, 'admin')
 
     def test_dog_type_creation(self):
         self.assertEqual(DogType.objects.count(), 6)
