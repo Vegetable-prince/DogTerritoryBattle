@@ -85,6 +85,87 @@ class GameViewSet(viewsets.ModelViewSet):
             'board_dogs': [dog for dog in player1_hand_dogs + player2_hand_dogs if not dog['is_in_hand']]
         }
         return Response(context)
+    
+    @action(detail=True, methods=['post'], url_path='reset_game')
+    def reset_game(self, request, pk=None):
+        """
+        ゲームの状態を初期化するアクション。
+
+        Args:
+            request (Request): HTTPリクエストオブジェクト。
+            pk (int, optional): ゲームのプライマリキー。
+
+        Returns:
+            Response: 成功時にメッセージを含むレスポンス。
+        """
+        game = get_object_or_404(Game, pk=pk)
+
+        # ゲーム内のすべての犬を削除
+        Dog.objects.filter(game=game).delete()
+
+        # プレイヤーを取得
+        player1 = game.player1
+        player2 = game.player2
+
+        # 犬種を取得
+        boss_dog_type = DogType.objects.get(name='ボス犬')
+        # 他の犬種も取得（例として "普通の犬" と "ハジケ犬" とします）
+        normal_dog_type = DogType.objects.get(name='普通の犬')
+        hajike_dog_type = DogType.objects.get(name='ハジケ犬')
+
+        # プレイヤー1のボス犬を作成してボード上に配置
+        Dog.objects.create(
+            game=game,
+            player=player1,
+            dog_type=boss_dog_type,
+            x_position=1,
+            y_position=1,
+            is_in_hand=False
+        )
+
+        # プレイヤー2のボス犬を作成してボード上に配置
+        Dog.objects.create(
+            game=game,
+            player=player2,
+            dog_type=boss_dog_type,
+            x_position=2,
+            y_position=1,
+            is_in_hand=False
+        )
+
+        # プレイヤー1の手札に犬を追加
+        Dog.objects.create(
+            game=game,
+            player=player1,
+            dog_type=normal_dog_type,
+            is_in_hand=True
+        )
+        Dog.objects.create(
+            game=game,
+            player=player1,
+            dog_type=hajike_dog_type,
+            is_in_hand=True
+        )
+
+        # プレイヤー2の手札に犬を追加
+        Dog.objects.create(
+            game=game,
+            player=player2,
+            dog_type=normal_dog_type,
+            is_in_hand=True
+        )
+        Dog.objects.create(
+            game=game,
+            player=player2,
+            dog_type=hajike_dog_type,
+            is_in_hand=True
+        )
+
+        # ゲームのターンを初期化
+        game.current_turn = player1
+        game.save()
+
+        return Response({"message": "Game has been reset to initial state."})
 
 class DogViewSet(viewsets.ModelViewSet):
     """
