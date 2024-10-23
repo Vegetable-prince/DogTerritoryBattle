@@ -14,13 +14,16 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 IS_GITHUB_ACTIONS = 'GITHUB_ACTIONS' in os.environ
 
 # 環境変数の設定
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
+
+if DEBUG:
+    ALLOWED_HOSTS = []
+else:
+    ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',')
+
 SECRET_KEY = os.getenv('SECRET_KEY', 'your-default-secret-key')
 
-ALLOWED_HOSTS = []
-
 # Application definition
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -75,21 +78,16 @@ WSGI_APPLICATION = "dogTerritoryBattle.wsgi.application"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 # データベース設定
-if IS_GITHUB_ACTIONS:
-    DATABASES = {
-    'default': dj_database_url.config(default='postgres://postgres:postgres@localhost:5432/test_db')
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DATABASE_NAME', 'test_db'),
+        'USER': os.getenv('DATABASE_USER', 'postgres'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'postgres'),
+        'HOST': os.getenv('DATABASE_HOST', 'localhost'),
+        'PORT': os.getenv('DATABASE_PORT', '5432'),
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DATABASE_NAME'),
-            'USER': os.getenv('DATABASE_USER'),
-            'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-            'HOST': os.getenv('DATABASE_HOST'),
-            'PORT': os.getenv('DATABASE_PORT'),
-        }
-    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
