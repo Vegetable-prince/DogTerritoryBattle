@@ -7,7 +7,7 @@ const HomePage = () => {
     return (
         <div>
             <h1>Dog Territory Battle</h1>
-            <Link to={`/game/${gameId}`}>ゲームへ</Link>
+            <Link to={`/games/${gameId}`}>ゲームへ</Link>
         </div>
     );
 };

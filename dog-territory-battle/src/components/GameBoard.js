@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import apiClient from '../api/apiClient';
 import '../css/game/GameBoard.css';
 import { generateValidMoves, generateValidMovesForHandPiece, checkWinner, shouldAddSpace } from '../utils/rules';
 
@@ -115,7 +115,7 @@ const GameBoard = ({ initialData }) => {
         const currentPlayerDogs = selectedDog.player === initialData.game.player1 ? player1HandDogs : player2HandDogs;
 
         if (selectedDog.is_in_hand) {
-            axios.post(`/api/dogs/${selectedDog.id}/place_on_board/`, { x: move.x, y: move.y })
+            apiClient.post(`/dogs/${selectedDog.id}/place_on_board/`, { x: move.x, y: move.y })
                 .then(response => {
                     if (response.data.success) {
                         const updatedDogs = currentPlayerDogs.filter(dog => dog.id !== selectedDog.id);
@@ -135,7 +135,7 @@ const GameBoard = ({ initialData }) => {
                     console.log("Move failed: " + error);
                 });
         } else {
-            axios.post(`/api/dogs/${selectedDog.id}/move/`, { x: move.x, y: move.y })
+            apiClient.post(`/dogs/${selectedDog.id}/move/`, { x: move.x, y: move.y })
                 .then(response => {
                     if (response.data.success) {
                         const updatedDogs = currentPlayerDogs.map(dog => dog.id === selectedDog.id ? { ...dog, left: move.x * 100, top: move.y * 100 } : dog);
@@ -167,11 +167,10 @@ const GameBoard = ({ initialData }) => {
             return;
         }
 
-        axios.post(`/api/dogs/${selectedDog.id}/remove_from_board/`)
+        apiClient.post(`/dogs/${selectedDog.id}/remove_from_board/`)
             .then(response => {
                 if (response.data.success) {
                     const currentPlayerDogs = selectedDog.player === initialData.game.player1 ? player1HandDogs : player2HandDogs;
-                    // 手札に戻る犬を新しく作成
                     const updatedDog = { ...selectedDog, is_in_hand: true, left: null, top: null };
                     // 現在の手札に新しい犬を追加
                     const updatedDogs = [...currentPlayerDogs, updatedDog];

@@ -1,0 +1,124 @@
+[
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "username": "player1",
+      "email": "player1@example.com",
+      "password": "pbkdf2_sha256$260000$samplehash",
+      "is_active": true
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 2,
+    "fields": {
+      "username": "player2",
+      "email": "player2@example.com",
+      "password": "pbkdf2_sha256$260000$samplehash",
+      "is_active": true
+    }
+  },
+  {
+    "model": "game.player",
+    "pk": 1,
+    "fields": {
+      "user": 1
+    }
+  },
+  {
+    "model": "game.player",
+    "pk": 2,
+    "fields": {
+      "user": 2
+    }
+  },
+  {
+    "model": "game.dogtype",
+    "pk": 1,
+    "fields": {
+      "name": "ボス犬",
+      "movement_type": "diagonal_orthogonal",
+      "max_steps": 1
+    }
+  },
+  {
+    "model": "game.dogtype",
+    "pk": 2,
+    "fields": {
+      "name": "アニキ犬",
+      "movement_type": "diagonal_orthogonal",
+      "max_steps": 1
+    }
+  },
+  {
+    "model": "game.dogtype",
+    "pk": 3,
+    "fields": {
+      "name": "ヤイバ犬",
+      "movement_type": "orthogonal",
+      "max_steps": 1
+    }
+  },
+  {
+    "model": "game.dogtype",
+    "pk": 4,
+    "fields": {
+      "name": "豆でっぽう犬",
+      "movement_type": "diagonal",
+      "max_steps": 1
+    }
+  },
+  {
+    "model": "game.dogtype",
+    "pk": 5,
+    "fields": {
+      "name": "トツ犬",
+      "movement_type": "orthogonal",
+      "max_steps": null
+    }
+  },
+  {
+    "model": "game.dogtype",
+    "pk": 6,
+    "fields": {
+      "name": "ハジケ犬",
+      "movement_type": "special_hajike",
+      "max_steps": null
+    }
+  },
+  {
+    "model": "game.game",
+    "pk": 1,
+    "fields": {
+      "player1": 1,
+      "player2": 2,
+      "current_turn": 1,
+      "winner": null
+    }
+  },
+  {
+    "model": "game.dog",
+    "pk": 1,
+    "fields": {
+      "game": 1,
+      "player": 1,
+      "dog_type": 1,
+      "x_position": null,
+      "y_position": null,
+      "is_in_hand": true
+    }
+  },
+  {
+    "model": "game.dog",
+    "pk": 2,
+    "fields": {
+      "game": 1,
+      "player": 2,
+      "dog_type": 1,
+      "x_position": null,
+      "y_position": null,
+      "is_in_hand": true
+    }
+  }
+]

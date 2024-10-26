@@ -9,7 +9,7 @@ function App() {
         <Router>
             <Routes>
                 <Route path="/" element={<HomePage />} />
-                <Route path="/game/:game_id" element={<GamePage />} />
+                <Route path="/games/:game_id" element={<GamePage />} />
             </Routes>
         </Router>
     );

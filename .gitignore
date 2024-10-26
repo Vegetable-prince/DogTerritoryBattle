@@ -6,8 +6,11 @@ __pycache__/
 *.py[cod]
 db.sqlite3
 media/
+staticfiles/
 
 # Environments
 .env
 venv/
-
+node_modules
+dog-territory-battle/.env.development
+dog-territory-battle/cypress/screenshots
