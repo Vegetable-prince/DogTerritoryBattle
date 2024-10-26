@@ -1,17 +1,12 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-import sys
-import dj_database_url
 
 # BASE_DIRは既に定義されているはずなので、そのまま使用します
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # .envファイルの読み込み
 load_dotenv(os.path.join(BASE_DIR, '.env'))
-
-# テスト環境かどうかを判定
-IS_GITHUB_ACTIONS = 'GITHUB_ACTIONS' in os.environ
 
 # 環境変数の設定
 DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
@@ -78,21 +73,16 @@ WSGI_APPLICATION = "dogTerritoryBattle.wsgi.application"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 # データベース設定
-if IS_GITHUB_ACTIONS:
-    DATABASES = {
-    'default': dj_database_url.config(default='postgres://postgres:postgres@localhost:5432/test_db')
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DATABASE_NAME', 'test_db'),
+        'USER': os.getenv('DATABASE_USER', 'postgres'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'postgres'),
+        'HOST': os.getenv('DATABASE_HOST', 'localhost'),
+        'PORT': os.getenv('DATABASE_PORT', '5432'),
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DATABASE_NAME'),
-            'USER': os.getenv('DATABASE_USER'),
-            'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-            'HOST': os.getenv('DATABASE_HOST'),
-            'PORT': os.getenv('DATABASE_PORT'),
-        }
-    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
