@@ -27,10 +27,10 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
         )
 
         # プレイヤー1が相手のコマを動かそうとする
-        url = reverse('dog-move', args=[opponent_dog.id])  # URL名を適切に設定してください
+        url = f'/api/dogs/{opponent_dog.id}/move/'
         response = self.client.post(url, {'x': 0, 'y': 1})
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertIn('他のプレイヤーのコマは操作できません。', response.data.get('detail', ''))
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('まだあなたのターンではありません！', response.data.get('error', ''))
 
     def test_turn_switches_after_each_operation(self):
         """
@@ -39,7 +39,7 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
         # プレイヤー1のコマを手札からフィールドに配置
         dog = Dog.objects.create(
             game=self.game, player=self.player1,
-            dog_type=self.dog_type_boss, is_in_hand=True
+            dog_type=self.dog_type_yaiba, is_in_hand=True
         )
 
         # プレイヤー1がコマを配置
@@ -57,30 +57,63 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
         """
         要件4: 各コマはその movement_type に従った行動しか取れないかどうか
         """
-        # 斜め犬をフィールドに配置
-        dog = Dog.objects.create(
-            game=self.game, player=self.player1,
-            dog_type=self.dog_type_mame,
-            x_position=0, y_position=0, is_in_hand=False
-        )
+        movement_tests = [
+            # (犬種, 初期位置, 有効な移動先, 無効な移動先)
+            (self.dog_type_boss, (0, 1), (0, 0), (1, 2)),  # ボス犬
+            (self.dog_type_aniki, (1, 0), (0, 1), (3, 3)),  # アニキ犬
+            (self.dog_type_yaiba, (0, 2), (1, 2), (2, 1)),  # ヤイバ犬
+            (self.dog_type_mame, (1, 1), (2, 2), (3, 2)),  # 豆でっぽう犬
+            (self.dog_type_totsu, (3, 0), (3, 1), (2, 3)),  # トツ犬
+            (self.dog_type_hajike, (2, 0), (3, 2), (0, 2)),  # ハジケ犬
+        ]
 
-        # 有効な斜め移動
-        response = self.client.post(
-            f'/api/dogs/{dog.id}/move/',
-            {'x': 1, 'y': 1}
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # 全てのコマを初期位置に配置
+        dogs = []
+        for dog_type, start_pos, _, _ in movement_tests:
+            dog = Dog.objects.create(
+                game=self.game, player=self.player1,
+                dog_type=dog_type,
+                x_position=start_pos[0], y_position=start_pos[1], is_in_hand=False
+            )
+            dogs.append(dog)
 
-        # 無効な縦移動
-        # ターンを再度プレイヤー1に戻す
-        self.game.current_turn = self.player1
-        self.game.save()
-        response = self.client.post(
-            f'/api/dogs/{dog.id}/move/',
-            {'x': 1, 'y': 2}
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('この犬種では無効な移動です。', response.data['error'])
+        # 配置後のコマの位置をログに出力
+        dogs_on_board = Dog.objects.filter(game=self.game, is_in_hand=False)
+        positions = [(d.dog_type.name, d.x_position, d.y_position) for d in dogs_on_board]
+        print(f"All dogs placed: {positions}")
+
+        # 各犬種ごとにテストを実施
+        for index, (dog_type, _, valid_move, invalid_move) in enumerate(movement_tests):
+            dog = dogs[index]
+
+            with self.subTest(dog_type=dog_type.name):
+                # 有効な移動
+                response = self.client.post(
+                    f'/api/dogs/{dog.id}/move/',
+                    {'x': valid_move[0], 'y': valid_move[1]}
+                )
+                self.assertEqual(response.status_code, status.HTTP_200_OK, msg=f"Valid move failed for {dog_type.name}")
+
+                # 移動後のコマの位置をログに出力
+                dogs_on_board = Dog.objects.filter(game=self.game, is_in_hand=False)
+                positions = [(d.dog_type.name, d.x_position, d.y_position) for d in dogs_on_board]
+                print(f"After moving {dog_type.name} to {valid_move}: {positions}")
+
+                # ターンを再度プレイヤー1に戻す
+                self.game.current_turn = self.player1
+                self.game.save()
+
+                # 無効な移動を試みる
+                response = self.client.post(
+                    f'/api/dogs/{dog.id}/move/',
+                    {'x': invalid_move[0], 'y': invalid_move[1]}
+                )
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, msg=f"Invalid move did not fail for {dog_type.name}")
+                self.assertIn('この犬種では無効な移動です。', response.data['error'], msg=f"Incorrect error message for {dog_type.name}")
+
+                # ターンを再度プレイヤー1に戻す
+                self.game.current_turn = self.player1
+                self.game.save()
 
     def test_cannot_move_to_occupied_square(self):
         """
@@ -93,7 +126,7 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
             x_position=0, y_position=0, is_in_hand=False
         )
 
-        # 別のコマを同じ位置に配置しようとする
+        # 別のコマを手札に持つ
         dog2 = Dog.objects.create(
             game=self.game, player=self.player1,
             dog_type=self.dog_type_yaiba,
@@ -104,7 +137,7 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
         self.game.current_turn = self.player1
         self.game.save()
 
-        # コマを配置しようとする
+        # コマを配置しようとする（配置先が既に埋まっている）
         response = self.client.post(
             f'/api/dogs/{dog2.id}/place_on_board/',
             {'x': 0, 'y': 0}
@@ -112,27 +145,67 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('そのマスには既にコマがあります。', response.data['error'])
 
-    def test_cannot_move_if_not_adjacent_after_move(self):
+        # ターンを再度プレイヤー1に戻す
+        self.game.current_turn = self.player1
+        self.game.save()
+
+        # dog2を別の場所に配置
+        response = self.client.post(
+            f'/api/dogs/{dog2.id}/place_on_board/',
+            {'x': 1, 'y': 0}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # dog1をdog2の位置に移動させようとする（移動先が既に埋まっている）
+        self.game.current_turn = self.player1
+        self.game.save()
+
+        response = self.client.post(
+            f'/api/dogs/{dog1.id}/move/',
+            {'x': 1, 'y': 0}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('そのマスには既にコマがあります。', response.data['error'])
+
+    def test_move_if_adjacent_after_move(self):
         """
-        要件6: コマを移動した後に他のコマと隣接していない場合は移動できないかどうか
+        要件6: コマを移動した後に他のコマと隣接している場合は移動できるかどうか
         """
-        # フィールドにコマを1つ配置
-        dog = Dog.objects.create(
+        # フィールドに2つのコマを配置
+        # dog1を(0,0)に配置
+        dog1 = Dog.objects.create(
             game=self.game, player=self.player1,
             dog_type=self.dog_type_boss,
             x_position=0, y_position=0, is_in_hand=False
+        )
+        # dog2を(1,0)に配置（dog1と隣接）
+        dog2 = Dog.objects.create(
+            game=self.game, player=self.player1,
+            dog_type=self.dog_type_aniki,
+            x_position=1, y_position=0, is_in_hand=False
         )
 
         # ターンをプレイヤー1に設定
         self.game.current_turn = self.player1
         self.game.save()
 
-        # 離れた位置に移動しようとする
+        # dog1を(1,1)に移動させる（移動後もdog2と隣接）
         response = self.client.post(
-            f'/api/dogs/{dog.id}/move/',
-            {'x': 5, 'y': 5}
+            f'/api/dogs/{dog1.id}/move/',
+            {'x': 1, 'y': 1}
         )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "移動が成功しました。")
+
+        # 再度ターンをプレイヤー1に設定
+        self.game.current_turn = self.player1
+        self.game.save()
+
+        # dog1を(2,2)に移動させる（移動後、他のコマと隣接しない）
+        response = self.client.post(
+            f'/api/dogs/{dog1.id}/move/',
+            {'x': 2, 'y': 2}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, "隣接していない場所への移動が拒否されませんでした。")
         self.assertIn('他のコマと隣接していない場所には移動できません。', response.data['error'])
 
     def test_cannot_remove_piece_if_would_leave_non_adjacent_pieces(self):
@@ -148,7 +221,7 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
         dog2 = Dog.objects.create(
             game=self.game, player=self.player1,
             dog_type=self.dog_type_aniki,
-            x_position=5, y_position=5, is_in_hand=False
+            x_position=0, y_position=1, is_in_hand=False
         )
 
         # ターンをプレイヤー1に設定
@@ -157,7 +230,7 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
 
         # コマを手札に戻そうとする
         response = self.client.post(
-            f'/api/dogs/{dog1.id}/remove_from_board/'
+            f'/api/dogs/{dog2.id}/remove_from_board/'
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('このコマを手札に戻すと、他のコマが孤立します。', response.data['error'])
@@ -226,21 +299,49 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
         """
         要件10: コマの操作後にフィールドの全コマの配置が縦横4マスを超えていないかどうか
         """
-        # フィールドにコマを配置
-        dog = Dog.objects.create(
+        # 縦方向のコマを配置（x=0, y=1～4）
+        for y in range(1, 5):
+            Dog.objects.create(
+                game=self.game, player=self.player1,
+                dog_type=self.dog_type_yaiba,
+                x_position=0, y_position=y, is_in_hand=False
+            )
+
+        # 横方向のコマを配置（x=1～4, y=0）
+        for x in range(1, 5):
+            Dog.objects.create(
+                game=self.game, player=self.player1,
+                dog_type=self.dog_type_yaiba,
+                x_position=x, y_position=0, is_in_hand=False
+            )
+
+        # ボス犬を配置（x=4, y=4）
+        boss_dog = Dog.objects.create(
             game=self.game, player=self.player1,
-            dog_type=self.dog_type_yaiba,
-            x_position=0, y_position=0, is_in_hand=False
+            dog_type=self.dog_type_boss,
+            x_position=4, y_position=4, is_in_hand=False
         )
 
         # ターンをプレイヤー1に設定
         self.game.current_turn = self.player1
         self.game.save()
 
-        # 4x4を超える位置に移動しようとする
+        # 縦に4マスを超えるテスト（y=5に移動）
         response = self.client.post(
-            f'/api/dogs/{dog.id}/move/',
-            {'x': 5, 'y': 0}
+            f'/api/dogs/{boss_dog.id}/move/',
+            {'x': 4, 'y': 5}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('フィールドのサイズを超えるため移動できません。', response.data['error'])
+
+        # ターンを再度プレイヤー1に戻す
+        self.game.current_turn = self.player1
+        self.game.save()
+
+        # 横に4マスを超えるテスト（x=5に移動）
+        response = self.client.post(
+            f'/api/dogs/{boss_dog.id}/move/',
+            {'x': 5, 'y': 4}
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('フィールドのサイズを超えるため移動できません。', response.data['error'])

@@ -126,13 +126,12 @@ const GameBoard = ({ initialData }) => {
                         setBoardDogs([...boardDogs, newDog]);
                         setSelectedDog(null);
                         setValidMoves([]);
-                        updateBoardBounds();
                     } else {
-                        console.log("Move failed: " + response.data.error);
+                        alert("Move failed: " + response.data.error);
                     }
                 })
                 .catch(error => {
-                    console.log("Move failed: " + error);
+                    alert("Move failed: " + error);
                 });
         } else {
             apiClient.post(`/dogs/${selectedDog.id}/move/`, { x: move.x, y: move.y })
@@ -144,13 +143,12 @@ const GameBoard = ({ initialData }) => {
                         setBoardDogs(boardDogs.map(dog => dog.id === selectedDog.id ? { ...dog, left: move.x * 100, top: move.y * 100 } : dog));
                         setSelectedDog(null);
                         setValidMoves([]);
-                        updateBoardBounds();
                     } else {
-                        console.log("Move failed: " + response.data.error);
+                        alert("Move failed: " + response.data.error);
                     }
                 })
                 .catch(error => {
-                    console.log("Move failed: " + error);
+                    alert("Move failed: " + error);
                 });
         }
     };
@@ -244,6 +242,8 @@ const GameBoard = ({ initialData }) => {
                     <div
                         key={index}
                         className="valid-move"
+                        role="button"
+                        aria-label="valid-move"
                         style={{ left: `${(move.x - boardBounds.minX) * 100}px`, top: `${(move.y - boardBounds.minY) * 100}px` }}
                         onClick={() => handleMoveClick(move)}
                     />
