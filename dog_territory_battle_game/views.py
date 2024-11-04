@@ -185,7 +185,7 @@ class DogViewSet(viewsets.ModelViewSet):
         game.save()
         return game.current_turn.id
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], url_path='move', url_name='move')
     def move(self, request, pk=None):
         """
         犬を新しい位置に移動するアクション。
@@ -204,7 +204,7 @@ class DogViewSet(viewsets.ModelViewSet):
         new_x = request.data.get("x")
         new_y = request.data.get("y")
 
-        logger.debug(f"Move request: dog_id={dog.id}, new_x={new_x}, new_y={new_y}")
+        logger.debug(f"moveメソッドの移動先: dog_id={dog.id}, new_x={new_x}, new_y={new_y}")
 
         if new_x is None or new_y is None:
             return Response({"error": "Missing parameters"}, status=status.HTTP_400_BAD_REQUEST)
@@ -215,27 +215,53 @@ class DogViewSet(viewsets.ModelViewSet):
         except ValueError:
             return Response({"error": "Invalid parameters"}, status=status.HTTP_400_BAD_REQUEST)
 
-        dogs_in_game = Dog.objects.filter(game=dog.game, is_in_hand=False)
+        # フィールドサイズのチェックを先に行う
+        dogs_in_game = Dog.objects.filter(game=dog.game, is_in_hand=False).exclude(id=dog.id)
         xs, ys = [d.x_position for d in dogs_in_game], [d.y_position for d in dogs_in_game]
 
-        min_x, max_x = min(xs), max(xs)
-        min_y, max_y = min(ys), max(ys)
+        min_x, max_x = min(xs + [new_x]), max(xs + [new_x])
+        min_y, max_y = min(ys + [new_y]), max(ys + [new_y])
 
-        if new_x < min_x - 1 or new_x > max_x + 1 or new_y < min_y - 1 or new_y > max_y + 1:
-            return Response({"error": "Invalid move"}, status=status.HTTP_400_BAD_REQUEST)
+        if max_x - min_x >= 4 or max_y - min_y >= 4:
+            return Response({"error": "フィールドのサイズを超えるため移動できません。"}, status=status.HTTP_400_BAD_REQUEST)
 
+        # 移動の有効性をチェック
         if not self.is_valid_move(dog, new_x, new_y):
-            return Response({"error": "Invalid move for this dog type"}, status=status.HTTP_400_BAD_REQUEST)
+            logger.debug("is_valid_moveによる判定にて無効な移動")
+            return Response({"error": "この犬種では無効な移動です。"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # 移動先に他のコマがあるかチェック
+        if Dog.objects.filter(game=dog.game, x_position=new_x, y_position=new_y, is_in_hand=False).exists():
+            logger.debug("すでにコマが存在しているマスに移動しています")
+            return Response({"error": "そのマスには既にコマがあります。"}, status=status.HTTP_400_BAD_REQUEST)
 
+        # 移動後に他のコマと隣接しているかチェック
+        if not self.is_adjacent_to_other_dogs(dog.game, new_x, new_y, exclude_dog_id=dog.id):
+            logger.debug("is_adjacent_to_other_dogsによる判定にて無効な移動")
+            return Response({"error": "他のコマと隣接していない場所には移動できません。"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 元の位置を保存
+        original_x, original_y = dog.x_position, dog.y_position
+
+        # コマを新しい位置に移動
         dog.x_position = new_x
         dog.y_position = new_y
         dog.is_in_hand = False
+
+        # 自分のボス犬が囲まれるかチェック
+        if self.would_cause_self_loss(dog.game, dog.player):
+            # 元の位置に戻す
+            dog.x_position = original_x
+            dog.y_position = original_y
+            return Response({"error": "この移動はあなたのボス犬が囲まれるため、移動できません。"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # コマの新しい位置を保存
         dog.save()
 
         # 勝敗の判定
         winner = self.check_winner(dog.game)
         if winner:
-            logger.debug({winner})
+            logger.debug(f"Winner determined: {winner.user.username}")
             game = dog.game
             game.winner = winner
             game.save()
@@ -260,20 +286,63 @@ class DogViewSet(viewsets.ModelViewSet):
         Returns:
             bool: 移動が有効である場合はTrue、無効である場合はFalseを返す。
         """
+        logger.debug(f"is_valid_moveにて移動が適切かどうか判定開始 dog_id={dog.id}, new_x={new_x}, new_y={new_y}")
         movement_type = dog.dog_type.movement_type
         max_steps = dog.dog_type.max_steps
 
-        dx = abs(new_x - dog.x_position)
-        dy = abs(new_y - dog.y_position)
+        dx = new_x - dog.x_position
+        dy = new_y - dog.y_position
 
-        if movement_type == 'diagonal':
-            return dx == dy and (max_steps is None or dx <= max_steps)
+        abs_dx = abs(dx)
+        abs_dy = abs(dy)
+
+        logger.debug(f"dx={dx}, dy={dy}, abs_dx={abs_dx}, abs_dy={abs_dy}, movement_type={movement_type}")
+
+        if movement_type == 'diagonal_orthogonal':
+            valid = max(abs_dx, abs_dy) == 1 and (abs_dx != 0 or abs_dy != 0)
+            logger.debug(f"有効な縦横斜め移動: {valid}")
+            return valid
         elif movement_type == 'orthogonal':
-            return (dx == 0 or dy == 0) and (max_steps is None or dx + dy <= max_steps)
-        elif movement_type == 'diagonal_orthogonal':
-            return (dx == dy or dx == 0 or dy == 0) and (max_steps is None or max(dx, dy) <= max_steps)
+            if max_steps is None:
+                valid = (dx == 0 or dy == 0) and (abs_dx + abs_dy != 0)
+                logger.debug(f"有効な縦横無制限移動: {valid}")
+                return valid
+            else:
+                valid = ((abs_dx == 1 and dy == 0) or (dx == 0 and abs_dy == 1))
+                logger.debug(f"有効な縦横一マス移動: {valid}")
+                return valid
+        elif movement_type == 'diagonal':
+            valid = abs_dx == 1 and abs_dy == 1
+            logger.debug(f"有効な斜め移動: {valid}")
+            return valid
         elif movement_type == 'special_hajike':
-            return (dx, dy) in [(1, 2), (2, 1)]
+            # ハジケ犬の特殊な移動
+            if (abs_dx == 2 and abs_dy == 1) or (abs_dx == 1 and abs_dy == 2):
+                valid = True
+            else:
+                valid = False
+            logger.debug(f"無効なL字移動: {valid}")
+            return valid
+        else:
+            logger.debug("そのような移動パターンはありません。")
+            return False
+    
+    def is_adjacent_to_other_dogs(self, game, x, y, exclude_dog_id=None, own_pieces_only=False, player=None):
+        logger.debug(f"is_adjacent_to_other_dogs called with x={x}, y={y}, exclude_dog_id={exclude_dog_id}")
+        adjacent_positions = [
+            (x - 1, y - 1), (x, y - 1), (x + 1, y - 1),
+            (x - 1, y),               (x + 1, y),
+            (x - 1, y + 1), (x, y + 1), (x + 1, y + 1),
+        ]
+        other_dogs = Dog.objects.filter(game=game, is_in_hand=False).exclude(id=exclude_dog_id)
+        if own_pieces_only and player:
+            other_dogs = other_dogs.filter(player=player)
+        for dog in other_dogs:
+            logger.debug(f"Checking adjacency with dog_id={dog.id} at position ({dog.x_position}, {dog.y_position})")
+            if (dog.x_position, dog.y_position) in adjacent_positions:
+                logger.debug("Adjacent dog found")
+                return True
+        logger.debug("No adjacent dogs found")
         return False
 
     def check_winner(self, game):
@@ -286,9 +355,10 @@ class DogViewSet(viewsets.ModelViewSet):
         Returns:
             Player: 勝者のプレイヤーオブジェクト。勝者がいない場合はNoneを返す。
         """
+        logger.debug(f"check_winner called for game_id={game.id}")
         boss_dogs = Dog.objects.filter(game=game, dog_type__name='ボス犬')
-        logger.debug({boss_dogs})
         for boss in boss_dogs:
+            logger.debug(f"Checking boss dog_id={boss.id} for player {boss.player.user.username}")
             x, y = boss.x_position, boss.y_position
             adjacent_positions = [
                 (x, y - 1),
@@ -296,16 +366,65 @@ class DogViewSet(viewsets.ModelViewSet):
                 (x - 1, y),
                 (x + 1, y)
             ]
-            blocked = all(
-                pos[0] < 0 or pos[0] >= 4 or pos[1] < 0 or pos[1] >= 4 or
-                Dog.objects.filter(game=game, x_position=pos[0], y_position=pos[1]).exists()
-                for pos in adjacent_positions
-            )
+            blocked = True
+            for pos in adjacent_positions:
+                logger.debug(f"Checking position {pos}")
+                # フィールドのサイズを考慮
+                if not self.is_within_field(game, pos[0], pos[1]):
+                    logger.debug(f"Position {pos} is outside the field")
+                    continue
+                if not Dog.objects.filter(game=game, x_position=pos[0], y_position=pos[1]).exists():
+                    logger.debug(f"Position {pos} is empty; boss dog is not blocked")
+                    blocked = False
+                    break
             if blocked:
-                return game.player2 if boss.player == game.player1 else game.player1
+                winner = game.player2 if boss.player == game.player1 else game.player1
+                logger.debug(f"Boss dog_id={boss.id} is blocked; winner is {winner.user.username}")
+                return winner
+        logger.debug("No winner found")
         return None
+    
+    def is_within_field(self, game, new_x, new_y):
+        """
+        指定された新しい座標がフィールド内に収まっているかを判定するメソッド。
 
-    @action(detail=True, methods=['post'])
+        Args:
+            game (Game): ゲームオブジェクト。
+            new_x (int): 移動先または配置先のx座標。
+            new_y (int): 移動先または配置先のy座標。
+
+        Returns:
+            bool: フィールド内に収まっていればTrue、そうでなければFalse。
+        """
+        FIELD_MAX_SIZE = 4  # フィールドの最大サイズ（縦横）
+
+        # 現在のフィールドの最小・最大x, y座標を取得
+        dogs_in_game = Dog.objects.filter(game=game, is_in_hand=False)
+        if dogs_in_game.exists():
+            current_min_x = min(dog.x_position for dog in dogs_in_game)
+            current_max_x = max(dog.x_position for dog in dogs_in_game)
+            current_min_y = min(dog.y_position for dog in dogs_in_game)
+            current_max_y = max(dog.y_position for dog in dogs_in_game)
+        else:
+            # 初期配置の場合、フィールドサイズを1とする
+            current_min_x = new_x
+            current_max_x = new_x
+            current_min_y = new_y
+            current_max_y = new_y
+
+        # 新しい座標を含めた場合の最小・最大x, yを計算
+        new_min_x = min(current_min_x, new_x)
+        new_max_x = max(current_max_x, new_x)
+        new_min_y = min(current_min_y, new_y)
+        new_max_y = max(current_max_y, new_y)
+
+        # フィールドサイズが4マス以内かを判定
+        if (new_max_x - new_min_x + 1) > FIELD_MAX_SIZE or (new_max_y - new_min_y + 1) > FIELD_MAX_SIZE:
+            return False
+
+        return True
+
+    @action(detail=True, methods=['post'], url_path='remove_from_board', url_name='remove_from_board')
     def remove_from_board(self, request, pk=None):
         """
         ボードから犬を取り除くアクション。
@@ -318,16 +437,25 @@ class DogViewSet(viewsets.ModelViewSet):
             Response: 成功時に犬の情報を含むレスポンス。失敗時にエラーメッセージを含むレスポンス。
         """
         dog = self.get_object()
+        logger.debug(f"remove_from_board called for dog_id={dog.id}")
         if dog.game.current_turn != dog.player:
+            logger.debug("Not the player's turn")
             return Response({"error": "まだあなたのターンではありません！"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        if dog.dog_type.id == 1:
-            return Response({"error": "ボス犬は手札に戻せません！"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if dog.dog_type.name == 'ボス犬':
+            logger.debug("Attempted to remove Boss Dog")
+            return Response({"error": "ボス犬は手札に戻せません。"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # コマを手札に戻した後に、他のコマが孤立するかチェック
+        if not self.can_remove_dog(dog):
+            logger.debug("Cannot remove dog; it would isolate other pieces")
+            return Response({"error": "このコマを手札に戻すと、他のコマが孤立します。"}, status=status.HTTP_400_BAD_REQUEST)
 
         dog.x_position = None
         dog.y_position = None
         dog.is_in_hand = True
         dog.save()
+        logger.debug(f"Dog_id={dog.id} removed from board")
 
         new_turn_id = self.update_current_turn(dog.game)
         return Response({
@@ -335,8 +463,50 @@ class DogViewSet(viewsets.ModelViewSet):
             'dog': DogSerializer(dog).data,
             'current_turn': new_turn_id
         })
+    
+    def can_remove_dog(self, dog):
+        logger.debug(f"can_remove_dog called for dog_id={dog.id}")
+        # 仮にコマを取り除いた場合に、他のコマが孤立しないかをチェックする
 
-    @action(detail=True, methods=['post'])
+        # 取り除くコマを除いたボード上のコマを取得
+        remaining_dogs = Dog.objects.filter(game=dog.game, is_in_hand=False).exclude(id=dog.id)
+
+        # ボード上に他のコマがなければ問題なく取り除ける
+        if not remaining_dogs.exists():
+            logger.debug("No other dogs on the board; can remove dog.")
+            return True
+
+        # 各コマが孤立していないかチェック
+        for other_dog in remaining_dogs:
+            if not self.has_adjacent_dog(other_dog, remaining_dogs):
+                logger.debug(f"Dog_id={other_dog.id} would be isolated after removal.")
+                return False  # 孤立するコマがあるため、取り除けない
+        logger.debug(f"All dogs remain connected after removing dog_id={dog.id}")
+        return True  # 全てのコマが孤立しないため、取り除ける
+    
+    def has_adjacent_dog(self, dog, dog_queryset):
+        """
+        指定したコマが周囲8方向に他のコマと隣接しているかを判定する。
+
+        Args:
+            dog (Dog): 判定対象のコマ。
+            dog_queryset (QuerySet): チェック対象のコマのクエリセット。
+
+        Returns:
+            bool: 隣接するコマが存在する場合は True、存在しない場合は False。
+        """
+        x, y = dog.x_position, dog.y_position
+        adjacent_positions = [
+            (x - 1, y - 1), (x, y - 1), (x + 1, y - 1),
+            (x - 1, y),               (x + 1, y),
+            (x - 1, y + 1), (x, y + 1), (x + 1, y + 1),
+        ]
+        for adj_dog in dog_queryset:
+            if adj_dog.id != dog.id and (adj_dog.x_position, adj_dog.y_position) in adjacent_positions:
+                return True  # 隣接するコマが見つかった
+        return False  # 隣接するコマがない（孤立している）
+
+    @action(detail=True, methods=['post'], url_path='place_on_board', url_name='place_on_board')
     def place_on_board(self, request, pk=None):
         """
         犬をボードに配置するアクション。
@@ -349,25 +519,76 @@ class DogViewSet(viewsets.ModelViewSet):
             Response: 成功時に犬の情報を含むレスポンス。失敗時にエラーメッセージを含むレスポンス。
         """
         dog = self.get_object()
+        logger.debug(f"place_on_board called for dog_id={dog.id}")
         if dog.game.current_turn != dog.player:
+            logger.debug("Not the player's turn")
             return Response({"error": "まだあなたのターンではありません！"}, status=status.HTTP_400_BAD_REQUEST)
 
         new_x = request.data.get("x")
         new_y = request.data.get("y")
+        logger.debug(f"Requested position: x={new_x}, y={new_y}")
 
         if new_x is None or new_y is None:
+            logger.debug("Missing parameters")
             return Response({"error": "Missing parameters"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             new_x = int(new_x)
             new_y = int(new_y)
         except ValueError:
+            logger.debug("Invalid parameters")
             return Response({"error": "Invalid parameters"}, status=status.HTTP_400_BAD_REQUEST)
 
+        dogs_in_game = Dog.objects.filter(game=dog.game, is_in_hand=False)
+        xs, ys = [d.x_position for d in dogs_in_game] + [new_x], [d.y_position for d in dogs_in_game] + [new_y]
+
+        min_x, max_x = min(xs), max(xs)
+        min_y, max_y = min(ys), max(ys)
+        logger.debug(f"Field bounds after placement: x({min_x}-{max_x}), y({min_y}-{max_y})")
+
+        if max_x - min_x >= 4 or max_y - min_y >= 4:
+            logger.debug("Field size exceeded")
+            return Response({"error": "フィールドのサイズを超えるため移動できません。"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 配置先に他のコマがあるかチェック
+        if Dog.objects.filter(game=dog.game, x_position=new_x, y_position=new_y, is_in_hand=False).exists():
+            logger.debug("Target square is occupied")
+            return Response({"error": "そのマスには既にコマがあります。"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 配置後に他のコマと隣接しているかチェック
+        if dogs_in_game.exists() and not self.is_adjacent_to_other_dogs(
+            dog.game, new_x, new_y, own_pieces_only=True, player=dog.player):
+            logger.debug("Not adjacent to other dogs after placement")
+            return Response({"error": "他のコマと隣接していない場所には配置できません。"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 元の状態を保存
+        original_x, original_y = dog.x_position, dog.y_position
+        original_in_hand = dog.is_in_hand
+
+        # コマを新しい位置に配置
         dog.x_position = new_x
         dog.y_position = new_y
         dog.is_in_hand = False
+
+        # 自分のボス犬が囲まれるかチェック
+        if self.would_cause_self_loss(dog.game, dog.player):
+            # 元の状態に戻す
+            dog.x_position = original_x
+            dog.y_position = original_y
+            dog.is_in_hand = original_in_hand
+            return Response({"error": "この配置はあなたのボス犬が囲まれるため、配置できません。"}, status=status.HTTP_400_BAD_REQUEST)
+
         dog.save()
+        logger.debug(f"Dog placed on board at ({new_x}, {new_y})")
+
+        # 勝敗の判定
+        winner = self.check_winner(dog.game)
+        if winner:
+            logger.debug(f"Winner determined: {winner.user.username}")
+            game = dog.game
+            game.winner = winner
+            game.save()
+            return Response({"success": True, 'dog': DogSerializer(dog).data, 'winner': winner.user.username})
 
         new_turn_id = self.update_current_turn(dog.game)
         return Response({
@@ -375,6 +596,36 @@ class DogViewSet(viewsets.ModelViewSet):
             'dog': DogSerializer(dog).data,
             'current_turn': new_turn_id
         })
+    
+    def would_cause_self_loss(self, game, player):
+        """
+        プレイヤーのボス犬が囲まれているかをチェックするメソッド。
+
+        Args:
+            game (Game): ゲームオブジェクト。
+            player (Player): チェック対象のプレイヤー。
+
+        Returns:
+            bool: ボス犬が囲まれている場合は True、そうでない場合は False。
+        """
+        boss_dog = Dog.objects.filter(game=game, player=player, dog_type__name='ボス犬').first()
+        if not boss_dog:
+            return False  # ボス犬が存在しない場合、安全策として False を返す
+
+        x, y = boss_dog.x_position, boss_dog.y_position
+        adjacent_positions = [
+            (x, y - 1),
+            (x, y + 1),
+            (x - 1, y),
+            (x + 1, y)
+        ]
+
+        for pos in adjacent_positions:
+            if not self.is_within_field(game, pos[0], pos[1]):
+                continue
+            if not Dog.objects.filter(game=game, x_position=pos[0], y_position=pos[1]).exists():
+                return False  # ボス犬は囲まれていない
+        return True  # ボス犬は囲まれている
 
 def home_view(request):
     """
