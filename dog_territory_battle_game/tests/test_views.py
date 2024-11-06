@@ -748,3 +748,53 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
         logger.debug("配置が正しくブロックされました")
         logger.debug("テスト終了: テスト19 - ネガティブチェック")
         
+    def test_player_cannot_surround_own_boss_negative(self):
+        """
+        テスト20: 特定のボード状態でプレイヤー1が自分のボス犬を囲めないどうか（ネガティブチェック）
+        """
+        logger.debug("テスト20: 特定のボード状態でプレイヤー1が自分のボス犬を囲めないどうか（ネガティブチェック）")
+        # ボード状態を再現
+        # y↓ x→ 0   1   2   3
+        #      ---------------
+        # 0 |  B1 |  .  |  Y1 |  .
+        #      ---------------
+        # 1 |  Y2 |  Y2 |  Y2 |  Y2
+        #      ---------------
+        # 2 |  .  |  Y2 |  . |  .
+        #      ---------------
+        # 3 |  .  |  Y2 |  . |  .
+
+        # プレイヤー1のボス犬を(0,0)に配置
+        boss_dog = Dog.objects.create(
+            game=self.game, player=self.player1,
+            dog_type=self.dog_type_boss,
+            x_position=0, y_position=0, is_in_hand=False
+        )
+
+        moving_dog = Dog.objects.create(
+            game=self.game, player=self.player1,
+            dog_type=self.dog_type_yaiba,
+            x_position=2, y_position=0, is_in_hand=False
+        )
+
+        # プレイヤー2のコマを配置
+        positions = [(0, 1), (1, 1), (2, 1), (3, 1), (1, 2), (1, 3)]
+        for x, y in positions:
+            Dog.objects.create(
+                game=self.game, player=self.player2,
+                dog_type=self.dog_type_yaiba,
+                x_position=x, y_position=y, is_in_hand=False
+            )
+
+        # ターンをプレイヤー2に設定
+        self.game.current_turn = self.player1
+        self.game.save()
+
+        response = self.client.post(
+            f'/api/dogs/{moving_dog.id}/move/',
+            {'x': 1, 'y': 0}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('この移動はあなたのボス犬が囲まれるため、移動できません。', response.data.get('error', ''))
+        logger.debug("移動が正しくブロックされました")
+        logger.debug("テスト終了: テスト15 - ポジティブチェック")

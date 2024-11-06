@@ -161,4 +161,3 @@ class DogViewSet(viewsets.ModelViewSet):
             'dog': DogSerializer(dog).data,
             'current_turn': new_turn_id
         })
-    
