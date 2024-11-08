@@ -1,18 +1,34 @@
 // src/components/GameBoard.test.js
-
 import React from 'react';
 import { render, fireEvent, screen, act } from '@testing-library/react';
-import GameBoard from './GameBoard';
+import GameBoard from '../../components/GameBoard';
 import axios from 'axios';
 import '@testing-library/jest-dom';
+import rules from '../../utils/rules';
 import { generateValidMoves, generateValidMovesForHandPiece } from '../utils/rules';
 
-// window.alert をモック
-window.alert = jest.fn();
-
-// モック関数の設定
 jest.mock('axios');
 jest.mock('../utils/rules');
+
+jest.mock('../api/apiClient', () => ({
+  post: jest.fn(),
+}));
+import apiClient from '../api/apiClient';
+
+jest.spyOn(rules, 'generateValidMoves').mockReturnValue([{ x: 0, y: 0 }]);
+
+// モックのレスポンスを設定
+apiClient.post.mockResolvedValue({
+  data: {
+    success: true,
+    current_turn: 2,
+    dog: {
+      id: 1,
+      left: 0,
+      top: 0,
+    },
+  },
+});
 
 describe('GameBoard Component', () => {
   let initialData;
@@ -268,7 +284,7 @@ describe('GameBoard Component', () => {
     fireEvent.click(screen.getByText('ボス犬'));
 
     // 手札エリアをクリック
-    fireEvent.click(screen.getByTestId('top-hand'));
+    fireEvent.click(screen.getByTestId('player1-hand'));
 
     // 警告メッセージが表示されることを確認
     expect(window.alert).toHaveBeenCalledWith('ボス犬は手札に戻せません！');
@@ -293,8 +309,13 @@ describe('GameBoard Component', () => {
 
     const updateBoardBoundsMock = jest.fn();
 
-    // コンポーネントの関数をモック
-    GameBoard.prototype.updateBoardBounds = updateBoardBoundsMock;
+    // useEffectをモックするために、React.useEffectをスパイします
+    jest.spyOn(React, 'useEffect').mockImplementation((f, deps) => {
+      if (deps && deps.includes(boardDogs)) {
+        updateBoardBoundsMock();
+      }
+      f();
+    });
 
     render(<GameBoard initialData={initialData} />);
 

@@ -1,11 +1,9 @@
 // src/utils/rules.test.js
-
 import {
   generateValidMoves,
   generateValidMovesForHandPiece,
   checkWinner,
-  shouldAddSpace,
-} from './rules';
+} from '../../utils/rules';
 
 describe('Rules Utility Functions', () => {
   /**
@@ -14,6 +12,8 @@ describe('Rules Utility Functions', () => {
    */
   test('generateValidMoves returns correct moves based on movement_type', () => {
     const dog = {
+      id: 1,
+      name: 'ヤイバ犬',
       left: 0,
       top: 0,
       movement_type: 'orthogonal',
@@ -38,13 +38,15 @@ describe('Rules Utility Functions', () => {
    */
   test('generateValidMoves excludes squares that already have a piece', () => {
     const dog = {
+      id: 1,
+      name: 'ヤイバ犬',
       left: 0,
       top: 0,
       movement_type: 'orthogonal',
       max_steps: 1,
     };
     const boardDogs = [
-      { left: 0, top: 100 }, // This position should be excluded
+      { id: 2, left: 0, top: 100 }, // y = 1
     ];
     const boardBounds = { minX: 0, maxX: 0, minY: 0, maxY: 1 };
 
@@ -73,10 +75,10 @@ describe('Rules Utility Functions', () => {
           player: 1,
         },
         // Surrounding dogs
-        { left: 100, top: 0 },
-        { left: 100, top: 200 },
-        { left: 0, top: 100 },
-        { left: 200, top: 100 },
+        { name: 'アニキ犬', left: 100, top: 0, player: 2 },
+        { name: 'アニキ犬', left: 100, top: 200, player: 2 },
+        { name: 'アニキ犬', left: 0, top: 100, player: 2 },
+        { name: 'アニキ犬', left: 200, top: 100, player: 2 },
       ],
     };
 
@@ -90,18 +92,20 @@ describe('Rules Utility Functions', () => {
    */
   test('generateValidMoves does not allow moves that exceed 4x4 board size', () => {
     const dog = {
-      left: 300,
-      top: 300,
+      id: 1,
+      name: 'ヤイバ犬',
+      left: 300, // x = 3
+      top: 300,  // y = 3
       movement_type: 'orthogonal',
       max_steps: 1,
     };
     const boardDogs = [
-      { left: 0, top: 0 },
-      { left: 100, top: 0 },
-      { left: 200, top: 0 },
-      { left: 300, top: 0 },
+      { id: 2, left: 0, top: 0 },   // x = 0, y = 0
+      { id: 3, left: 100, top: 0 }, // x = 1, y = 0
+      { id: 4, left: 200, top: 0 }, // x = 2, y = 0
+      { id: 5, left: 300, top: 0 }, // x = 3, y = 0
     ];
-    const boardBounds = { minX: 0, maxX: 300, minY: 0, maxY: 300 };
+    const boardBounds = { minX: 0, maxX: 3, minY: 0, maxY: 3 };
 
     const moves = generateValidMoves(dog, boardDogs, boardBounds);
 
@@ -114,13 +118,15 @@ describe('Rules Utility Functions', () => {
    */
   test('generateValidMoves excludes moves that result in no adjacent pieces', () => {
     const dog = {
+      id: 1,
+      name: 'ボス犬',
       left: 0,
       top: 0,
-      movement_type: 'orthogonal',
+      movement_type: 'diagonal_orthogonal',
       max_steps: 1,
     };
     const boardDogs = [
-      { left: 0, top: 0 },
+      { id: 1, left: 0, top: 0 },
     ];
     const boardBounds = { minX: 0, maxX: 0, minY: 0, maxY: 0 };
 
