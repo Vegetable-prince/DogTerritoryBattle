@@ -1,0 +1,16 @@
+.extra-operation {
+  margin: 10px;
+}
+
+.extra-operation button {
+  margin-right: 10px;
+  padding: 5px 10px;
+  cursor: pointer;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+}
+
+.extra-operation button:hover {
+  background-color: #45a049;
+}

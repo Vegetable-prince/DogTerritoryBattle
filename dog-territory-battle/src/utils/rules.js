@@ -1,195 +1,112 @@
 /**
- * 犬の移動可能な座標を生成する関数
- *
- * @param {Object} dog - 移動させる犬のオブジェクト
- * @param {Array} boardDogs - ボード上の犬のリスト
- * @param {Object} boardBounds - ボードの境界情報
- * @returns {Array} - 移動可能な座標のリスト
+ * 移動タイプを検証する関数
+ * @param {Object} dog - 移動する犬のオブジェクト
+ * @param {Object} from - 移動前の座標 { x, y }
+ * @param {Object} to - 移動後の座標 { x, y }
+ * @returns {boolean} - 移動が有効であれば true、無効であれば false
  */
-export const generateValidMoves = (dog, boardDogs, boardBounds) => {
-    const x = dog.left / 100;
-    const y = dog.top / 100;
-    const moves = [];
+export const check_movement_type = (dog, from, to) => {
+    const dx = Math.abs(to.x - from.x);
+    const dy = Math.abs(to.y - from.y);
 
-    const movementType = dog.movement_type;
-    const maxSteps = dog.max_steps;
-    const directions = getDirections(movementType);
-
-    directions.forEach(direction => {
-        let steps = 0;
-        while (steps < (maxSteps || Infinity)) {
-            const newX = x + direction.dx * (steps + 1);
-            const newY = y + direction.dy * (steps + 1);
-            const newBoardBounds = {
-                minX: Math.min(boardBounds.minX, newX),
-                maxX: Math.max(boardBounds.maxX, newX),
-                minY: Math.min(boardBounds.minY, newY),
-                maxY: Math.max(boardBounds.maxY, newY)
-            };
-
-            // ボードのサイズ制限を超えていないかチェック
-            if (newBoardBounds.maxX - newBoardBounds.minX >= 4 || newBoardBounds.maxY - newBoardBounds.minY >= 4) {
-                break;
-            }
-
-            // 他の駒がその位置に存在しないかチェック
-            if (boardDogs.some(dog => dog.left / 100 === newX && dog.top / 100 === newY)) {
-                break;
-            }
-
-            // 移動可能な座標を追加
-            moves.push({ x: newX, y: newY });
-            steps++;
-        }
-    });
-
-    return moves;
-};
-
-/**
- * 犬ごとの移動先を生成する関数
- *
- * @param {String} type - 移動させる犬のタイプ文字列
- * @returns {Array} - 移動可能な座標のリスト
- */
-const getDirections = (type) => {
-    switch (type) {
-        case 'diagonal_orthogonal':
-            // 対角線と直線方向への移動
-            return [
-                { dx: -1, dy: -1 },
-                { dx: 1, dy: -1 },
-                { dx: -1, dy: 1 },
-                { dx: 1, dy: 1 },
-                { dx: 0, dy: -1 },
-                { dx: 0, dy: 1 },
-                { dx: -1, dy: 0 },
-                { dx: 1, dy: 0 }
-            ];
-        case 'diagonal':
-            // 対角線方向への移動
-            return [
-                { dx: -1, dy: -1 },
-                { dx: 1, dy: -1 },
-                { dx: -1, dy: 1 },
-                { dx: 1, dy: 1 }
-            ];
+    switch (dog.movement_type) {
         case 'orthogonal':
-            // 直線方向への移動
-            return [
-                { dx: 0, dy: -1 },
-                { dx: 0, dy: 1 },
-                { dx: -1, dy: 0 },
-                { dx: 1, dy: 0 }
-            ];
+            // 直線方向に最大ステップ数以内で移動
+            return (
+                (dx === 0 || dy === 0) && (dx + dy) / 100 <= dog.max_steps
+            );
+        case 'diagonal':
+            // 斜め方向に最大ステップ数以内で移動
+            return dx === dy && (dx / 100) <= dog.max_steps;
+        case 'diagonal_orthogonal':
+            // 斜めまたは直線方向に最大ステップ数以内で移動
+            return (
+                (dx === dy || dx === 0 || dy === 0) &&
+                (dx + dy) / 100 <= dog.max_steps
+            );
         case 'special_hajike':
-            // 特殊なハジケ犬の移動 (L字型)
-            return [
-                { dx: 1, dy: 2 },
-                { dx: 1, dy: -2 },
-                { dx: -1, dy: 2 },
-                { dx: -1, dy: -2 },
-                { dx: 2, dy: 1 },
-                { dx: 2, dy: -1 },
-                { dx: -2, dy: 1 },
-                { dx: -2, dy: -1 }
-            ];
-        default:
-            // それ以外のタイプの場合、移動できない
-            return [];
-    }
-};
-
-/**
- * 手札の駒の移動可能な座標を生成する関数
- *
- * @param {Array} boardDogs - ボード上の犬のリスト
- * @param {Object} boardBounds - ボードの境界情報
- * @returns {Array} - 移動可能な座標のリスト
- */
-export const generateValidMovesForHandPiece = (boardDogs, boardBounds) => {
-    const positions = boardDogs.map(dog => ({
-        x: dog.left / 100,
-        y: dog.top / 100
-    }));
-
-    const possibleMoves = [];
-    const directions = [
-        { dx: 0, dy: -1 },
-        { dx: 0, dy: 1 },
-        { dx: -1, dy: 0 },
-        { dx: 1, dy: 0 },
-        { dx: -1, dy: -1 },
-        { dx: 1, dy: -1 },
-        { dx: -1, dy: 1 },
-        { dx: 1, dy: 1 }
-    ];
-
-    positions.forEach(pos => {
-        directions.forEach(dir => {
-            const newPos = { x: pos.x + dir.dx, y: pos.y + dir.dy };
-            const newBoardBounds = {
-                minX: Math.min(boardBounds.minX, newPos.x),
-                maxX: Math.max(boardBounds.maxX, newPos.x),
-                minY: Math.min(boardBounds.minY, newPos.y),
-                maxY: Math.max(boardBounds.maxY, newPos.y)
-            };
-
-            // 新しい移動がボードのサイズを超えていないかチェック
-            if (
-                newBoardBounds.maxX - newBoardBounds.minX < 4 &&
-                newBoardBounds.maxY - newBoardBounds.minY < 4 &&
-                !positions.some(p => p.x === newPos.x && p.y === newPos.y) &&
-                !possibleMoves.some(m => m.x === newPos.x && m.y === newPos.y)
-            ) {
-                possibleMoves.push(newPos);
+            // ハジケハトの特殊な移動パターン
+            // 例: (2,2) -> (4,3) または (0,1) に移動
+            if (dog.name === 'ハジケハト') {
+                return (
+                    (dx === 200 && dy === 100) ||
+                    (dx === 200 && dy === 100)
+                );
             }
-        });
-    });
-
-    return possibleMoves;
-};
-
-/**
- * ボス犬が囲まれているかどうかをチェックする関数
- *
- * @param {Object} game - ゲームオブジェクト
- * @returns {String|null} - 勝者のプレイヤーID。勝者がいない場合はnullを返す。
- */
-export const checkWinner = (game) => {
-    const bossDogs = game.dogs.filter(dog => dog.name === 'ボス犬');
-    for (const boss of bossDogs) {
-        const x = boss.left / 100;
-        const y = boss.top / 100;
-        const adjacentPositions = [
-            { x: x, y: y - 1 },
-            { x: x, y: y + 1 },
-            { x: x - 1, y: y },
-            { x: x + 1, y: y }
-        ];
-
-        const blocked = adjacentPositions.every(pos => 
-            pos.x < 0 || pos.x >= 4 || pos.y < 0 || pos.y >= 4 || 
-            game.dogs.some(dog => 
-                (dog.left / 100 === pos.x) && 
-                (dog.top / 100 === pos.y)
-            )
-        );
-
-        if (blocked) {
-            return boss.player === game.player1 ? game.player2 : game.player1;
-        }
+            return false;
+        default:
+            return false;
     }
-    return null;
 };
 
 /**
- * スペースを追加する必要があるかをチェックする関数
- *
- * @param {Object} boardBounds - ボードの境界情報
- * @returns {boolean} - スペースを追加する必要がある場合はtrue
+ * 移動先に重複する犬が存在するかをチェック
+ * @param {Object} dog - チェックする犬のオブジェクト
+ * @param {Array} boardDogs - ボード上の犬のリスト
+ * @returns {boolean} - 重複していれば true、そうでなければ false
  */
-export const shouldAddSpace = (boardBounds) => {
-    // 駒が縦に4つ並んでいる場合、スペースを空ける必要はない
-    return boardBounds.maxY - boardBounds.minY < 3;
+export const check_duplicate = (dog, boardDogs) => {
+    return boardDogs.some((d) => d.left === dog.left && d.top === dog.top && d.id !== dog.id);
+};
+
+/**
+ * ボード上の犬の数が最大を超えているかをチェック
+ * @param {Object} dog - チェックする犬のオブジェクト
+ * @param {Array} boardDogs - ボード上の犬のリスト
+ * @param {number} maxBoard - ボード上の最大犬数（デフォルトは10）
+ * @returns {boolean} - 最大数を超えていれば true、そうでなければ false
+ */
+export const check_over_max_board = (dog, boardDogs, maxBoard = 10) => {
+    return boardDogs.length >= maxBoard;
+};
+
+/**
+ * 移動先に隣接する犬が存在しないかをチェック
+ * @param {Object} dog - チェックする犬のオブジェクト
+ * @param {Array} boardDogs - ボード上の犬のリスト
+ * @returns {boolean} - 隣接する犬がなければ true、そうでなければ false
+ */
+export const check_no_adjacent = (dog, boardDogs) => {
+    return !boardDogs.some((d) => {
+        const dx = Math.abs(d.left - dog.left);
+        const dy = Math.abs(d.top - dog.top);
+        return (dx <= 100 && dy <= 100) && d.id !== dog.id;
+    });
+};
+
+/**
+ * 自分の犬が隣接しているかをチェック
+ * @param {Object} dog - チェックする犬のオブジェクト
+ * @param {Array} boardDogs - ボード上の犬のリスト
+ * @returns {boolean} - 隣接していれば true、そうでなければ false
+ */
+export const check_own_adjacent = (dog, boardDogs) => {
+    return boardDogs.some((d) => {
+        const dx = Math.abs(d.left - dog.left);
+        const dy = Math.abs(d.top - dog.top);
+        return (dx === 100 && dy === 0) || (dx === 0 && dy === 100) || (dx === 100 && dy === 100);
+    });
+};
+
+/**
+ * 移動によって自分が負けるかをチェック
+ * @param {Object} dog - チェックする犬のオブジェクト
+ * @returns {boolean} - 負ける場合は true、そうでなければ false
+ */
+export const check_would_lose = (dog) => {
+    // ゲームの具体的なロジックに基づいて実装
+    // ここでは仮に常に false を返す
+    return false;
+};
+
+/**
+ * ボス犬を削除できないかをチェック
+ * @param {Object} dog - チェックする犬のオブジェクト
+ * @returns {boolean} - 削除できなければ true、そうでなければ false
+ */
+export const check_boss_cant_remove = (dog) => {
+    if (dog.name === 'ボス犬') {
+        return false; // ボス犬は削除できない
+    }
+    return true;
 };

@@ -1,0 +1,25 @@
+.hand-area {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100px;
+  background-color: #eee;
+  border: 1px solid #ccc;
+  margin: 10px 0;
+}
+
+.empty-hand {
+  text-align: center;
+  padding: 20px;
+}
+
+.hand-area.highlighted {
+  background-color: rgba(144, 238, 144, 0.5);
+  transition: background-color 0.3s ease;
+}
+
+.valid-move {
+  /* すでにDog.cssで定義されているので必要に応じて調整 */
+}

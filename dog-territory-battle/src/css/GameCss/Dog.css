@@ -1,0 +1,17 @@
+.dog {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background-color: lightgray;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid black;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.not-current-turn {
+  border: 2px solid green;
+  background-color: #d3ffd3;
+}

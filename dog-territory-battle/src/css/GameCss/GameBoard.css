@@ -1,0 +1,14 @@
+#game-board-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.game-board {
+  width: 100%;
+  height: 100%;
+}

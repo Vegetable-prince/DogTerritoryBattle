@@ -1,0 +1,30 @@
+.board {
+  position: relative;
+  width: 400px;
+  height: 400px;
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.empty-board {
+  text-align: center;
+  padding: 20px;
+}
+
+.remove-button {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  padding: 5px 10px;
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.remove-button:hover {
+  background-color: #ff1a1a;
+}
