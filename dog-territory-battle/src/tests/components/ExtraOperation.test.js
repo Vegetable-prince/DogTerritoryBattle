@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
-import ExtraOperation from '../../components/ExtraOperation';
+import ExtraOperation from '../../components/GameJs/ExtraOperation';
 import '@testing-library/jest-dom';
 
 describe('ExtraOperation Component', () => {

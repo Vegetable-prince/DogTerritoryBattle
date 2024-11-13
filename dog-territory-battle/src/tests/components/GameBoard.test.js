@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
-import GameBoard from '../../components/GameBoard';
+import GameBoard from '../../components/GameJs/GameBoard';
 import '@testing-library/jest-dom';
 
 // モックの設定

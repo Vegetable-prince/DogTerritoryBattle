@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
-import WinnerModal from '../../components/WinnerModal';
+import WinnerModal from '../../components/GameJs/WinnerModal';
 import '@testing-library/jest-dom';
 
 describe('WinnerModal Component', () => {

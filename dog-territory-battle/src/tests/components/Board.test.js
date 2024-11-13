@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
-import Board from '../../components/Board';
+import Board from '../../components/GameJs/Board';
 import '@testing-library/jest-dom';
 
 describe('Board Component', () => {

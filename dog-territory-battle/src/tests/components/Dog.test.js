@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
-import Dog from '../../components/Dog';
+import Dog from '../../components/GameJs/Dog';
 import '@testing-library/jest-dom';
 
 describe('Dog Component', () => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react';
-import ShowCurrentTurn from '../../components/ShowCurrentTurn';
+import ShowCurrentTurn from '../../components/GameJs/ShowCurrentTurn';
 import '@testing-library/jest-dom';
 
 describe('ShowCurrentTurn Component', () => {

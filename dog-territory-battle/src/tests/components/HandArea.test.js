@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
-import HandArea from '../../components/HandArea';
+import HandArea from '../../components/GameJs/HandArea';
 import '@testing-library/jest-dom';
 
 describe('HandArea Component', () => {
