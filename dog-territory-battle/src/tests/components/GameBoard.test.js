@@ -1,65 +1,47 @@
-// src/components/GameBoard.test.js
 import React from 'react';
-import { render, fireEvent, screen, act } from '@testing-library/react';
+import { render, fireEvent, waitFor } from '@testing-library/react';
 import GameBoard from '../../components/GameBoard';
-import axios from 'axios';
 import '@testing-library/jest-dom';
-import rules from '../../utils/rules';
-import { generateValidMoves, generateValidMovesForHandPiece } from '../utils/rules';
 
-jest.mock('axios');
-jest.mock('../utils/rules');
-
-jest.mock('../api/apiClient', () => ({
-  post: jest.fn(),
+// モックの設定
+jest.mock('../../utils/rules', () => ({
+  check_movement_type: jest.fn(),
+  check_duplicate: jest.fn(),
+  check_over_max_board: jest.fn(),
+  check_no_adjacent: jest.fn(),
+  check_own_adjacent: jest.fn(),
+  check_would_lose: jest.fn(),
+  check_boss_cant_remove: jest.fn(),
 }));
-import apiClient from '../api/apiClient';
 
-jest.spyOn(rules, 'generateValidMoves').mockReturnValue([{ x: 0, y: 0 }]);
+jest.mock('../../api/operation_requests', () => ({
+  move_request: jest.fn(),
+  remove_from_board_request: jest.fn(),
+  place_on_board_request: jest.fn(),
+}));
 
-// モックのレスポンスを設定
-apiClient.post.mockResolvedValue({
-  data: {
-    success: true,
-    current_turn: 2,
-    dog: {
-      id: 1,
-      left: 0,
-      top: 0,
-    },
-  },
-});
+import * as rules from '../../utils/rules';
+import * as operationRequests from '../../api/operation_requests';
 
 describe('GameBoard Component', () => {
-  let initialData;
+  const mockMoveRequest = operationRequests.move_request;
+  const mockRemoveFromBoardRequest = operationRequests.remove_from_board_request;
+  const mockPlaceOnBoardRequest = operationRequests.place_on_board_request;
 
   beforeEach(() => {
-    initialData = {
-      game: {
-        id: 1,
-        current_turn: 1,
-        player1: 1,
-        player2: 2,
-      },
-      player1_hand_dogs: [
-        {
-          id: 1,
-          name: 'ボス犬',
-          is_in_hand: true,
-          dog_type: {
-            id: 1,
-            name: 'ボス犬',
-            movement_type: 'diagonal_orthogonal',
-            max_steps: 1,
-          },
-          player: 1,
-          movement_type: 'diagonal_orthogonal',
-          max_steps: 1,
-        },
-      ],
-      player2_hand_dogs: [],
-      board_dogs: [],
-    };
+    // ルール関数のデフォルトの動作を設定
+    rules.check_duplicate.mockReturnValue(false);
+    rules.check_over_max_board.mockReturnValue(false);
+    rules.check_own_adjacent.mockReturnValue(true);
+    rules.check_would_lose.mockReturnValue(false);
+    rules.check_movement_type.mockReturnValue(true);
+    rules.check_no_adjacent.mockReturnValue(true);
+    rules.check_boss_cant_remove.mockReturnValue(true);
+
+    // operation_requests のデフォルトの動作を設定
+    mockMoveRequest.mockResolvedValue({ data: { success: true } });
+    mockRemoveFromBoardRequest.mockResolvedValue({ data: { success: true } });
+    mockPlaceOnBoardRequest.mockResolvedValue({ data: { success: true } });
   });
 
   afterEach(() => {
@@ -67,303 +49,192 @@ describe('GameBoard Component', () => {
   });
 
   /**
-   * 要件1, 要件3:
-   * 各プレイヤーは自分のコマしか操作できないかどうか
-   * 現在のターンのプレイヤーのコマしか操作できないかどうか
+   * 子コンポーネントのレンダリング確認
    */
-  test('Players can only operate their own pieces during their turn', async () => {
-    initialData.board_dogs = [
-      {
-        id: 2,
-        name: 'アニキ犬',
-        is_in_hand: false,
-        left: 0,
-        top: 0,
-        dog_type: {
-          id: 2,
-          name: 'アニキ犬',
-          movement_type: 'orthogonal',
-          max_steps: 2,
-        },
-        player: 2,
-        movement_type: 'orthogonal',
-        max_steps: 2,
-      },
-    ];
+  test('renders all child components correctly', () => {
+    const { getByTestId, getByText } = render(<GameBoard />);
 
-    render(<GameBoard initialData={initialData} />);
+    // HandArea コンポーネントがレンダリングされていることを確認
+    const handArea = getByTestId('hand-area');
+    expect(handArea).toBeInTheDocument();
 
-    // 相手のコマをクリック
-    fireEvent.click(screen.getByText('アニキ犬'));
+    // Board コンポーネントがレンダリングされていることを確認
+    const board = getByTestId('game-board');
+    expect(board).toBeInTheDocument();
 
-    // 警告メッセージが表示されることを確認
-    expect(window.alert).toHaveBeenCalledWith('まだあなたのターンではありません！');
+    // WinnerModal コンポーネントがレンダリングされていることを確認
+    const winnerModal = getByTestId('winner-modal');
+    expect(winnerModal).toBeInTheDocument();
+
+    // ShowCurrentTurn コンポーネントがレンダリングされていることを確認
+    const currentTurn = getByTestId('current-turn');
+    expect(currentTurn).toBeInTheDocument();
+
+    // ExtraOperation コンポーネントがレンダリングされていることを確認
+    const extraOperation = getByTestId('extra-operation');
+    expect(extraOperation).toBeInTheDocument();
   });
 
   /**
-   * 要件2:
-   * 各プレイヤーがコマの操作を一度行うたびに、もう片方のプレイヤーのターンに移るかどうか
+   * HandArea 内の Dog コンポーネントのレンダリング確認
    */
-  test('Turn switches after each move', async () => {
-    axios.post.mockResolvedValue({
-      data: {
-        success: true,
-        current_turn: 2,
-        dog: {
-          id: 1,
-          left: 0,
-          top: 0,
-        },
-      },
+  test('renders Dog components within HandArea', () => {
+    const { getByTestId, getByText } = render(<GameBoard />);
+
+    const handArea = getByTestId('hand-area');
+
+    // 仮定: HandArea に 'アニキ犬' と 'ヤイバト' が手札に存在
+    expect(getByText('アニキ犬')).toBeInTheDocument();
+    expect(getByText('ヤイバト')).toBeInTheDocument();
+
+    // Dog コンポーネントが HandArea の子として存在することを確認
+    expect(handArea).toContainElement(getByText('アニキ犬'));
+    expect(handArea).toContainElement(getByText('ヤイバト'));
+  });
+
+  /**
+   * Board 内の Dog コンポーネントのレンダリング確認
+   */
+  test('renders Dog components within Board', () => {
+    const { getByTestId, getByText } = render(<GameBoard />);
+
+    const board = getByTestId('game-board');
+
+    // 仮定: Board に 'ボス犬' と 'アニキ犬' が存在
+    expect(getByText('ボス犬')).toBeInTheDocument();
+    expect(getByText('アニキ犬')).toBeInTheDocument();
+
+    // Dog コンポーネントが Board の子として存在することを確認
+    expect(board).toContainElement(getByText('ボス犬'));
+    expect(board).toContainElement(getByText('アニキ犬'));
+  });
+
+  /**
+   * フックの動作確認: HandArea でのクリックカウント
+   */
+  test('handles click counts correctly in HandArea', async () => {
+    const { getByText } = render(<GameBoard />);
+
+    const anikiDog = getByText('アニキ犬');
+
+    // 1度目のクリック: ルール関数が呼ばれることを確認
+    fireEvent.click(anikiDog);
+    expect(rules.check_duplicate).toHaveBeenCalledWith(expect.objectContaining({ name: 'アニキ犬' }));
+    expect(rules.check_over_max_board).toHaveBeenCalledWith(expect.objectContaining({ name: 'アニキ犬' }));
+    expect(rules.check_own_adjacent).toHaveBeenCalledWith(expect.objectContaining({ name: 'アニキ犬' }));
+    expect(rules.check_would_lose).toHaveBeenCalledWith(expect.objectContaining({ name: 'アニキ犬' }));
+
+    // 2度目のクリック: place_on_board_request が呼ばれることを確認
+    fireEvent.click(anikiDog);
+    await waitFor(() => {
+      expect(operationRequests.place_on_board_request).toHaveBeenCalledWith(expect.objectContaining({ name: 'アニキ犬' }), expect.any(Object));
+    });
+  });
+
+  /**
+   * フックの動作確認: Board でのクリックカウント
+   */
+  test('handles click counts correctly in Board', async () => {
+    const { getByText } = render(<GameBoard />);
+
+    const bossDog = getByText('ボス犬');
+
+    // 1度目のクリック: ルール関数が呼ばれることを確認
+    fireEvent.click(bossDog);
+    expect(rules.check_movement_type).toHaveBeenCalledWith(expect.objectContaining({ name: 'ボス犬' }), expect.any(Object));
+    expect(rules.check_duplicate).toHaveBeenCalledWith(expect.objectContaining({ name: 'ボス犬' }));
+    expect(rules.check_over_max_board).toHaveBeenCalledWith(expect.objectContaining({ name: 'ボス犬' }));
+    expect(rules.check_no_adjacent).toHaveBeenCalledWith(expect.objectContaining({ name: 'ボス犬' }));
+    expect(rules.check_would_lose).toHaveBeenCalledWith(expect.objectContaining({ name: 'ボス犬' }));
+    expect(rules.check_boss_cant_remove).toHaveBeenCalledWith(expect.objectContaining({ name: 'ボス犬' }));
+
+    // 2度目のクリック: move_request が呼ばれることを確認
+    fireEvent.click(bossDog);
+    await waitFor(() => {
+      expect(operationRequests.move_request).toHaveBeenCalledWith(expect.objectContaining({ name: 'ボス犬' }), expect.any(Object));
+    });
+  });
+
+  /**
+   * WinnerModal の表示確認
+   */
+  test('displays WinnerModal when a winner is determined', () => {
+    const { getByTestId } = render(<GameBoard />);
+
+    // 仮定: ゲームが終了している状態で WinnerModal が表示されている
+    // 具体的なゲーム終了の条件に応じて、テストを調整してください
+
+    const winnerModal = getByTestId('winner-modal');
+    expect(winnerModal).toBeInTheDocument();
+
+    // 勝者の表示を確認（例: "Player 1 Wins!"）
+    expect(winnerModal).toHaveTextContent('Player 1 Wins!');
+  });
+
+  /**
+   * ShowCurrentTurn の表示確認
+   */
+  test('displays current turn correctly', () => {
+    const { getByTestId } = render(<GameBoard />);
+
+    const currentTurn = getByTestId('current-turn');
+    expect(currentTurn).toBeInTheDocument();
+
+    // 現在のターンが Player 1 であることを確認
+    expect(currentTurn).toHaveTextContent('現在のターン: Player 1');
+  });
+
+  /**
+   * ExtraOperation の動作確認
+   */
+  test('handles ExtraOperation buttons correctly', () => {
+    const { getByText } = render(<GameBoard />);
+
+    const resetButton = getByText('リセット');
+    const undoButton = getByText('巻き戻し');
+
+    // リセットボタンをクリック: operation_requests が呼ばれることを確認
+    fireEvent.click(resetButton);
+    expect(operationRequests.reset_game_request).toHaveBeenCalled();
+
+    // 巻き戻しボタンをクリック: operation_requests が呼ばれることを確認
+    fireEvent.click(undoButton);
+    expect(operationRequests.undo_move_request).toHaveBeenCalled();
+  });
+
+  /**
+   * Dog コンポーネントのクリックが HandArea と Board に正しく伝達されるか確認
+   */
+  test('Dog component clicks are handled correctly in HandArea and Board', async () => {
+    const { getByText } = render(<GameBoard />);
+
+    const anikiDog = getByText('アニキ犬');
+    const bossDog = getByText('ボス犬');
+
+    // HandArea 内のアニキ犬をクリック
+    fireEvent.click(anikiDog);
+    expect(rules.check_duplicate).toHaveBeenCalledWith(expect.objectContaining({ name: 'アニキ犬' }));
+    expect(rules.check_over_max_board).toHaveBeenCalledWith(expect.objectContaining({ name: 'アニキ犬' }));
+    expect(rules.check_own_adjacent).toHaveBeenCalledWith(expect.objectContaining({ name: 'アニキ犬' }));
+    expect(rules.check_would_lose).toHaveBeenCalledWith(expect.objectContaining({ name: 'アニキ犬' }));
+
+    fireEvent.click(anikiDog);
+    await waitFor(() => {
+      expect(operationRequests.place_on_board_request).toHaveBeenCalledWith(expect.objectContaining({ name: 'アニキ犬' }), expect.any(Object));
     });
 
-    generateValidMovesForHandPiece.mockReturnValue([{ x: 0, y: 0 }]);
+    // Board 内のボス犬をクリック
+    fireEvent.click(bossDog);
+    expect(rules.check_movement_type).toHaveBeenCalledWith(expect.objectContaining({ name: 'ボス犬' }), expect.any(Object));
+    expect(rules.check_duplicate).toHaveBeenCalledWith(expect.objectContaining({ name: 'ボス犬' }));
+    expect(rules.check_over_max_board).toHaveBeenCalledWith(expect.objectContaining({ name: 'ボス犬' }));
+    expect(rules.check_no_adjacent).toHaveBeenCalledWith(expect.objectContaining({ name: 'ボス犬' }));
+    expect(rules.check_would_lose).toHaveBeenCalledWith(expect.objectContaining({ name: 'ボス犬' }));
+    expect(rules.check_boss_cant_remove).toHaveBeenCalledWith(expect.objectContaining({ name: 'ボス犬' }));
 
-    render(<GameBoard initialData={initialData} />);
-
-    // 手札のコマをクリック
-    fireEvent.click(screen.getByText('ボス犬'));
-
-    // 有効な移動先をクリック
-    fireEvent.click(screen.getByRole('button', { name: /valid-move/i }));
-
-    // ターンが切り替わったことを確認
-    expect(screen.getByText(/現在のターン: Player 2/)).toBeInTheDocument();
-  });
-
-  /**
-   * 要件4:
-   * 各コマはその movement_type に従った行動しか取れないかどうか
-   */
-  test('Pieces can only move according to their movement_type', async () => {
-    const dog = {
-      id: 1,
-      name: 'ヤイバ犬',
-      is_in_hand: false,
-      left: 0,
-      top: 0,
-      dog_type: {
-        id: 3,
-        name: 'ヤイバ犬',
-        movement_type: 'orthogonal',
-        max_steps: 1,
-      },
-      player: 1,
-      movement_type: 'orthogonal',
-      max_steps: 1,
-    };
-
-    initialData.board_dogs = [dog];
-
-    generateValidMoves.mockReturnValue([{ x: 0, y: 1 }]);
-
-    render(<GameBoard initialData={initialData} />);
-
-    // コマをクリック
-    fireEvent.click(screen.getByText('ヤイバ犬'));
-
-    // 有効な移動先が表示されていることを確認
-    expect(generateValidMoves).toHaveBeenCalledWith(dog, initialData.board_dogs, expect.any(Object));
-  });
-
-  /**
-   * 要件5:
-   * すでにコマがあるマスには移動できないかどうか
-   */
-  test('Cannot move to a square that already has a piece', async () => {
-    const dog1 = {
-      id: 1,
-      name: 'ヤイバ犬',
-      is_in_hand: false,
-      left: 0,
-      top: 0,
-      dog_type: {
-        id: 3,
-        name: 'ヤイバ犬',
-        movement_type: 'orthogonal',
-        max_steps: 1,
-      },
-      player: 1,
-      movement_type: 'orthogonal',
-      max_steps: 1,
-    };
-
-    const dog2 = {
-      id: 2,
-      name: 'アニキ犬',
-      is_in_hand: false,
-      left: 0,
-      top: 100,
-      dog_type: {
-        id: 2,
-        name: 'アニキ犬',
-        movement_type: 'orthogonal',
-        max_steps: 2,
-      },
-      player: 2,
-      movement_type: 'orthogonal',
-      max_steps: 2,
-    };
-
-    initialData.board_dogs = [dog1, dog2];
-
-    generateValidMoves.mockReturnValue([]);
-
-    render(<GameBoard initialData={initialData} />);
-
-    // コマをクリック
-    fireEvent.click(screen.getByText('ヤイバ犬'));
-
-    // 有効な移動先がないことを確認
-    expect(screen.queryByRole('button', { name: /valid-move/i })).not.toBeInTheDocument();
-  });
-
-  /**
-   * 要件6:
-   * 移動後に他のコマと隣接していない場合は移動できないかどうか
-   */
-  test('Cannot move if resulting position is not adjacent to any other piece', async () => {
-    const dog = {
-      id: 1,
-      name: 'ボス犬',
-      is_in_hand: false,
-      left: 0,
-      top: 0,
-      dog_type: {
-        id: 1,
-        name: 'ボス犬',
-        movement_type: 'diagonal_orthogonal',
-        max_steps: 1,
-      },
-      player: 1,
-      movement_type: 'diagonal_orthogonal',
-      max_steps: 1,
-    };
-
-    initialData.board_dogs = [dog];
-
-    generateValidMoves.mockReturnValue([]);
-
-    render(<GameBoard initialData={initialData} />);
-
-    // コマをクリック
-    fireEvent.click(screen.getByText('ボス犬'));
-
-    // 有効な移動先がないことを確認
-    expect(generateValidMoves).toHaveBeenCalledWith(dog, initialData.board_dogs, expect.any(Object));
-    expect(screen.queryByRole('button', { name: /valid-move/i })).not.toBeInTheDocument();
-  });
-
-  /**
-   * 要件9:
-   * ボス犬は手札に戻せないかどうか
-   */
-  test('Cannot return Boss Dog to hand', async () => {
-    const dog = {
-      id: 1,
-      name: 'ボス犬',
-      is_in_hand: false,
-      left: 0,
-      top: 0,
-      dog_type: {
-        id: 1,
-        name: 'ボス犬',
-        movement_type: 'diagonal_orthogonal',
-        max_steps: 1,
-      },
-      player: 1,
-      movement_type: 'diagonal_orthogonal',
-      max_steps: 1,
-    };
-
-    initialData.board_dogs = [dog];
-
-    render(<GameBoard initialData={initialData} />);
-
-    // コマをクリック
-    fireEvent.click(screen.getByText('ボス犬'));
-
-    // 手札エリアをクリック
-    fireEvent.click(screen.getByTestId('player1-hand'));
-
-    // 警告メッセージが表示されることを確認
-    expect(window.alert).toHaveBeenCalledWith('ボス犬は手札に戻せません！');
-  });
-
-  /**
-   * 要件11:
-   * 各コマ操作後のコンポーネント再設計メソッドがちゃんと呼び出されているかどうか
-   */
-  test('Update methods are called after each piece operation', async () => {
-    axios.post.mockResolvedValue({
-      data: {
-        success: true,
-        current_turn: 2,
-        dog: {
-          id: 1,
-          left: 0,
-          top: 0,
-        },
-      },
+    fireEvent.click(bossDog);
+    await waitFor(() => {
+      expect(operationRequests.move_request).toHaveBeenCalledWith(expect.objectContaining({ name: 'ボス犬' }), expect.any(Object));
     });
-
-    const updateBoardBoundsMock = jest.fn();
-
-    // useEffectをモックするために、React.useEffectをスパイします
-    jest.spyOn(React, 'useEffect').mockImplementation((f, deps) => {
-      if (deps && deps.includes(boardDogs)) {
-        updateBoardBoundsMock();
-      }
-      f();
-    });
-
-    render(<GameBoard initialData={initialData} />);
-
-    // 手札のコマをクリック
-    fireEvent.click(screen.getByText('ボス犬'));
-
-    // 有効な移動先をクリック
-    fireEvent.click(screen.getByRole('button', { name: /valid-move/i }));
-
-    // updateBoardBounds が呼ばれたことを確認
-    expect(updateBoardBoundsMock).toHaveBeenCalled();
   });
-
-  /**
-   * 要件12, 要件13:
-   * 各コマ操作前に一度移動箇所のハイライトをしているかどうか
-   * ハイライトは特定の条件を判定した上で行われているか
-   */
-  test('Valid moves are highlighted before piece operation, considering specific conditions', async () => {
-    const dog = {
-      id: 1,
-      name: 'ヤイバ犬',
-      is_in_hand: false,
-      left: 0,
-      top: 0,
-      dog_type: {
-        id: 3,
-        name: 'ヤイバ犬',
-        movement_type: 'orthogonal',
-        max_steps: 1,
-      },
-      player: 1,
-      movement_type: 'orthogonal',
-      max_steps: 1,
-    };
-
-    initialData.board_dogs = [dog];
-
-    generateValidMoves.mockReturnValue([{ x: 0, y: 1 }]);
-
-    render(<GameBoard initialData={initialData} />);
-
-    // コマをクリック
-    fireEvent.click(screen.getByText('ヤイバ犬'));
-
-    // 有効な移動先が表示されていることを確認
-    expect(screen.getByRole('button', { name: /valid-move/i })).toBeInTheDocument();
-  });
-
-  // 他の要件についても同様にテストを実装できます
 });
