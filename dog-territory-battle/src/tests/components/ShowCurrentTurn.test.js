@@ -1,25 +1,24 @@
+// src/tests/components/ShowCurrentTurn.test.js
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import ShowCurrentTurn from '../../components/GameJs/ShowCurrentTurn';
 import '@testing-library/jest-dom';
 
 describe('ShowCurrentTurn Component', () => {
   /**
    * 正常系:
-   * 現在のターンが正しく表示されることを確認
+   * 現在のターンが正しく表示されているかを確認
    */
   test('displays current turn correctly', () => {
-    const currentTurn = 1;
-
-    const { getByText } = render(<ShowCurrentTurn currentTurn={currentTurn} />);
-
-    // 現在のターンが正しく表示されていることを確認
-    expect(getByText(`現在のターン: Player ${currentTurn}`)).toBeInTheDocument();
+    render(<ShowCurrentTurn currentTurn={1} />);
+    const currentTurn = screen.getByTestId('current-turn');
+    expect(currentTurn).toBeInTheDocument();
+    expect(currentTurn).toHaveTextContent('現在のターン: Player 1');
   });
 
   /**
    * 異常系:
-   * currentTurn プロップが未定義の場合の挙動を確認
+   * 現在のターンが `null` の場合、何もレンダリングしないことを確認
    */
   test('does not render current turn when currentTurn prop is missing', () => {
     const { container } = render(<ShowCurrentTurn currentTurn={null} />);

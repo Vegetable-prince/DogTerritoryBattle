@@ -1,3 +1,4 @@
+// src/api/operation_requests.js
 import apiClient from './apiClient';
 
 /**
@@ -19,10 +20,12 @@ const apiPost = async (endpoint, data, onSuccess, onError) => {
     if (onSuccess) {
       onSuccess(responseData);
     }
+    return responseData; // Promise を返す
   } catch (error) {
     if (onError) {
       onError(error.response?.data?.message || error.message);
     }
+    throw error; // エラーを再スローして、テストでキャッチできるようにする
   }
 };
 
@@ -30,33 +33,33 @@ const apiPost = async (endpoint, data, onSuccess, onError) => {
  * 移動リクエストを送信する関数
  */
 export const move_request = (dog, move, onSuccess, onError) => {
-  apiPost('/move', { dog, move }, onSuccess, onError);
+  return apiPost(`/dogs/${dog.id}/move/`, { move }, onSuccess, onError);
 };
 
 /**
  * ボードから削除するリクエストを送信する関数
  */
 export const remove_from_board_request = (dog, onSuccess, onError) => {
-  apiPost('/remove', { dog }, onSuccess, onError);
+  return apiPost(`/dogs/${dog.id}/remove_from_board/`, {}, onSuccess, onError);
 };
 
 /**
  * ボードに配置するリクエストを送信する関数
  */
 export const place_on_board_request = (dog, move, onSuccess, onError) => {
-  apiPost('/place', { dog, move }, onSuccess, onError);
+  return apiPost(`/dogs/${dog.id}/place_on_board/`, { move }, onSuccess, onError);
 };
 
 /**
  * ゲームをリセットするリクエストを送信する関数
  */
 export const reset_game_request = (onSuccess, onError) => {
-  apiPost('/reset', {}, onSuccess, onError);
+  return apiPost('/dogs/reset/', {}, onSuccess, onError);
 };
 
 /**
  * ゲームの巻き戻しリクエストを送信する関数
  */
 export const undo_move_request = (onSuccess, onError) => {
-  apiPost('/undo', {}, onSuccess, onError);
+  return apiPost('/dogs/undo/', {}, onSuccess, onError);
 };

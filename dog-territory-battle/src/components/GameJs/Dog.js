@@ -1,30 +1,10 @@
+// src/components/GameJs/Dog.js
 import React from 'react';
 import PropTypes from 'prop-types';
-import '../../css/GameCss/Dog.css';
 
 const Dog = ({ dog, onClick }) => {
-  if (dog.isHidden) {
-    return null;
-  }
-
-  const handleClick = () => {
-    if (onClick) {
-      onClick(dog);
-    }
-  };
-
-  const dogClasses = ['dog'];
-  if (!dog.currentTurn) {
-    dogClasses.push('not-current-turn');
-  }
-
   return (
-    <div
-      className={dogClasses.join(' ')}
-      onClick={handleClick}
-      data-testid={`dog-${dog.id}`}
-      style={{ left: dog.left, top: dog.top, position: 'absolute' }}
-    >
+    <div onClick={() => onClick(dog)} data-testid={`dog-${dog.id}`}>
       {dog.name}
     </div>
   );
@@ -34,17 +14,18 @@ Dog.propTypes = {
   dog: PropTypes.shape({
     id: PropTypes.number.isRequired,
     name: PropTypes.string.isRequired,
-    currentTurn: PropTypes.bool,
-    isHidden: PropTypes.bool,
     left: PropTypes.number,
     top: PropTypes.number,
-    player: PropTypes.number,
+    is_in_hand: PropTypes.bool.isRequired,
+    dog_type: PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      name: PropTypes.string.isRequired,
+      movement_type: PropTypes.string.isRequired,
+      max_steps: PropTypes.number.isRequired,
+    }).isRequired,
+    player: PropTypes.number.isRequired,
   }).isRequired,
-  onClick: PropTypes.func,
-};
-
-Dog.defaultProps = {
-  onClick: null,
+  onClick: PropTypes.func.isRequired,
 };
 
 export default Dog;

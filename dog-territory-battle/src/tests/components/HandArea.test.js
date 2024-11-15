@@ -1,3 +1,4 @@
+// 修正後の HandArea.test.js
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import HandArea from '../../components/GameJs/HandArea';
@@ -19,6 +20,42 @@ describe('HandArea Component', () => {
     const mockOperationRequest = {
         place_on_board_request: mockPlaceOnBoardRequest,
     };
+    const mockSetHandDogs = jest.fn();
+    const mockSetBoardDogs = jest.fn();
+    const mockSwitchTurn = jest.fn();
+
+    // モックデータの作成
+    const dogs = [
+        {
+            id: 1,
+            name: 'アニキ犬',
+            is_in_hand: true,
+            player: 1,
+            dog_type: {
+                id: 2,
+                name: 'アニキ犬',
+                movement_type: '走行',
+                max_steps: 5,
+            },
+        },
+    ];
+
+    const mockBoardDogs = [
+        {
+            id: 4,
+            name: 'ボス犬',
+            left: 100,
+            top: 100,
+            is_in_hand: false,
+            dog_type: {
+                id: 1,
+                name: 'ボス犬',
+                movement_type: '歩行',
+                max_steps: 3,
+            },
+            player: 1,
+        },
+    ];
 
     afterEach(() => {
         jest.clearAllMocks();
@@ -29,40 +66,33 @@ describe('HandArea Component', () => {
      * HandAreaが正しく犬をレンダリングし、1度目のクリックでrules関数が呼ばれ、2度目のクリックでoperation_requestが呼ばれるかを確認
      */
     test('calls rules functions on first click and operation_request on second click', () => {
-        const dogs = [
-            { id: 1, name: 'アニキ犬', is_in_hand: true, player: 1 },
-        ];
-
-        const { getByText } = render(
+        const { getByTestId } = render(
             <HandArea
                 dogs={dogs}
-                highlighted={null}
-                onDogClick={mockOnDogClick}
-                nextAction="rules" // フックデータを 'rules' に設定
+                setHandDogs={mockSetHandDogs}
+                setBoardDogs={mockSetBoardDogs}
+                switchTurn={mockSwitchTurn}
+                currentTurn={1}
+                player={1}
+                boardDogs={mockBoardDogs}
                 rulesFunction={mockRulesFunction}
                 operationRequest={mockOperationRequest}
             />
         );
 
+        const aniDog = getByTestId('dog-1'); // data-testid="dog-1"
+
         // 1度目のクリック: rules関数が呼ばれることを確認
-        fireEvent.click(getByText('アニキ犬'));
+        fireEvent.click(aniDog);
         expect(mockCheckDuplicate).toHaveBeenCalledWith(dogs[0]);
         expect(mockCheckOverMaxBoard).toHaveBeenCalledWith(dogs[0]);
         expect(mockCheckOwnAdjacent).toHaveBeenCalledWith(dogs[0]);
         expect(mockCheckWouldLose).toHaveBeenCalledWith(dogs[0]);
         expect(mockPlaceOnBoardRequest).not.toHaveBeenCalled();
 
-        // モックされたハイライトデータ（仮定）
-        const highlightedMoves = [{ x: 1, y: 1 }, { x: 2, y: 2 }];
-        // ハイライトされたマスを更新（実際の実装に依存）
-        // ここでは、手動でハイライトを模擬するためのコードが必要になる場合があります。
-
         // 2度目のクリック: operation_request が呼ばれることを確認
-        // 仮にハイライトされたマスの1つをクリック
-        fireEvent.click(getByText('アニキ犬')); // 実際にはハイライトされたマスをクリックする必要があります
-        // ここでは、仮に再度同じ犬をクリックして operation_request を呼び出すシナリオとしています
-        // 実際にはハイライトされたマスの要素をクリックするように調整してください
-        expect(mockPlaceOnBoardRequest).toHaveBeenCalledWith(dogs[0]);
+        fireEvent.click(aniDog);
+        expect(mockPlaceOnBoardRequest).toHaveBeenCalledWith(dogs[0], { move: { x: 1, y: 1 } });
     });
 
     /**
@@ -75,8 +105,12 @@ describe('HandArea Component', () => {
         const { container } = render(
             <HandArea
                 dogs={invalidDogs}
-                highlighted={null}
-                onDogClick={mockOnDogClick}
+                setHandDogs={mockSetHandDogs}
+                setBoardDogs={mockSetBoardDogs}
+                switchTurn={mockSwitchTurn}
+                currentTurn={1}
+                player={1}
+                boardDogs={mockBoardDogs}
                 rulesFunction={mockRulesFunction}
                 operationRequest={mockOperationRequest}
             />
@@ -96,14 +130,18 @@ describe('HandArea Component', () => {
         const { getByTestId } = render(
             <HandArea
                 dogs={emptyDogs}
-                highlighted={null}
-                onDogClick={mockOnDogClick}
+                setHandDogs={mockSetHandDogs}
+                setBoardDogs={mockSetBoardDogs}
+                switchTurn={mockSwitchTurn}
+                currentTurn={1}
+                player={1}
+                boardDogs={mockBoardDogs}
                 rulesFunction={mockRulesFunction}
                 operationRequest={mockOperationRequest}
             />
         );
 
-        const handArea = getByTestId('player1-hand');
+        const handArea = screen.getByTestId('hand-area-player-1');
         expect(handArea).toBeInTheDocument();
         expect(handArea).toBeEmptyDOMElement();
     });
@@ -113,21 +151,24 @@ describe('HandArea Component', () => {
      * HandAreaのハイライトが正しく適用されているかを確認
      */
     test('applies highlighted class when highlighted prop is set', () => {
-        const dogs = [
-            { id: 1, name: 'アニキ犬', is_in_hand: true, player: 1 },
-        ];
+        const highlighted = { id: 1 };
 
         const { getByTestId } = render(
             <HandArea
                 dogs={dogs}
-                highlighted={{ id: 1 }}
-                onDogClick={mockOnDogClick}
+                setHandDogs={mockSetHandDogs}
+                setBoardDogs={mockSetBoardDogs}
+                switchTurn={mockSwitchTurn}
+                currentTurn={1}
+                player={1}
+                boardDogs={mockBoardDogs}
+                highlighted={highlighted}
                 rulesFunction={mockRulesFunction}
                 operationRequest={mockOperationRequest}
             />
         );
 
-        const handArea = getByTestId('player1-hand');
+        const handArea = screen.getByTestId('hand-area-player-1');
         expect(handArea).toHaveClass('highlighted');
     });
 
@@ -136,13 +177,15 @@ describe('HandArea Component', () => {
      * onDogClickが未定義の場合、クリックしてもエラーが発生しないことを確認
      */
     test('handles click without onDogClick prop gracefully', () => {
-        const dogs = [
-            { id: 1, name: 'アニキ犬', is_in_hand: true, player: 1 },
-        ];
-
-        const { getByText } = render(
+        const { getByTestId } = render(
             <HandArea
                 dogs={dogs}
+                setHandDogs={mockSetHandDogs}
+                setBoardDogs={mockSetBoardDogs}
+                switchTurn={mockSwitchTurn}
+                currentTurn={1}
+                player={1}
+                boardDogs={mockBoardDogs}
                 highlighted={null}
                 onDogClick={null}
                 rulesFunction={mockRulesFunction}
@@ -151,6 +194,7 @@ describe('HandArea Component', () => {
         );
 
         // 犬をクリックしてもエラーが発生しないことを確認
-        expect(() => fireEvent.click(getByText('アニキ犬'))).not.toThrow();
+        const aniDog = screen.getByTestId('dog-1');
+        expect(() => fireEvent.click(aniDog)).not.toThrow();
     });
 });

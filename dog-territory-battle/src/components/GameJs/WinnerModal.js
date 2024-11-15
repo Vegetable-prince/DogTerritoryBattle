@@ -1,37 +1,21 @@
+// src/components/GameJs/WinnerModal.js
 import React from 'react';
 import PropTypes from 'prop-types';
-import '../../css/GameCss/WinnerModal.css';
 
 const WinnerModal = ({ winner, onClose }) => {
-  if (!winner) {
-    return null;
-  }
-
-  const handleClose = () => {
-    if (onClose) {
-      onClose();
-    }
-  };
+  if (!winner) return null;
 
   return (
-    <div className="modal" data-testid="winner-modal">
-      <div className="modal-content">
-        <h2>勝者が決定しました！</h2>
-        <p>Player {winner} Wins!</p>
-        <button onClick={handleClose}>閉じる</button>
-      </div>
+    <div data-testid="winner-modal">
+      <p>{`Player ${winner} Wins!`}</p>
+      <button onClick={onClose}>Close</button>
     </div>
   );
 };
 
 WinnerModal.propTypes = {
-  winner: PropTypes.number,
-  onClose: PropTypes.func,
-};
-
-WinnerModal.defaultProps = {
-  winner: null,
-  onClose: null,
+  winner: PropTypes.number.isRequired,
+  onClose: PropTypes.func.isRequired,
 };
 
 export default WinnerModal;
