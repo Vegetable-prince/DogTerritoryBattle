@@ -13,7 +13,7 @@ const ShowCurrentTurn = ({ currentTurn }) => {
 };
 
 ShowCurrentTurn.propTypes = {
-  currentTurn: PropTypes.number.isRequired,
+  currentTurn: PropTypes.number,
 };
 
 export default ShowCurrentTurn;

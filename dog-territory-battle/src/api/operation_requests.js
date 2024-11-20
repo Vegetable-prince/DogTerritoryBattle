@@ -25,7 +25,7 @@ const apiPost = async (endpoint, data, onSuccess, onError) => {
     if (onError) {
       onError(error.response?.data?.message || error.message);
     }
-    throw error; // エラーを再スローして、テストでキャッチできるようにする
+    throw new Error(`${endpoint} request failed`); // カスタムエラーメッセージを投げる
   }
 };
 
@@ -50,16 +50,16 @@ export const place_on_board_request = (dog, move, onSuccess, onError) => {
   return apiPost(`/dogs/${dog.id}/place_on_board/`, { move }, onSuccess, onError);
 };
 
-/**
- * ゲームをリセットするリクエストを送信する関数
- */
-export const reset_game_request = (onSuccess, onError) => {
-  return apiPost('/dogs/reset/', {}, onSuccess, onError);
-};
+// /**
+//  * ゲームをリセットするリクエストを送信する関数
+//  */
+// export const reset_game_request = (onSuccess, onError) => {
+//   return apiPost('/games/reset/', {}, onSuccess, onError);
+// };
 
-/**
- * ゲームの巻き戻しリクエストを送信する関数
- */
-export const undo_move_request = (onSuccess, onError) => {
-  return apiPost('/dogs/undo/', {}, onSuccess, onError);
-};
+// /**
+//  * ゲームの巻き戻しリクエストを送信する関数
+//  */
+// export const undo_move_request = (onSuccess, onError) => {
+//   return apiPost('/games/undo_move/', {}, onSuccess, onError);
+// };

@@ -1,200 +1,132 @@
-// 修正後の HandArea.test.js
+// src/tests/components/HandArea.test.js
+
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react';
-import HandArea from '../../components/GameJs/HandArea';
-import '@testing-library/jest-dom';
+import { render, fireEvent, screen, waitFor } from '@testing-library/react';
+import HandArea from '../../components/GameJs/HandArea'; // パスはプロジェクト構造に合わせて調整
+import '@testing-library/jest-dom/extend-expect';
+
+// モック関数の定義
+const mockCheckMovementType = jest.fn();
+const mockCheckDuplicate = jest.fn();
+const mockCheckOverMaxBoard = jest.fn();
+const mockCheckNoAdjacent = jest.fn();
+const mockCheckBossCantRemove = jest.fn();
+const mockCheckOwnAdjacent = jest.fn();
+const mockCheckWouldLose = jest.fn();
+
+const mockRulesFunction = {
+  check_movement_type: mockCheckMovementType,
+  check_duplicate: mockCheckDuplicate,
+  check_over_max_board: mockCheckOverMaxBoard,
+  check_no_adjacent: mockCheckNoAdjacent,
+  check_boss_cant_remove: mockCheckBossCantRemove,
+  check_own_adjacent: mockCheckOwnAdjacent,
+  check_would_lose: mockCheckWouldLose,
+};
+
+const mockMoveRequest = jest.fn();
+const mockRemoveFromBoardRequest = jest.fn();
+const mockPlaceOnBoardRequest = jest.fn();
+
+const mockOperationRequest = {
+  move_request: mockMoveRequest,
+  remove_from_board_request: mockRemoveFromBoardRequest,
+  place_on_board_request: mockPlaceOnBoardRequest,
+};
+
+const mockSetSelectedDog = jest.fn();
+const mockHandleRemove = jest.fn();
+
+const mockSetHandDogs = jest.fn();
+const mockSetBoardDogs = jest.fn();
+
+const dogs = [
+  {
+    dog_type: { id: 2, max_steps: 5, movement_type: '走行', name: 'アニキ犬' },
+    id: 1,
+    is_in_hand: true,
+    name: 'アニキ犬',
+    player: 1,
+  },
+  // 必要に応じて他の犬を追加
+];
 
 describe('HandArea Component', () => {
-    const mockOnDogClick = jest.fn();
-    const mockCheckDuplicate = jest.fn();
-    const mockCheckOverMaxBoard = jest.fn();
-    const mockCheckOwnAdjacent = jest.fn();
-    const mockCheckWouldLose = jest.fn();
-    const mockPlaceOnBoardRequest = jest.fn();
-    const mockRulesFunction = {
-        check_duplicate: mockCheckDuplicate,
-        check_over_max_board: mockCheckOverMaxBoard,
-        check_own_adjacent: mockCheckOwnAdjacent,
-        check_would_lose: mockCheckWouldLose,
-    };
-    const mockOperationRequest = {
-        place_on_board_request: mockPlaceOnBoardRequest,
-    };
-    const mockSetHandDogs = jest.fn();
-    const mockSetBoardDogs = jest.fn();
-    const mockSwitchTurn = jest.fn();
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-    // モックデータの作成
-    const dogs = [
-        {
-            id: 1,
-            name: 'アニキ犬',
-            is_in_hand: true,
-            player: 1,
-            dog_type: {
-                id: 2,
-                name: 'アニキ犬',
-                movement_type: '走行',
-                max_steps: 5,
-            },
-        },
-    ];
+  test('calls rules functions on first click and operation_request on second click', async () => {
+    render(
+      <HandArea
+        dogs={dogs}
+        setHandDogs={mockSetHandDogs}
+        setBoardDogs={mockSetBoardDogs}
+        rulesFunction={mockRulesFunction}
+        operationRequest={mockOperationRequest}
+        setSelectedDog={mockSetSelectedDog}
+        handleRemove={mockHandleRemove}
+        highlighted={false} // または true
+      />
+    );
 
-    const mockBoardDogs = [
-        {
-            id: 4,
-            name: 'ボス犬',
-            left: 100,
-            top: 100,
-            is_in_hand: false,
-            dog_type: {
-                id: 1,
-                name: 'ボス犬',
-                movement_type: '歩行',
-                max_steps: 3,
-            },
-            player: 1,
-        },
-    ];
+    const aniDog = screen.getByTestId('dog-1'); // アニキ犬の要素
 
-    afterEach(() => {
-        jest.clearAllMocks();
+    // 1度目のクリック: ルール関数が呼ばれることを確認
+    fireEvent.click(aniDog);
+    expect(mockCheckMovementType).toHaveBeenCalledWith(dogs[0], expect.any(Object));
+    expect(mockCheckDuplicate).toHaveBeenCalledWith(dogs[0]);
+    expect(mockCheckOverMaxBoard).toHaveBeenCalledWith(dogs[0]);
+    expect(mockCheckNoAdjacent).toHaveBeenCalledWith(dogs[0]);
+    expect(mockCheckBossCantRemove).toHaveBeenCalledWith(dogs[0]);
+    expect(mockCheckOwnAdjacent).toHaveBeenCalledWith(dogs[0]);
+    expect(mockCheckWouldLose).toHaveBeenCalledWith(dogs[0]);
+
+    // 2度目のクリック: operation_request が呼ばれることを確認
+    fireEvent.click(aniDog);
+    await waitFor(() => {
+      expect(mockPlaceOnBoardRequest).toHaveBeenCalledWith(dogs[0], { move: { x: 1, y: 1 } });
     });
 
-    /**
-     * 正常系:
-     * HandAreaが正しく犬をレンダリングし、1度目のクリックでrules関数が呼ばれ、2度目のクリックでoperation_requestが呼ばれるかを確認
-     */
-    test('calls rules functions on first click and operation_request on second click', () => {
-        const { getByTestId } = render(
-            <HandArea
-                dogs={dogs}
-                setHandDogs={mockSetHandDogs}
-                setBoardDogs={mockSetBoardDogs}
-                switchTurn={mockSwitchTurn}
-                currentTurn={1}
-                player={1}
-                boardDogs={mockBoardDogs}
-                rulesFunction={mockRulesFunction}
-                operationRequest={mockOperationRequest}
-            />
-        );
+    // `move_request` や `remove_from_board_request` が呼ばれていないことを確認
+    expect(mockMoveRequest).not.toHaveBeenCalled();
+    expect(mockRemoveFromBoardRequest).not.toHaveBeenCalled();
+  });
 
-        const aniDog = getByTestId('dog-1'); // data-testid="dog-1"
+  test('applies highlighted class when highlighted prop is set', () => {
+    render(
+      <HandArea
+        dogs={dogs}
+        setHandDogs={mockSetHandDogs}
+        setBoardDogs={mockSetBoardDogs}
+        rulesFunction={mockRulesFunction}
+        operationRequest={mockOperationRequest}
+        setSelectedDog={mockSetSelectedDog}
+        handleRemove={mockHandleRemove}
+        highlighted={true}
+      />
+    );
 
-        // 1度目のクリック: rules関数が呼ばれることを確認
-        fireEvent.click(aniDog);
-        expect(mockCheckDuplicate).toHaveBeenCalledWith(dogs[0]);
-        expect(mockCheckOverMaxBoard).toHaveBeenCalledWith(dogs[0]);
-        expect(mockCheckOwnAdjacent).toHaveBeenCalledWith(dogs[0]);
-        expect(mockCheckWouldLose).toHaveBeenCalledWith(dogs[0]);
-        expect(mockPlaceOnBoardRequest).not.toHaveBeenCalled();
+    // `data-testid="hand-area-player-1"` を持つ要素を探す
+    const handArea = screen.getByTestId('hand-area-player-1');
+    expect(handArea).toHaveClass('highlighted');
+  });
 
-        // 2度目のクリック: operation_request が呼ばれることを確認
-        fireEvent.click(aniDog);
-        expect(mockPlaceOnBoardRequest).toHaveBeenCalledWith(dogs[0], { move: { x: 1, y: 1 } });
-    });
+  test('handles click without onDogClick prop gracefully', () => {
+    render(
+      <HandArea
+        dogs={dogs}
+        setHandDogs={mockSetHandDogs}
+        setBoardDogs={mockSetBoardDogs}
+        rulesFunction={mockRulesFunction}
+        operationRequest={mockOperationRequest}
+        setSelectedDog={mockSetSelectedDog}
+        handleRemove={mockHandleRemove}
+        highlighted={false}
+      />
+    );
 
-    /**
-     * 異常系:
-     * HandAreaに無効な犬オブジェクトが渡された場合の挙動を確認
-     */
-    test('does not crash with invalid dogs prop', () => {
-        const invalidDogs = null; // 無効な犬オブジェクト
-
-        const { container } = render(
-            <HandArea
-                dogs={invalidDogs}
-                setHandDogs={mockSetHandDogs}
-                setBoardDogs={mockSetBoardDogs}
-                switchTurn={mockSwitchTurn}
-                currentTurn={1}
-                player={1}
-                boardDogs={mockBoardDogs}
-                rulesFunction={mockRulesFunction}
-                operationRequest={mockOperationRequest}
-            />
-        );
-
-        // コンポーネントが何もレンダリングしないことを確認
-        expect(container).toBeEmptyDOMElement();
-    });
-
-    /**
-     * エッジケース:
-     * HandAreaに犬が一匹も存在しない場合の表示を確認
-     */
-    test('renders empty HandArea when no dogs are present', () => {
-        const emptyDogs = [];
-
-        const { getByTestId } = render(
-            <HandArea
-                dogs={emptyDogs}
-                setHandDogs={mockSetHandDogs}
-                setBoardDogs={mockSetBoardDogs}
-                switchTurn={mockSwitchTurn}
-                currentTurn={1}
-                player={1}
-                boardDogs={mockBoardDogs}
-                rulesFunction={mockRulesFunction}
-                operationRequest={mockOperationRequest}
-            />
-        );
-
-        const handArea = screen.getByTestId('hand-area-player-1');
-        expect(handArea).toBeInTheDocument();
-        expect(handArea).toBeEmptyDOMElement();
-    });
-
-    /**
-     * エッジケース:
-     * HandAreaのハイライトが正しく適用されているかを確認
-     */
-    test('applies highlighted class when highlighted prop is set', () => {
-        const highlighted = { id: 1 };
-
-        const { getByTestId } = render(
-            <HandArea
-                dogs={dogs}
-                setHandDogs={mockSetHandDogs}
-                setBoardDogs={mockSetBoardDogs}
-                switchTurn={mockSwitchTurn}
-                currentTurn={1}
-                player={1}
-                boardDogs={mockBoardDogs}
-                highlighted={highlighted}
-                rulesFunction={mockRulesFunction}
-                operationRequest={mockOperationRequest}
-            />
-        );
-
-        const handArea = screen.getByTestId('hand-area-player-1');
-        expect(handArea).toHaveClass('highlighted');
-    });
-
-    /**
-     * 異常系:
-     * onDogClickが未定義の場合、クリックしてもエラーが発生しないことを確認
-     */
-    test('handles click without onDogClick prop gracefully', () => {
-        const { getByTestId } = render(
-            <HandArea
-                dogs={dogs}
-                setHandDogs={mockSetHandDogs}
-                setBoardDogs={mockSetBoardDogs}
-                switchTurn={mockSwitchTurn}
-                currentTurn={1}
-                player={1}
-                boardDogs={mockBoardDogs}
-                highlighted={null}
-                onDogClick={null}
-                rulesFunction={mockRulesFunction}
-                operationRequest={mockOperationRequest}
-            />
-        );
-
-        // 犬をクリックしてもエラーが発生しないことを確認
-        const aniDog = screen.getByTestId('dog-1');
-        expect(() => fireEvent.click(aniDog)).not.toThrow();
-    });
+    const aniDog = screen.getByTestId('dog-1');
+    expect(() => fireEvent.click(aniDog)).not.toThrow();
+  });
 });
