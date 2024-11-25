@@ -1,54 +1,33 @@
-// src/tests/components/HandArea.test.js
-
 import React from 'react';
-import { render, fireEvent, screen, waitFor } from '@testing-library/react';
-import HandArea from '../../components/GameJs/HandArea'; // パスはプロジェクト構造に合わせて調整
-import '@testing-library/jest-dom/extend-expect';
+import { render, fireEvent, screen } from '@testing-library/react';
+import HandArea from '../../components/GameJs/HandArea';
+import '@testing-library/jest-dom';
 
-// モック関数の定義
-const mockCheckMovementType = jest.fn();
-const mockCheckDuplicate = jest.fn();
-const mockCheckOverMaxBoard = jest.fn();
-const mockCheckNoAdjacent = jest.fn();
-const mockCheckBossCantRemove = jest.fn();
-const mockCheckOwnAdjacent = jest.fn();
-const mockCheckWouldLose = jest.fn();
+// Dog コンポーネントをモック化
+jest.mock('../../components/GameJs/Dog', () => (props) => {
+  const { dog, onClick, isSelected, isDisabled } = props;
+  return (
+    <div
+      data-testid={`dog-${dog.id}`}
+      onClick={onClick}
+      className={`dog-mock ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}`}
+    >
+      {dog.name}
+    </div>
+  );
+});
 
-const mockRulesFunction = {
-  check_movement_type: mockCheckMovementType,
-  check_duplicate: mockCheckDuplicate,
-  check_over_max_board: mockCheckOverMaxBoard,
-  check_no_adjacent: mockCheckNoAdjacent,
-  check_boss_cant_remove: mockCheckBossCantRemove,
-  check_own_adjacent: mockCheckOwnAdjacent,
-  check_would_lose: mockCheckWouldLose,
-};
-
-const mockMoveRequest = jest.fn();
-const mockRemoveFromBoardRequest = jest.fn();
-const mockPlaceOnBoardRequest = jest.fn();
-
-const mockOperationRequest = {
-  move_request: mockMoveRequest,
-  remove_from_board_request: mockRemoveFromBoardRequest,
-  place_on_board_request: mockPlaceOnBoardRequest,
-};
-
-const mockSetSelectedDog = jest.fn();
-const mockHandleRemove = jest.fn();
-
-const mockSetHandDogs = jest.fn();
-const mockSetBoardDogs = jest.fn();
+const mockOnHandDogClick = jest.fn();
+const mockOnHandAreaClick = jest.fn();
 
 const dogs = [
   {
-    dog_type: { id: 2, max_steps: 5, movement_type: '走行', name: 'アニキ犬' },
+    dog_type: { id: 2, max_steps: 5, movement_type: 'diagonal_orthogonal', name: 'アニキ犬' },
     id: 1,
     is_in_hand: true,
     name: 'アニキ犬',
     player: 1,
   },
-  // 必要に応じて他の犬を追加
 ];
 
 describe('HandArea Component', () => {
@@ -56,77 +35,105 @@ describe('HandArea Component', () => {
     jest.clearAllMocks();
   });
 
-  test('calls rules functions on first click and operation_request on second click', async () => {
+  test('Dog.js が正しく呼び出されていることを確認する', () => {
     render(
       <HandArea
-        dogs={dogs}
-        setHandDogs={mockSetHandDogs}
-        setBoardDogs={mockSetBoardDogs}
-        rulesFunction={mockRulesFunction}
-        operationRequest={mockOperationRequest}
-        setSelectedDog={mockSetSelectedDog}
-        handleRemove={mockHandleRemove}
-        highlighted={false} // または true
+        handDogs={dogs}
+        onHandDogClick={mockOnHandDogClick}
+        currentPlayerId={1}
       />
     );
 
-    const aniDog = screen.getByTestId('dog-1'); // アニキ犬の要素
+    const dogElement = screen.getByTestId('dog-1');
 
-    // 1度目のクリック: ルール関数が呼ばれることを確認
-    fireEvent.click(aniDog);
-    expect(mockCheckMovementType).toHaveBeenCalledWith(dogs[0], expect.any(Object));
-    expect(mockCheckDuplicate).toHaveBeenCalledWith(dogs[0]);
-    expect(mockCheckOverMaxBoard).toHaveBeenCalledWith(dogs[0]);
-    expect(mockCheckNoAdjacent).toHaveBeenCalledWith(dogs[0]);
-    expect(mockCheckBossCantRemove).toHaveBeenCalledWith(dogs[0]);
-    expect(mockCheckOwnAdjacent).toHaveBeenCalledWith(dogs[0]);
-    expect(mockCheckWouldLose).toHaveBeenCalledWith(dogs[0]);
+    // Dog.js のモックがレンダリングされていることを確認
+    expect(dogElement).toBeInTheDocument();
+    expect(dogElement).toHaveTextContent('アニキ犬');
 
-    // 2度目のクリック: operation_request が呼ばれることを確認
-    fireEvent.click(aniDog);
-    await waitFor(() => {
-      expect(mockPlaceOnBoardRequest).toHaveBeenCalledWith(dogs[0], { move: { x: 1, y: 1 } });
-    });
+    // クリック
+    fireEvent.click(dogElement);
 
-    // `move_request` や `remove_from_board_request` が呼ばれていないことを確認
-    expect(mockMoveRequest).not.toHaveBeenCalled();
-    expect(mockRemoveFromBoardRequest).not.toHaveBeenCalled();
+    // コールバック関数が呼ばれたことを確認
+    expect(mockOnHandDogClick).toHaveBeenCalledWith(dogs[0]);
   });
 
-  test('applies highlighted class when highlighted prop is set', () => {
+  test('現在のプレイヤー以外のコマはクリックしてもコールバックが呼ばれない', () => {
     render(
       <HandArea
-        dogs={dogs}
-        setHandDogs={mockSetHandDogs}
-        setBoardDogs={mockSetBoardDogs}
-        rulesFunction={mockRulesFunction}
-        operationRequest={mockOperationRequest}
-        setSelectedDog={mockSetSelectedDog}
-        handleRemove={mockHandleRemove}
-        highlighted={true}
+        handDogs={dogs}
+        onHandDogClick={mockOnHandDogClick}
+        currentPlayerId={2} // 現在のプレイヤーIDを 2 に設定
       />
     );
 
-    // `data-testid="hand-area-player-1"` を持つ要素を探す
-    const handArea = screen.getByTestId('hand-area-player-1');
-    expect(handArea).toHaveClass('highlighted');
+    const dogElement = screen.getByTestId('dog-1');
+
+    // Dog.js のモックがレンダリングされていることを確認
+    expect(dogElement).toBeInTheDocument();
+    expect(dogElement).toHaveTextContent('アニキ犬');
+
+    // クリック
+    fireEvent.click(dogElement);
+
+    // コールバック関数が呼ばれていないことを確認
+    expect(mockOnHandDogClick).not.toHaveBeenCalled();
   });
 
-  test('handles click without onDogClick prop gracefully', () => {
-    render(
+  test('canRemove が true の場合、HandArea がハイライトされる', () => {
+    // HandArea をレンダリング
+    const { container } = render(
       <HandArea
-        dogs={dogs}
-        setHandDogs={mockSetHandDogs}
-        setBoardDogs={mockSetBoardDogs}
-        rulesFunction={mockRulesFunction}
-        operationRequest={mockOperationRequest}
-        setSelectedDog={mockSetSelectedDog}
-        handleRemove={mockHandleRemove}
-        highlighted={false}
+        handDogs={dogs}
+        onHandDogClick={mockOnHandDogClick}
+        currentPlayerId={1}
+        isHighlighted={true} // HandArea がハイライトされる状態をシミュレート
       />
     );
 
-    const aniDog = screen.getByTestId('dog-1');
-    expect(() => fireEvent.click(aniDog)).not.toThrow();
+    // HandArea の要素を取得
+    const handAreaElement = container.querySelector('.hand-area');
+
+    // HandArea にハイライトのクラスが適用されていることを確認
+    expect(handAreaElement).toHaveClass('highlighted');
+  });
+
+  test('HandArea がハイライトされている場合にクリックするとコールバック関数が呼ばれる', () => {
+    render(
+      <HandArea
+        handDogs={dogs}
+        onHandDogClick={mockOnHandDogClick}
+        onHandAreaClick={mockOnHandAreaClick} // コールバック関数を渡す
+        currentPlayerId={1}
+        isHighlighted={true}
+      />
+    );
+
+    const handAreaElement = screen.getByTestId('hand-area');
+
+    // HandArea をクリック
+    fireEvent.click(handAreaElement);
+
+    // コールバック関数が呼ばれたことを確認
+    expect(mockOnHandAreaClick).toHaveBeenCalled();
+  });
+
+  test('HandArea がハイライトされていない場合にクリックしてもコールバック関数が呼ばれない', () => {
+    render(
+      <HandArea
+        handDogs={dogs}
+        onHandDogClick={mockOnHandDogClick}
+        onHandAreaClick={mockOnHandAreaClick}
+        currentPlayerId={1}
+        isHighlighted={false}
+      />
+    );
+
+    const handAreaElement = screen.getByTestId('hand-area');
+
+    // HandArea をクリック
+    fireEvent.click(handAreaElement);
+
+    // コールバック関数が呼ばれていないことを確認
+    expect(mockOnHandAreaClick).not.toHaveBeenCalled();
   });
 });

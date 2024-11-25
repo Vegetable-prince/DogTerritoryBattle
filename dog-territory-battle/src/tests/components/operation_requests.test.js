@@ -1,4 +1,3 @@
-// src/tests/components/operation_requests.test.js
 import apiClient from '../../api/apiClient';
 import MockAdapter from 'axios-mock-adapter';
 import {
@@ -36,15 +35,14 @@ describe('Operation Requests', () => {
       name: 'アニキ犬',
       left: 100,
       top: 200,
-      is_in_hand: true,
+      is_in_hand: false,
       dog_type: {
         id: 1,
-        name: 'タイプA',
-        movement_type: '歩行',
-        max_steps: 3,
+        name: 'アニキ犬',
+        movement_type: 'diagonal_orthogonal',
+        max_steps: 1,
       },
       player: 1,
-      isHidden: false,
     };
     const endpoint = `/dogs/${dog.id}/remove_from_board/`;
 
@@ -95,17 +93,16 @@ describe('Operation Requests', () => {
     const dog = {
       id: 3,
       name: 'ボス犬',
-      left: 150,
-      top: 250,
-      is_in_hand: false,
+      left: 100,
+      top: 200,
+      is_in_hand: true,
       dog_type: {
         id: 2,
-        name: 'タイプB',
-        movement_type: '走行',
-        max_steps: 5,
+        name: 'ボス犬',
+        movement_type: 'diagonal_orthogonal',
+        max_steps: 1,
       },
       player: 1,
-      isHidden: false,
     };
     const moveData = { move: { x: 1, y: 1 } };
     const endpoint = `/dogs/${dog.id}/place_on_board/`;
@@ -161,15 +158,14 @@ describe('Operation Requests', () => {
       name: 'ボス犬',
       left: 200,
       top: 300,
-      is_in_hand: true,
+      is_in_hand: false,
       dog_type: {
         id: 3,
-        name: 'タイプC',
-        movement_type: '飛行',
-        max_steps: 4,
+        name: 'ボス犬',
+        movement_type: 'diagonal_orthogonal',
+        max_steps: 1,
       },
       player: 1,
-      isHidden: false,
     };
     const moveData = { move: { x: 2, y: 3 } };
     const endpoint = `/dogs/${dog.id}/move/`;
@@ -215,6 +211,4 @@ describe('Operation Requests', () => {
       expect(onError).toHaveBeenCalledWith('Request failed with status code 400');
     });
   });
-
-  // reset_game_request や undo_move_request はバックエンド未実装のためコメントアウト
 });

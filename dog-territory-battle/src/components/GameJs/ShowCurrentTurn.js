@@ -1,19 +1,9 @@
-// src/components/GameJs/ShowCurrentTurn.js
 import React from 'react';
-import PropTypes from 'prop-types';
 
-const ShowCurrentTurn = ({ currentTurn }) => {
-  if (currentTurn === null || currentTurn === undefined) return null;
-
+const ShowCurrentTurn = ({ currentPlayerId }) => {
   return (
-    <div data-testid="current-turn">
-      <p>{`現在のターン: Player ${currentTurn}`}</p>
-    </div>
+    <div data-testid="current-player">Player {currentPlayerId}'s Turn</div>
   );
-};
-
-ShowCurrentTurn.propTypes = {
-  currentTurn: PropTypes.number,
 };
 
 export default ShowCurrentTurn;

@@ -1,87 +1,141 @@
-// src/components/GameJs/Board.js
 import React from 'react';
-import PropTypes from 'prop-types';
-import '../../css/GameCss/Board.css';
+import Dog from './Dog';
 
-const Board = ({ dogs, setBoardDogs, switchTurn, currentTurn, rulesFunction, operationRequest, selectedDog, setSelectedDog }) => {
+const SQUARE_SIZE = 100;
+const BOARD_COLUMNS = 4;
+const BOARD_ROWS = 4;
+const BOARD_WIDTH = SQUARE_SIZE * BOARD_COLUMNS; // 400
+const BOARD_HEIGHT = SQUARE_SIZE * BOARD_ROWS; // 400
 
-  const handleDogClick = (dog) => {
-    if (!selectedDog) {
-      // 1度目のクリック: ルール関数を呼び出す
-      rulesFunction.check_movement_type(dog, { move: { x: 1, y: 1 } });
-      rulesFunction.check_duplicate(dog, { move: { x: 1, y: 1 } });
-      rulesFunction.check_over_max_board(dog, { move: { x: 1, y: 1 } });
-      rulesFunction.check_no_adjacent(dog, { move: { x: 1, y: 1 } });
-      rulesFunction.check_boss_cant_remove(dog, { move: { x: 1, y: 1 } });
-      setSelectedDog(dog);
-    } else {
-      if (dog.id === selectedDog.id) {
-        // 同じ犬をクリック: 選択を解除
-        setSelectedDog(null);
-      } else {
-        // 異なる犬をクリック: move_request を呼び出す
-        operationRequest.move_request(selectedDog, { move: { x: 1, y: 1 } }, () => {}, () => {});
-        setSelectedDog(null);
+const Board = ({
+  boardDogs,
+  candidatePositions,
+  onBoardDogClick,
+  onBoardSquareClick,
+  currentPlayerId,
+}) => {
+  // ボード上の犬の位置をグリッドに変換
+  const createGrid = () => {
+    const grid = Array.from({ length: BOARD_ROWS }, () =>
+      Array(BOARD_COLUMNS).fill(false)
+    );
+
+    boardDogs.forEach((dog) => {
+      const x = dog.left / SQUARE_SIZE;
+      const y = dog.top / SQUARE_SIZE;
+      grid[y][x] = true;
+    });
+
+    return grid;
+  };
+
+  // ラインのチェック
+  const checkForLine = () => {
+    const grid = createGrid();
+
+    // 縦方向のチェック
+    for (let x = 0; x < BOARD_COLUMNS; x++) {
+      let count = 0;
+      for (let y = 0; y < BOARD_ROWS; y++) {
+        if (grid[y][x]) {
+          count++;
+          if (count === 4) {
+            return 'vertical';
+          }
+        } else {
+          count = 0;
+        }
       }
     }
+
+    // 横方向のチェック
+    for (let y = 0; y < BOARD_ROWS; y++) {
+      let count = 0;
+      for (let x = 0; x < BOARD_COLUMNS; x++) {
+        if (grid[y][x]) {
+          count++;
+          if (count === 4) {
+            return 'horizontal';
+          }
+        } else {
+          count = 0;
+        }
+      }
+    }
+
+    return null;
+  };
+
+  const lineType = checkForLine();
+
+  const boardClasses = ['game-board'];
+  if (lineType === 'vertical') {
+    boardClasses.push('border-vertical');
+  } else if (lineType === 'horizontal') {
+    boardClasses.push('border-horizontal');
+  }
+
+  // ハイライトされたマス（square）をレンダリング
+  const renderHighlightedSquares = () => {
+    return candidatePositions.map((pos) => (
+      <div
+        key={`square-${pos.x}-${pos.y}`}
+        data-testid={`highlighted-square-${pos.x}-${pos.y}`}
+        className="board-square highlighted"
+        style={{
+          position: 'absolute',
+          left: pos.x * SQUARE_SIZE,
+          top: pos.y * SQUARE_SIZE,
+          width: SQUARE_SIZE,
+          height: SQUARE_SIZE,
+        }}
+        onClick={() => onBoardSquareClick(pos.x, pos.y)}
+      ></div>
+    ));
+  };
+
+  // ボード上の犬のコマをレンダリング
+  const renderDogs = () => {
+    return boardDogs.map((dog) => (
+      <div
+        key={dog.id}
+        style={{
+          position: 'absolute',
+          left: dog.left,
+          top: dog.top,
+        }}
+      >
+        <Dog
+          dog={dog}
+          onClick={() => {
+            if (dog.player === currentPlayerId) {
+              onBoardDogClick(dog);
+            }
+          }}
+          isSelected={false} // 状態に応じて変更
+          isDisabled={dog.player !== currentPlayerId}
+        />
+      </div>
+    ));
   };
 
   return (
-    <div className="board" data-testid="game-board">
-      {dogs.map((dog) => (
-        <div
-          key={dog.id}
-          data-testid={`dog-${dog.id}`}
-          style={{
-            position: 'absolute',
-            left: `${dog.left}px`,
-            top: `${dog.top}px`,
-          }}
-          onClick={(e) => {
-            e.stopPropagation(); // ボード全体のクリックイベントを防ぐ
-            handleDogClick(dog);
-          }}
-        >
-          {dog.name}
-        </div>
-      ))}
+    <div
+      data-testid="game-board"
+      className={boardClasses.join(' ')}
+      style={{
+        position: 'relative',
+        width: BOARD_WIDTH,
+        height: BOARD_HEIGHT,
+      }}
+    >
+      {/* ハイライトされたマス（square） */}
+      {renderHighlightedSquares()}
+
+      {/* 犬のコマ */}
+      {renderDogs()}
     </div>
   );
-};
-
-Board.propTypes = {
-  dogs: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      name: PropTypes.string.isRequired,
-      left: PropTypes.number.isRequired,
-      top: PropTypes.number.isRequired,
-      is_in_hand: PropTypes.bool.isRequired,
-      dog_type: PropTypes.shape({
-        id: PropTypes.number.isRequired,
-        name: PropTypes.string.isRequired,
-        movement_type: PropTypes.string.isRequired,
-        max_steps: PropTypes.number.isRequired,
-      }).isRequired,
-      player: PropTypes.number.isRequired,
-    })
-  ).isRequired,
-  setBoardDogs: PropTypes.func.isRequired,
-  switchTurn: PropTypes.func.isRequired,
-  currentTurn: PropTypes.number.isRequired,
-  rulesFunction: PropTypes.shape({
-    check_movement_type: PropTypes.func.isRequired,
-    check_duplicate: PropTypes.func.isRequired,
-    check_over_max_board: PropTypes.func.isRequired,
-    check_no_adjacent: PropTypes.func.isRequired,
-    check_boss_cant_remove: PropTypes.func.isRequired,
-  }).isRequired,
-  operationRequest: PropTypes.shape({
-    move_request: PropTypes.func.isRequired,
-    remove_from_board_request: PropTypes.func.isRequired,
-  }).isRequired,
-  selectedDog: PropTypes.object,
-  setSelectedDog: PropTypes.func.isRequired,
 };
 
 export default Board;

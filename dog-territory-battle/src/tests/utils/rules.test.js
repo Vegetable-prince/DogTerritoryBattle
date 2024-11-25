@@ -1,284 +1,1219 @@
-// src/tests/utils/rules.test.js
 import {
-  check_movement_type,
-  check_duplicate,
-  check_over_max_board,
-  check_no_adjacent,
-  check_own_adjacent,
-  check_would_lose,
-  check_boss_cant_remove,
+  applyHandRules,
+  applyBoardRules,
 } from '../../utils/rules';
 
 describe('Rules Utility Functions', () => {
-  /**
-   * check_movement_type のテスト
-   */
-  describe('check_movement_type', () => {
-    test('invalidates orthogonal movement exceeding max_steps', () => {
-      const dog = { 
-        name: 'ボス犬', 
-        dog_type: { 
-          movement_type: 'orthogonal', 
-          max_steps: 3 
-        } 
-      };
-      const from = { x: 0, y: 0 };
-      const to = { x: 4, y: 0 }; // 4ステップ移動 (400px)
-
-      const result = check_movement_type(dog, from, to);
-      expect(result).toBe(false);
-    });
-
-    test('invalidates diagonal movement exceeding max_steps', () => {
-      const dog = { 
-        name: 'アニキ犬', 
-        dog_type: { 
-          movement_type: 'diagonal', 
-          max_steps: 5 
-        } 
-      };
-      const from = { x: 0, y: 0 };
-      const to = { x: 6, y: 6 }; // 6ステップ移動 (600px)
-
-      const result = check_movement_type(dog, from, to);
-      expect(result).toBe(false);
-    });
-
-    test('validates special movement correctly for Hajike Hato', () => {
-      const dog = { 
-        name: 'ハジケハト', 
-        dog_type: { 
-          movement_type: 'special_hajike', 
-          max_steps: 2 
-        } 
-      };
-      const from = { x: 2, y: 2 };
-      const to1 = { x: 4, y: 3 }; // (2,2) -> (4,3): dx=200px, dy=100px
-      const to2 = { x: 0, y: 1 }; // (2,2) -> (0,1): dx=200px, dy=100px
-
-      const result1 = check_movement_type(dog, from, to1);
-      const result2 = check_movement_type(dog, from, to2);
-
-      expect(result1).toBe(true);
-      expect(result2).toBe(true);
-    });
-
-    test('invalidates movement beyond board boundaries', () => {
-      const dog = { 
-        name: 'ボス犬', 
-        dog_type: { 
-          movement_type: 'orthogonal', 
-          max_steps: 3 
-        } 
-      };
-      const from = { x: 0, y: 0 };
-      const to = { x: -1, y: 0 }; // ボード外 (左に1ステップ)
-
-      const result = check_movement_type(dog, from, to);
-      expect(result).toBe(false);
-    });
-
-    test('invalidates when there is no movement', () => {
-      const dog = { 
-        name: 'アニキ犬', 
-        dog_type: { 
-          movement_type: 'diagonal', 
-          max_steps: 5 
-        } 
-      };
-      const from = { x: 1, y: 1 };
-      const to = { x: 1, y: 1 };
-
-      const result = check_movement_type(dog, from, to);
-      expect(result).toBe(false);
-    });
-  });
+  const SQUARE_SIZE = 100;
 
   /**
-   * check_duplicate のテスト
+   * 手札のコマを選択した場合のテスト
    */
-  describe('check_duplicate', () => {
-    test('detects duplicate positions correctly', () => {
-      const dog = { id: 1, left: 100, top: 100 };
+  describe('Hand Area Rules', () => {
+    test('ボード上にプレイヤー1のボスが(1, 2)、プレイヤー2のボスが(1, 1)の場合、手札のアニキ犬の置ける場所を確認する', () => {
       const boardDogs = [
-        { id: 2, left: 100, top: 100 },
-        { id: 3, left: 200, top: 200 },
+        {
+          id: 1,
+          name: 'ボス犬',
+          left: 1 * SQUARE_SIZE,
+          top: 2 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        {
+          id: 2,
+          name: 'ボス犬',
+          left: 1 * SQUARE_SIZE,
+          top: 1 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
       ];
-
-      const result = check_duplicate(dog, boardDogs);
-      expect(result).toBe(true);
-    });
-
-    test('does not detect duplicate when positions are unique', () => {
-      const dog = { id: 1, left: 100, top: 100 };
-      const boardDogs = [
-        { id: 2, left: 150, top: 150 },
-        { id: 3, left: 200, top: 200 },
-      ];
-
-      const result = check_duplicate(dog, boardDogs);
-      expect(result).toBe(false);
-    });
-
-    test('handles empty boardDogs array correctly', () => {
-      const dog = { id: 1, left: 100, top: 100 };
-      const boardDogs = [];
-
-      const result = check_duplicate(dog, boardDogs);
-      expect(result).toBe(false);
-    });
-
-    test('handles non-array boardDogs gracefully', () => {
-      const dog = { id: 1, left: 100, top: 100 };
-      const boardDogs = null;
-
-      const result = check_duplicate(dog, boardDogs);
-      expect(result).toBe(false);
-    });
-  });
-
-  /**
-   * check_over_max_board のテスト
-   */
-  describe('check_over_max_board', () => {
-    test('detects over max board size correctly', () => {
-      const boardDogs = new Array(10).fill({ id: 1, name: 'ボス犬', left: 100, top: 100 });
-      const maxSize = 5;
-
-      const result = check_over_max_board(boardDogs, maxSize);
-      expect(result).toBe(true);
-    });
-
-    test('does not detect over max board size when under limit', () => {
-      const boardDogs = new Array(4).fill({ id: 1, name: 'ボス犬', left: 100, top: 100 });
-      const maxSize = 5;
-
-      const result = check_over_max_board(boardDogs, maxSize);
-      expect(result).toBe(false);
-    });
-
-    test('handles non-array boardDogs gracefully', () => {
-      const boardDogs = null;
-      const maxSize = 5;
-
-      const result = check_over_max_board(boardDogs, maxSize);
-      expect(result).toBe(false);
-    });
-  });
-
-  /**
-   * check_no_adjacent のテスト
-   */
-  describe('check_no_adjacent', () => {
-    test('check_no_adjacent detects no adjacent dogs', () => {
-      const dog = { id: 1, name: 'アニキ犬', left: 200, top: 200 };
-      const boardDogs = [{ id: 2, name: 'ボス犬', left: 0, top: 0 }];
-
-      const result = check_no_adjacent(dog, boardDogs);
-      expect(result).toBe(true);
-    });
-
-    test('check_no_adjacent detects adjacent dogs', () => {
-      const dog = { id: 1, name: 'アニキ犬', left: 200, top: 200 };
-      const boardDogs = [
-        { id: 2, name: 'ボス犬', left: 200, top: 100 },
-        { id: 3, name: 'ボス犬', left: 300, top: 200 },
-      ];
-
-      const result = check_no_adjacent(dog, boardDogs);
-      expect(result).toBe(false);
-    });
-
-    test('check_no_adjacent handles non-array boardDogs gracefully', () => {
-      const dog = { id: 1, name: 'アニキ犬', left: 200, top: 200 };
-      const boardDogs = null;
-
-      const result = check_no_adjacent(dog, boardDogs);
-      expect(result).toBe(true);
-    });
-  });
-
-  /**
-   * check_own_adjacent のテスト
-   */
-  describe('check_own_adjacent', () => {
-    test('finds own adjacent dogs correctly', () => {
-      const dogPosition = { x: 2, y: 2 };
-      const boardDogs = [
-        { id: 2, left: 300, top: 200, player: 1 }, // x=3, y=2
-        { id: 3, left: 200, top: 300, player: 1 }, // x=2, y=3
-      ];
+      const selectedDog = {
+        id: 3,
+        name: 'アニキ犬',
+        player: 1,
+        dog_type: {
+          movement_type: 'diagonal_orthogonal',
+          max_steps: 1,
+        },
+      };
       const playerId = 1;
 
-      const result = check_own_adjacent(dogPosition, boardDogs, playerId);
-      expect(result).toBe(true);
-    });
+      const initialData = {
+        candidatePositions: [],
+        boardDogs,
+        selectedDog,
+        playerId,
+      };
 
-    test('does not find own adjacent dogs when none are adjacent', () => {
-      const dogPosition = { x: 2, y: 2 };
-      const boardDogs = [
-        { id: 2, left: 400, top: 400, player: 1 }, // x=4, y=4
-        { id: 3, left: 500, top: 500, player: 1 }, // x=5, y=5
+      const result = applyHandRules(initialData);
+
+      const expectedPositions = [
+        { x: 0, y: 2 },
+        { x: 0, y: 1 },
+        { x: 2, y: 1 },
+        { x: 2, y: 2 },
+        { x: 2, y: 3 },
+        { x: 1, y: 3 },
+        { x: 0, y: 3 },
       ];
-      const playerId = 1;
 
-      const result = check_own_adjacent(dogPosition, boardDogs, playerId);
-      expect(result).toBe(false);
+      // ソートして比較
+      const sortPositions = (positions) => {
+        return positions.sort((a, b) => {
+          if (a.x !== b.x) {
+            return a.x - b.x;
+          }
+          return a.y - b.y;
+        });
+      };
+
+      console.log('候補マス:', result.candidatePositions);
+
+      expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
 
-    test('check_own_adjacent ignores dogs from other players', () => {
-      const dogPosition = { x: 2, y: 2 };
+    test('ボード上にプレイヤー1のボスが(0, 0)、プレイヤー2のボスが(0, 1)の場合、手札のアニキ犬の置ける場所を確認する', () => {
       const boardDogs = [
-        { id: 2, name: 'ボス犬', left: 300, top: 200, player: 2 }, // x=3, y=2 (異なるプレイヤー)
-        { id: 3, name: 'ボス犬', left: 200, top: 300, player: 3 }, // x=2, y=3 (異なるプレイヤー)
+        {
+          id: 1,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        {
+          id: 2,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 1 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
       ];
+      const selectedDog = {
+        id: 3,
+        name: 'アニキ犬',
+        player: 1,
+        dog_type: {
+          movement_type: 'diagonal_orthogonal',
+          max_steps: 1,
+        },
+      };
       const playerId = 1;
+    
+      const initialData = {
+        candidatePositions: [],
+        boardDogs,
+        selectedDog,
+        playerId,
+      };
+    
+      const result = applyHandRules(initialData);
+    
+      const expectedPositions = [
+        { x: -1, y: 0 },
+        { x: -1, y: -1 },
+        { x: 0, y: -1 },
+        { x: 1, y: -1 },
+        { x: 1, y: 0 },
+        { x: 1, y: 1 },
+        { x: -1, y: 1 },
+      ];
 
-      const result = check_own_adjacent(dogPosition, boardDogs, playerId);
-      expect(result).toBe(false);
+      console.log('候補マス:', result.candidatePositions);
+    
+      expect(result.candidatePositions).toEqual(expectedPositions);
     });
 
-    test('check_own_adjacent handles non-array boardDogs gracefully', () => {
-      const dogPosition = { x: 2, y: 2 };
-      const boardDogs = null;
+    test('ボード上にプレイヤー1のボスが(0, 0)、プレイヤー2のボスが(0, 1)、プレイヤー2のアニキ犬が(1, 0)、プレイヤー2のヤイバ犬が(-1, 0)の場合、手札のアニキ犬の置ける場所を確認する', () => {
+      const boardDogs = [
+        {
+          id: 1,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        {
+          id: 2,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 1 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        {
+          id: 3,
+          name: 'アニキ犬',
+          left: 1 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        {
+          id: 4,
+          name: 'ヤイバ犬',
+          left: -1 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'orthogonal',
+            max_steps: null,
+          },
+        },
+      ];
+      const selectedDog = {
+        id: 5,
+        name: 'アニキ犬',
+        player: 1,
+        dog_type: {
+          movement_type: 'diagonal_orthogonal',
+          max_steps: 1,
+        },
+      };
       const playerId = 1;
+    
+      const initialData = {
+        candidatePositions: [],
+        boardDogs,
+        selectedDog,
+        playerId,
+      };
+    
+      const result = applyHandRules(initialData);
+    
+      const expectedPositions = [
+        { x: -1, y: -1 },
+        { x: 1, y: -1 },
+        { x: -1, y: 1 },
+        { x: 1, y: 1 },
+      ];
+    
+      // ソートして比較
+      const sortPositions = (positions) => {
+        return positions.sort((a, b) => {
+          if (a.x !== b.x) {
+            return a.x - b.x;
+          }
+          return a.y - b.y;
+        });
+      };
 
-      const result = check_own_adjacent(dogPosition, boardDogs, playerId);
-      expect(result).toBe(false);
+      console.log('候補マス:', result.candidatePositions);
+    
+      expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
+    });
+
+    test('ボード上にプレイヤー1のボスが(0, 0)、プレイヤー2のボスが(0, 1)、プレイヤー2のアニキ犬が(1, 2)、プレイヤー2のヤイバ犬が(2, 3)、プレイヤー2の豆でっぽう犬が(1, 0)の場合、手札のアニキ犬の置ける場所を確認する', () => {
+      const boardDogs = [
+        {
+          id: 1,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        {
+          id: 2,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 1 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        {
+          id: 3,
+          name: 'アニキ犬',
+          left: 1 * SQUARE_SIZE,
+          top: 2 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        {
+          id: 4,
+          name: 'ヤイバ犬',
+          left: 2 * SQUARE_SIZE,
+          top: 3 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'orthogonal',
+            max_steps: null,
+          },
+        },
+        {
+          id: 5,
+          name: '豆でっぽう犬',
+          left: 1 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'diagonal',
+            max_steps: null,
+          },
+        },
+      ];
+      const selectedDog = {
+        id: 6,
+        name: 'アニキ犬',
+        player: 1,
+        dog_type: {
+          movement_type: 'diagonal_orthogonal',
+          max_steps: 1,
+        },
+      };
+      const playerId = 1;
+    
+      const initialData = {
+        candidatePositions: [],
+        boardDogs,
+        selectedDog,
+        playerId,
+      };
+    
+      const result = applyHandRules(initialData);
+    
+      const expectedPositions = [
+        { x: -1, y: 1 },
+        { x: 1, y: 1 },
+      ];
+    
+      // ソートして比較
+      const sortPositions = (positions) => {
+        return positions.sort((a, b) => {
+          if (a.x !== b.x) {
+            return a.x - b.x;
+          }
+          return a.y - b.y;
+        });
+      };
+
+      console.log('候補マス:', result.candidatePositions);
+    
+      expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
   });
 
   /**
-   * check_boss_cant_remove のテスト
+   * ボード上のコマを選択した場合のテスト
    */
-  describe('check_boss_cant_remove', () => {
-    test('prevents boss removal', () => {
-      const dog = { name: 'ボス犬' };
-      const result = check_boss_cant_remove(dog);
-      expect(result).toBe(false); // ボス犬は削除できないため false
+  describe('Board Rules', () => {
+    test('ボード上の(0, 0)のプレイヤー1のボス犬の移動可能マスを確認する', () => {
+      const boardDogs = [
+        {
+          id: 1,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        {
+          id: 2,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 1 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+      ];
+      const selectedDog = boardDogs[0];
+      const playerId = 1;
+    
+      const initialData = {
+        candidatePositions: [],
+        boardDogs,
+        selectedDog,
+        playerId,
+      };
+    
+      const result = applyBoardRules(initialData);
+    
+      const expectedPositions = [
+        { x: -1, y: 0 },
+        { x: 1, y: 0 },
+        { x: -1, y: 1 },
+        { x: 1, y: 1 },
+      ];
+    
+      // ソートして比較
+      const sortPositions = (positions) => {
+        return positions.sort((a, b) => {
+          if (a.x !== b.x) {
+            return a.x - b.x;
+          }
+          return a.y - b.y;
+        });
+      };
+    
+      expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
 
-    test('allows removal of non-boss dogs', () => {
-      const dog = { name: 'アニキ犬' };
-      const result = check_boss_cant_remove(dog);
-      expect(result).toBe(true); // 非ボス犬は削除できるため true
+    test('ボード上の(1, 0)のプレイヤー1のヤイバ犬の移動可能マスを確認する', () => {
+      const boardDogs = [
+        {
+          id: 1,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        {
+          id: 2,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 1 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        {
+          id: 3,
+          name: 'ヤイバ犬',
+          left: 1 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'orthogonal',
+            max_steps: 1,
+          },
+        },
+      ];
+      const selectedDog = boardDogs[2];
+      const playerId = 1;
+    
+      const initialData = {
+        candidatePositions: [],
+        boardDogs,
+        selectedDog,
+        playerId,
+      };
+    
+      const result = applyBoardRules(initialData);
+    
+      const expectedPositions = [
+        { x: 1, y: -1 }, // 上
+        { x: 1, y: 1 },  // 下
+      ];
+    
+      // ソートして比較
+      const sortPositions = (positions) => {
+        return positions.sort((a, b) => {
+          if (a.x !== b.x) {
+            return a.x - b.x;
+          }
+          return a.y - b.y;
+        });
+      };
+    
+      expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
 
-    test('allows removal when dog name is undefined', () => {
-      const dog = { };
-      const result = check_boss_cant_remove(dog);
-      expect(result).toBe(true); // 名前がない場合は削除を許可
+    test('ボード上の(1, 0)のプレイヤー1の豆でっぽう犬の移動可能マスを確認する', () => {
+      const boardDogs = [
+        {
+          id: 1,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        {
+          id: 2,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 1 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        {
+          id: 3,
+          name: '豆でっぽう犬',
+          left: 1 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal',
+            max_steps: 1, // 修正: max_steps を 1 に設定
+          },
+        },
+      ];
+      const selectedDog = boardDogs[2];
+      const playerId = 1;
+    
+      const initialData = {
+        candidatePositions: [],
+        boardDogs,
+        selectedDog,
+        playerId,
+      };
+    
+      const result = applyBoardRules(initialData);
+    
+      const expectedPositions = [
+        // 左上方向
+        { x: 0, y: -1 },
+      ];
+    
+      // ソートして比較
+      const sortPositions = (positions) => {
+        return positions.sort((a, b) => {
+          if (a.x !== b.x) {
+            return a.x - b.x;
+          }
+          return a.y - b.y;
+        });
+      };
+    
+      expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
-  });
 
-  /**
-   * check_would_lose のテスト
-   */
-  describe('check_would_lose', () => {
-    test('check_would_lose detects potential loss', () => {
-      const dog = { name: 'アニキ犬' };
-      const result = check_would_lose(dog);
-      expect(result).toBe(false); // 仮実装では常に false
+    test('ボード上の(1, 0)のプレイヤー1のトツ犬の移動可能マスを確認する', () => {
+      const boardDogs = [
+        {
+          id: 1,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        {
+          id: 2,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 1 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        {
+          id: 3,
+          name: 'トツ犬',
+          left: 1 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'orthogonal',
+            max_steps: null,
+          },
+        },
+      ];
+      const selectedDog = boardDogs[2];
+      const playerId = 1;
+    
+      const initialData = {
+        candidatePositions: [],
+        boardDogs,
+        selectedDog,
+        playerId,
+      };
+    
+      const result = applyBoardRules(initialData);
+    
+      const expectedPositions = [
+        // 上方向
+        { x: 1, y: -1 },
+        // 下方向
+        { x: 1, y: 1 },
+        { x: 1, y: 2 },
+      ];
+    
+      // ソートして比較
+      const sortPositions = (positions) => {
+        return positions.sort((a, b) => {
+          if (a.x !== b.x) {
+            return a.x - b.x;
+          }
+          return a.y - b.y;
+        });
+      };
+
+      console.log('候補マス:', result.candidatePositions);
+    
+      expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
+    });
+
+    test('ボード上の(1, 0)のプレイヤー1のハジケ犬の移動可能マスを確認する', () => {
+      const boardDogs = [
+        {
+          id: 1,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        {
+          id: 2,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 1 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        {
+          id: 3,
+          name: 'ハジケ犬',
+          left: 1 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'special_hajike',
+            max_steps: null,
+          },
+        },
+      ];
+      const selectedDog = boardDogs[2];
+      const playerId = 1;
+    
+      const initialData = {
+        candidatePositions: [],
+        boardDogs,
+        selectedDog,
+        playerId,
+      };
+    
+      const result = applyBoardRules(initialData);
+    
+      const expectedPositions = [
+        // 下方向に2マス進み、その後に左右に1マス曲がる
+        { x: 0, y: 2 },
+        // 左方向に2マス進み、その後に上下に1マス曲がる
+        { x: -1, y: -1 },
+        { x: -1, y: 1 },
+      ];
+    
+      // ソートして比較
+      const sortPositions = (positions) => {
+        return positions.sort((a, b) => {
+          if (a.x !== b.x) {
+            return a.x - b.x;
+          }
+          return a.y - b.y;
+        });
+      };
+    
+      expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
+    });
+
+    test('ボード上にプレイヤー1のボスが(1, 2)、プレイヤー2のボスが(1, 1)、プレイヤー1のアニキ犬が(2, 0)の場合、アニキ犬の移動先を確認する', () => {
+      const boardDogs = [
+        {
+          id: 1,
+          name: 'ボス犬',
+          left: 1 * SQUARE_SIZE,
+          top: 2 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        {
+          id: 2,
+          name: 'ボス犬',
+          left: 1 * SQUARE_SIZE,
+          top: 1 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        {
+          id: 3,
+          name: 'アニキ犬',
+          left: 2 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+      ];
+      const selectedDog = boardDogs[2];
+      const playerId = 1;
+
+      const initialData = {
+        candidatePositions: [],
+        boardDogs,
+        selectedDog,
+        playerId,
+      };
+
+      const result = applyBoardRules(initialData);
+
+      const expectedPositions = [
+        { x: 1, y: 0 },
+        { x: 2, y: 1 },
+      ];
+
+      // ソートして比較
+      const sortPositions = (positions) => {
+        return positions.sort((a, b) => {
+          if (a.x !== b.x) {
+            return a.x - b.x;
+          }
+          return a.y - b.y;
+        });
+      };
+
+      console.log('候補マス:', result.candidatePositions);
+
+      expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
+    });
+
+    test('ボード上にプレイヤー1のボスが(0, 0)、プレイヤー2のボスが(0, 1)、プレイヤー1のアニキ犬が(1, 0)の場合、アニキ犬の移動先を確認する', () => {
+      const boardDogs = [
+        {
+          id: 1,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        {
+          id: 2,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 1 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        {
+          id: 3,
+          name: 'アニキ犬',
+          left: 1 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+      ];
+      const selectedDog = boardDogs[2];
+      const playerId = 1;
+
+      const initialData = {
+        candidatePositions: [],
+        boardDogs,
+        selectedDog,
+        playerId,
+      };
+
+      const result = applyBoardRules(initialData);
+
+      const expectedPositions = [
+        { x: 1, y: -1 },
+        { x: 1, y: 1 }, 
+        { x: 0, y: -1 }
+      ];
+
+      console.log('候補マス:', result.candidatePositions);
+
+      expect(result.candidatePositions).toEqual(expectedPositions);
+    });
+
+    test('ボード上に(0, 0)のプレイヤー1のボス犬、(0, 1)のプレイヤー2のボス犬、(1, 0)のプレイヤー2のアニキ犬、(-1, 0)のプレイヤー2のヤイバ犬、(1, -1)のプレイヤー1のアニキ犬がある場合、プレイヤー1のアニキ犬の移動先を確認する', () => {
+      const boardDogs = [
+        // プレイヤー1のボス犬
+        {
+          id: 1,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        // プレイヤー2のボス犬
+        {
+          id: 2,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 1 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        // プレイヤー2のアニキ犬
+        {
+          id: 3,
+          name: 'アニキ犬',
+          left: 1 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        // プレイヤー2のヤイバ犬
+        {
+          id: 4,
+          name: 'ヤイバ犬',
+          left: -1 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'orthogonal',
+            max_steps: null,
+          },
+        },
+        // プレイヤー1のアニキ犬（選択したコマ）
+        {
+          id: 5,
+          name: 'アニキ犬',
+          left: 1 * SQUARE_SIZE,
+          top: -1 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+      ];
+      const selectedDog = boardDogs[4];
+      const playerId = 1;
+
+      const initialData = {
+        candidatePositions: [],
+        boardDogs,
+        selectedDog,
+        playerId,
+      };
+
+      const result = applyBoardRules(initialData);
+
+      const expectedPositions = [
+        { x: 2, y: -1 },
+        { x: 2, y: 0 },
+      ];
+
+      // ソートして比較
+      const sortPositions = (positions) => {
+        return positions.sort((a, b) => {
+          if (a.x !== b.x) {
+            return a.x - b.x;
+          }
+          return a.y - b.y;
+        });
+      };
+
+      console.log('候補マス:', result.candidatePositions);
+
+      expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
+    });
+
+    test('ボード上に(0, 0)のプレイヤー1のボス犬、(2, 0)のプレイヤー1のアニキ犬、(2, 2)のプレイヤー1の豆でっぽう犬、(1, 0)のプレイヤー1のヤイバ犬、(0, 1)のプレイヤー2のボス犬、(1, 2)のプレイヤー2のアニキ犬、(3, 0)のプレイヤー2のヤイバ犬、プレイヤー1の豆でっぽう犬の移動先を確認する', () => {
+      const boardDogs = [
+        // プレイヤー1のボス犬
+        {
+          id: 1,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        // プレイヤー1のアニキ犬
+        {
+          id: 2,
+          name: 'アニキ犬',
+          left: 2 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        // プレイヤー1の豆でっぽう犬（選択したコマ）
+        {
+          id: 3,
+          name: '豆でっぽう犬',
+          left: 2 * SQUARE_SIZE,
+          top: 2 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal',
+            max_steps: 1,
+          },
+        },
+        // プレイヤー1のヤイバ犬
+        {
+          id: 4,
+          name: 'ヤイバ犬',
+          left: 1 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'orthogonal',
+            max_steps: null,
+          },
+        },
+        // プレイヤー2のボス犬
+        {
+          id: 5,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 1 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        // プレイヤー2のアニキ犬
+        {
+          id: 6,
+          name: 'アニキ犬',
+          left: 1 * SQUARE_SIZE,
+          top: 2 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        // プレイヤー2のヤイバ犬
+        {
+          id: 7,
+          name: 'ヤイバ犬',
+          left: 3 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'orthogonal',
+            max_steps: null,
+          },
+        },
+      ];
+      const selectedDog = boardDogs[2];
+      const playerId = 1;
+
+      const initialData = {
+        candidatePositions: [],
+        boardDogs,
+        selectedDog,
+        playerId,
+      };
+
+      const result = applyBoardRules(initialData);
+
+      const expectedPositions = [
+        { x: 1, y: 1 },
+        { x: 3, y: 1 },
+      ];
+
+      // ソートして比較
+      const sortPositions = (positions) => {
+        return positions.sort((a, b) => {
+          if (a.x !== b.x) {
+            return a.x - b.x;
+          }
+          return a.y - b.y;
+        });
+      };
+
+      console.log('候補マス:', result.candidatePositions);
+
+      expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
+    });
+
+    test('ボス犬を削除できないことを確認する', () => {
+      const boardDogs = [
+        {
+          id: 1,
+          name: 'ボス犬',
+          left: 100,
+          top: 200,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+      ];
+      const selectedDog = boardDogs[0];
+      const playerId = 1;
+
+      const initialData = {
+        candidatePositions: [],
+        boardDogs,
+        selectedDog,
+        playerId,
+      };
+
+      const result = applyBoardRules(initialData);
+
+      expect(result.canRemove).toBe(false);
+    });
+
+    test('ボス犬以外のコマを削除できることを確認する', () => {
+      const boardDogs = [
+        {
+          id: 1,
+          name: 'アニキ犬',
+          left: 100,
+          top: 200,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+      ];
+      const selectedDog = boardDogs[0];
+      const playerId = 1;
+
+      const initialData = {
+        candidatePositions: [],
+        boardDogs,
+        selectedDog,
+        playerId,
+      };
+
+      const result = applyBoardRules(initialData);
+
+      expect(result.canRemove).toBe(true);
+    });
+
+    test('canRemoveがtrueの場合、手札枠もハイライトされる', () => {
+      const boardDogs = [
+        {
+          id: 1,
+          name: 'アニキ犬',
+          left: 100,
+          top: 200,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+      ];
+      const selectedDog = boardDogs[0];
+      const playerId = 1;
+
+      const initialData = {
+        candidatePositions: [],
+        boardDogs,
+        selectedDog,
+        playerId,
+      };
+
+      const result = applyBoardRules(initialData);
+
+      expect(result.canRemove).toBe(true);
+    });
+
+    test('ボード上に（0, 0)のプレイヤー1のボス犬、(1, -1)のプレイヤー1のアニキ犬、(1, -2)のプレイヤー2のボス犬がある場合、プレイヤー1のアニキ犬の移動先を確認する（孤立を避ける）', () => {
+      const boardDogs = [
+        // プレイヤー1のボス犬
+        {
+          id: 1,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        // プレイヤー1のアニキ犬（選択したコマ）
+        {
+          id: 2,
+          name: 'アニキ犬',
+          left: 1 * SQUARE_SIZE,
+          top: -1 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        // プレイヤー2のボス犬
+        {
+          id: 3,
+          name: 'ボス犬',
+          left: 1 * SQUARE_SIZE,
+          top: -2 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+      ];
+
+      const selectedDog = boardDogs[1];
+      const playerId = 1;
+
+      const initialData = {
+        candidatePositions: [],
+        boardDogs,
+        selectedDog,
+        playerId,
+      };
+
+      const result = applyBoardRules(initialData);
+
+      // デバッグ用出力
+      console.log('候補マス:', result.candidatePositions);
+
+      const expectedPositions = [
+        { x: 0, y: -1 }
+      ];
+
+      // ソートして比較
+      const sortPositions = (positions) => {
+        return positions.sort((a, b) => {
+          if (a.x !== b.x) {
+            return a.x - b.x;
+          }
+          return a.y - b.y;
+        });
+      };
+
+      expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
+    });
+
+    test('ボード上に（0, 0)のプレイヤー1のボス犬、(1, -1)のプレイヤー1のアニキ犬、(1, -2)のプレイヤー2のボス犬がある場合、プレイヤー1のアニキ犬は手札に戻せないことを確認する（孤立を避ける）', () => {
+      const boardDogs = [
+        // プレイヤー1のボス犬
+        {
+          id: 1,
+          name: 'ボス犬',
+          left: 0 * SQUARE_SIZE,
+          top: 0 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        // プレイヤー1のアニキ犬（選択したコマ）
+        {
+          id: 2,
+          name: 'アニキ犬',
+          left: 1 * SQUARE_SIZE,
+          top: -1 * SQUARE_SIZE,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        // プレイヤー2のボス犬
+        {
+          id: 3,
+          name: 'ボス犬',
+          left: 1 * SQUARE_SIZE,
+          top: -2 * SQUARE_SIZE,
+          player: 2,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+      ];
+
+      const selectedDog = boardDogs[1];
+      const playerId = 1;
+
+      const initialData = {
+        candidatePositions: [],
+        boardDogs,
+        selectedDog,
+        playerId,
+      };
+
+      const result = applyBoardRules(initialData);
+
+      expect(result.canRemove).toBe(false);
     });
   });
 });

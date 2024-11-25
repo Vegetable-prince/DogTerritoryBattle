@@ -1,236 +1,271 @@
-// src/tests/components/Board.test.js
 import React from 'react';
-import { render, fireEvent, waitFor, screen } from '@testing-library/react';
+import { render, fireEvent, screen } from '@testing-library/react';
 import Board from '../../components/GameJs/Board';
 import '@testing-library/jest-dom';
-import * as rules from '../../utils/rules';
 
-// ルール関数のモック
-jest.mock('../../utils/rules', () => ({
-  check_movement_type: jest.fn(),
-  check_duplicate: jest.fn(),
-  check_over_max_board: jest.fn(),
-  check_no_adjacent: jest.fn(),
-  check_own_adjacent: jest.fn(),
-  check_would_lose: jest.fn(),
-  check_boss_cant_remove: jest.fn(),
-}));
+// Dog コンポーネントをモック化
+jest.mock('../../components/GameJs/Dog', () => (props) => {
+  const { dog, onClick, isSelected, isDisabled } = props;
+  return (
+    <div
+      data-testid={`dog-${dog.id}`}
+      onClick={() => {
+        if (!isDisabled && onClick) {
+          onClick(dog);
+        }
+      }}
+      className={`dog-mock ${isSelected ? 'selected' : ''} ${
+        isDisabled ? 'disabled' : ''
+      }`}
+    >
+      {dog.name}
+    </div>
+  );
+});
 
 describe('Board Component', () => {
-  const mockMoveRequest = jest.fn();
-  const mockRemoveFromBoardRequest = jest.fn();
+  const mockOnBoardDogClick = jest.fn();
+  const mockOnBoardSquareClick = jest.fn();
 
-  const mockOperationRequest = {
-    move_request: mockMoveRequest,
-    remove_from_board_request: mockRemoveFromBoardRequest,
-  };
-
-  const mockInitialData = {
-    board_dogs: [
-      {
+  const boardDogs = [
+    {
+      dog_type: {
         id: 1,
+        max_steps: 1,
+        movement_type: 'diagonal_orthogonal',
         name: 'ボス犬',
-        left: 100,
-        top: 100,
-        is_in_hand: false,
-        dog_type: {
-          id: 1,
-          name: 'ボス犬',
-          movement_type: '歩行',
-          max_steps: 3,
-        },
-        player: 1,
       },
-      {
-        id: 2,
-        name: 'アニキ犬',
-        left: 200,
-        top: 200,
-        is_in_hand: false,
-        dog_type: {
-          id: 2,
-          name: 'アニキ犬',
-          movement_type: '走行',
-          max_steps: 5,
-        },
-        player: 1,
-      },
-    ],
-  };
+      id: 1,
+      left: 0,
+      top: 0,
+      name: 'ボス犬',
+      player: 1,
+    },
+  ];
 
   beforeEach(() => {
-    // ルール関数のデフォルトの動作を設定
-    rules.check_duplicate.mockReturnValue(false);
-    rules.check_over_max_board.mockReturnValue(false);
-    rules.check_own_adjacent.mockReturnValue(true);
-    rules.check_would_lose.mockReturnValue(false);
-    rules.check_movement_type.mockReturnValue(true);
-    rules.check_no_adjacent.mockReturnValue(true);
-    rules.check_boss_cant_remove.mockReturnValue(true);
-
     jest.clearAllMocks();
   });
 
-  test('calls rules functions on first click and move_request on second click when clicking a different dog', async () => {
+  test('Dog.js が正しく呼び出されていることを確認する', () => {
     render(
       <Board
-        dogs={mockInitialData.board_dogs}
-        setBoardDogs={jest.fn()}
-        switchTurn={jest.fn()}
-        currentTurn={1}
-        rulesFunction={rules}
-        operationRequest={mockOperationRequest}
+        boardDogs={boardDogs}
+        candidatePositions={[]}
+        onBoardDogClick={mockOnBoardDogClick}
+        onBoardSquareClick={mockOnBoardSquareClick}
+        currentPlayerId={1}
       />
     );
 
-    const bossDog = screen.getByTestId('dog-1'); // data-testid="dog-1"
-    const anikiDog = screen.getByTestId('dog-2'); // data-testid="dog-2"
+    const dogElement = screen.getByTestId('dog-1');
 
-    // 1度目のクリック: ルール関数が呼ばれることを確認
-    fireEvent.click(bossDog);
-    expect(rules.check_movement_type).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'ボス犬' }),
-      { move: { x: 1, y: 1 } }
-    );
-    expect(rules.check_duplicate).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'ボス犬' }),
-      { move: { x: 1, y: 1 } }
-    );
-    expect(rules.check_over_max_board).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'ボス犬' }),
-      { move: { x: 1, y: 1 } }
-    );
-    expect(rules.check_no_adjacent).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'ボス犬' }),
-      { move: { x: 1, y: 1 } }
-    );
-    expect(rules.check_boss_cant_remove).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'ボス犬' }),
-      { move: { x: 1, y: 1 } }
-    );
-
-    // 2度目のクリック: 異なる犬をクリックして移動
-    fireEvent.click(anikiDog);
-    await waitFor(() => {
-      expect(mockMoveRequest).toHaveBeenCalledWith(
-        mockInitialData.board_dogs[0], // 'ボス犬'
-        { move: { x: 1, y: 1 } }, // 適切な移動データを設定
-        expect.any(Function),
-        expect.any(Function)
-      );
-    });
-
-    // remove_from_board_request が呼ばれていないことを確認
-    expect(mockRemoveFromBoardRequest).not.toHaveBeenCalled();
+    // Dog.js のモックがレンダリングされていることを確認
+    expect(dogElement).toBeInTheDocument();
+    expect(dogElement).toHaveTextContent('ボス犬');
   });
 
-  test('calls rules functions on first click and remove_from_board_request on second click when clicking the same dog', async () => {
+  test('ボード上のコマをクリックした際にコールバック関数が呼ばれる（現在のプレイヤーの場合）', () => {
     render(
       <Board
-        dogs={mockInitialData.board_dogs}
-        setBoardDogs={jest.fn()}
-        switchTurn={jest.fn()}
-        currentTurn={1}
-        rulesFunction={rules}
-        operationRequest={mockOperationRequest}
+        boardDogs={boardDogs}
+        candidatePositions={[]}
+        onBoardDogClick={mockOnBoardDogClick}
+        onBoardSquareClick={mockOnBoardSquareClick}
+        currentPlayerId={1}
       />
     );
 
-    const bossDog = screen.getByTestId('dog-1'); // data-testid="dog-1"
+    const dogElement = screen.getByTestId('dog-1');
 
-    // 1度目のクリック: ルール関数が呼ばれることを確認
-    fireEvent.click(bossDog);
-    expect(rules.check_movement_type).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'ボス犬' }),
-      { move: { x: 1, y: 1 } }
-    );
-    expect(rules.check_duplicate).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'ボス犬' }),
-      { move: { x: 1, y: 1 } }
-    );
-    expect(rules.check_over_max_board).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'ボス犬' }),
-      { move: { x: 1, y: 1 } }
-    );
-    expect(rules.check_no_adjacent).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'ボス犬' }),
-      { move: { x: 1, y: 1 } }
-    );
-    expect(rules.check_boss_cant_remove).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'ボス犬' }),
-      { move: { x: 1, y: 1 } }
-    );
+    // クリック
+    fireEvent.click(dogElement);
 
-    // 2度目のクリック: 同じ犬をクリックして削除
-    fireEvent.click(bossDog);
-    await waitFor(() => {
-      expect(mockRemoveFromBoardRequest).toHaveBeenCalledWith(
-        mockInitialData.board_dogs[0], // 'ボス犬'
-        expect.any(Function),
-        expect.any(Function)
-      );
-    });
-
-    // move_request が呼ばれていないことを確認
-    expect(mockMoveRequest).not.toHaveBeenCalled();
+    // コールバック関数が呼ばれたことを確認
+    expect(mockOnBoardDogClick).toHaveBeenCalledWith(boardDogs[0]);
   });
 
-  test('applies correct style to dogs based on their position', () => {
+  test('ボード上のコマをクリックしてもコールバック関数が呼ばれない（他のプレイヤーの場合）', () => {
     render(
       <Board
-        dogs={mockInitialData.board_dogs}
-        setBoardDogs={jest.fn()}
-        switchTurn={jest.fn()}
-        currentTurn={1}
-        rulesFunction={rules}
-        operationRequest={mockOperationRequest}
+        boardDogs={boardDogs}
+        candidatePositions={[]}
+        onBoardDogClick={mockOnBoardDogClick}
+        onBoardSquareClick={mockOnBoardSquareClick}
+        currentPlayerId={2}
       />
     );
 
-    const bossDog = screen.getByTestId('dog-1'); // data-testid="dog-1"
-    const anikiDog = screen.getByTestId('dog-2'); // data-testid="dog-2"
+    const dogElement = screen.getByTestId('dog-1');
 
-    // ボス犬のスタイルを確認
-    expect(bossDog).toHaveStyle(`left: ${mockInitialData.board_dogs[0].left}px`);
-    expect(bossDog).toHaveStyle(`top: ${mockInitialData.board_dogs[0].top}px`);
+    // クリック
+    fireEvent.click(dogElement);
 
-    // アニキ犬のスタイルを確認
-    expect(anikiDog).toHaveStyle(`left: ${mockInitialData.board_dogs[1].left}px`);
-    expect(anikiDog).toHaveStyle(`top: ${mockInitialData.board_dogs[1].top}px`);
+    // コールバック関数が呼ばれていないことを確認
+    expect(mockOnBoardDogClick).not.toHaveBeenCalled();
   });
 
-  test('calls operation_request on second click after highlighting', async () => {
+  test('ハイライトされたマスをクリックした際にコールバック関数が呼ばれる', () => {
+    const candidatePositions = [
+      { x: 1, y: 0 },
+      { x: 0, y: 1 },
+    ];
+
     render(
       <Board
-        dogs={mockInitialData.board_dogs}
-        setBoardDogs={jest.fn()}
-        switchTurn={jest.fn()}
-        currentTurn={1}
-        rulesFunction={rules}
-        operationRequest={mockOperationRequest}
+        boardDogs={boardDogs}
+        candidatePositions={candidatePositions}
+        onBoardDogClick={mockOnBoardDogClick}
+        onBoardSquareClick={mockOnBoardSquareClick}
+        currentPlayerId={1}
       />
     );
 
-    const anikiDog = screen.getByTestId('dog-2'); // data-testid="dog-2"
+    // ハイライトされたマス（square）を取得
+    const highlightedSquares = screen.getAllByTestId(/^highlighted-square-/);
 
-    // 1度目のクリック: ルール関数が呼ばれることを確認
-    fireEvent.click(anikiDog);
-    expect(rules.check_duplicate).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'アニキ犬' }),
-      { move: { x: 1, y: 1 } }
+    // ハイライトされたマスの数を確認
+    expect(highlightedSquares.length).toBe(candidatePositions.length);
+
+    // 最初のハイライトされたマスをクリック
+    fireEvent.click(highlightedSquares[0]);
+
+    // コールバック関数が呼ばれたことを確認
+    expect(mockOnBoardSquareClick).toHaveBeenCalledWith(
+      candidatePositions[0].x,
+      candidatePositions[0].y
+    );
+  });
+
+  test('コマが縦に4つ並んだ場合にボードの上下枠線が表示される', () => {
+    const verticalLineDogs = [
+      {
+        dog_type: {
+          id: 1,
+          max_steps: 1,
+          movement_type: 'diagonal_orthogonal',
+          name: 'ボス犬',
+        },
+        id: 1,
+        left: 0,
+        top: 0,
+        name: 'ボス犬',
+        player: 1,
+      },
+      {
+        dog_type: {
+          id: 2,
+          max_steps: 1,
+          movement_type: 'orthogonal',
+          name: 'ヤイバ犬',
+        },
+        id: 2,
+        left: 0,
+        top: 1 * 100, // 100, 200, 300
+        name: 'ヤイバ犬',
+        player: 1,
+      },
+      {
+        dog_type: {
+          id: 3,
+          max_steps: 1,
+          movement_type: 'diagonal',
+          name: '豆でっぽう犬',
+        },
+        id: 3,
+        left: 0,
+        top: 2 * 100,
+        name: '豆でっぽう犬',
+        player: 1,
+      },
+      {
+        dog_type: {
+          id: 4,
+          max_steps: 1,
+          movement_type: 'special_hajike',
+          name: 'ハジケ犬',
+        },
+        id: 4,
+        left: 0,
+        top: 3 * 100,
+        name: 'ハジケ犬',
+        player: 1,
+      },
+    ];
+
+    render(
+      <Board
+        boardDogs={verticalLineDogs}
+        candidatePositions={[]}
+        onBoardDogClick={mockOnBoardDogClick}
+        onBoardSquareClick={mockOnBoardSquareClick}
+        currentPlayerId={1}
+      />
     );
 
-    // 2度目のクリック: 異なる犬をクリックして移動
-    fireEvent.click(anikiDog); // 同じ犬をクリックして削除
-    await waitFor(() => {
-      expect(mockRemoveFromBoardRequest).toHaveBeenCalledWith(
-        mockInitialData.board_dogs[1], // 'アニキ犬'
-        expect.any(Function),
-        expect.any(Function)
-      );
-    });
+    const boardElement = screen.getByTestId('game-board');
 
-    // move_request が呼ばれていないことを確認
-    expect(mockMoveRequest).not.toHaveBeenCalled();
+    // ボードの上下枠線が表示されていることを確認
+    expect(boardElement).toHaveClass('border-vertical');
+  });
+
+  test('コマが4つ並んでいない場合、ボードの枠線が表示されない', () => {
+    const randomDogs = [
+      {
+        dog_type: {
+          id: 1,
+          max_steps: 1,
+          movement_type: 'diagonal_orthogonal',
+          name: 'ボス犬',
+        },
+        id: 1,
+        left: 0,
+        top: 0,
+        name: 'ボス犬',
+        player: 1,
+      },
+      {
+        dog_type: {
+          id: 2,
+          max_steps: 1,
+          movement_type: 'orthogonal',
+          name: 'ヤイバ犬',
+        },
+        id: 2,
+        left: 1 * 100,
+        top: 0,
+        name: 'ヤイバ犬',
+        player: 1,
+      },
+      {
+        dog_type: {
+          id: 3,
+          max_steps: 1,
+          movement_type: 'diagonal',
+          name: '豆でっぽう犬',
+        },
+        id: 3,
+        left: 2 * 100,
+        top: 0,
+        name: '豆でっぽう犬',
+        player: 1,
+      },
+    ];
+
+    render(
+      <Board
+        boardDogs={randomDogs}
+        candidatePositions={[]}
+        onBoardDogClick={mockOnBoardDogClick}
+        onBoardSquareClick={mockOnBoardSquareClick}
+        currentPlayerId={1}
+      />
+    );
+
+    const boardElement = screen.getByTestId('game-board');
+
+    // ボードの枠線が表示されていないことを確認
+    expect(boardElement).not.toHaveClass('border-vertical');
+    expect(boardElement).not.toHaveClass('border-horizontal');
   });
 });

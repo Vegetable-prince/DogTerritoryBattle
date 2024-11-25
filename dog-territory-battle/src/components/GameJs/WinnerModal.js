@@ -1,21 +1,19 @@
-// src/components/GameJs/WinnerModal.js
 import React from 'react';
-import PropTypes from 'prop-types';
 
-const WinnerModal = ({ winner, onClose, ...props }) => {
-  if (!winner) return null;
+const WinnerModal = ({ isOpen, winner, onClose }) => {
+  if (!isOpen || !winner) return null;
 
   return (
-    <div {...props}>
-      <p>{winner}</p>
-      {onClose && <button onClick={onClose}>閉じる</button>}
+    <div data-testid="winner-modal" className="modal">
+      <div className="modal-content">
+        <span data-testid="close-button" className="close" onClick={onClose}>
+          &times;
+        </span>
+        <h2>勝者が決定しました！</h2>
+        <p>おめでとうございます、{winner.username}さん！</p>
+      </div>
     </div>
   );
-};
-
-WinnerModal.propTypes = {
-  winner: PropTypes.string,
-  onClose: PropTypes.func,
 };
 
 export default WinnerModal;

@@ -1,5 +1,3 @@
-// src/tests/components/GameBoard.test.js
-
 import React from 'react';
 import { render, fireEvent, screen, within } from '@testing-library/react';
 import GameBoard from '../../components/GameJs/GameBoard';
@@ -60,6 +58,17 @@ jest.mock('../../components/GameJs/Board', () => (props) => {
   );
 });
 
+jest.mock('../../components/GameJs/WinnerModal', () => (props) => {
+  const { isOpen, winner, onClose } = props;
+  if (!isOpen) return null;
+  return (
+    <div data-testid="winner-modal">
+      <div data-testid="winner-name">おめでとうございます、{winner.username}さん！</div>
+      <button data-testid="close-winner-modal" onClick={onClose}>閉じる</button>
+    </div>
+  );
+});
+
 describe('GameBoard Component', () => {
   // モック関数を設定
   const mockApplyHandRules = jest.spyOn(rules, 'applyHandRules');
@@ -100,8 +109,8 @@ describe('GameBoard Component', () => {
         name: 'ボス犬',
         dog_type: { id: 1, name: 'ボス犬', movement_type: 'diagonal_orthogonal', max_steps: 1 },
         player: 1,
-        left: 0,
-        top: 0,
+        x_position: 0,
+        y_position: 0,
         is_in_hand: false,
         isSelected: false,
         isDisabled: false,
@@ -119,6 +128,10 @@ describe('GameBoard Component', () => {
     expect(screen.getAllByTestId(/hand-area-mock-/).length).toBe(2); // 2 つの HandArea
     expect(screen.getByTestId('board-mock')).toBeInTheDocument();
     expect(screen.getByTestId('current-player')).toBeInTheDocument();
+
+    // WinnerModal がレンダリングされていないことを確認
+    const winnerModal = screen.queryByTestId('winner-modal');
+    expect(winnerModal).not.toBeInTheDocument();
   });
 
   test('HandArea のコマがクリックされたときに適切な処理が行われる', () => {
@@ -304,5 +317,50 @@ describe('GameBoard Component', () => {
 
     // ターンが変更されたことを確認
     expect(currentPlayerElement).toHaveTextContent("Player 2's Turn");
+  });
+
+  test('バックエンドから勝者が決定したレスポンスが返ってきた場合に WinnerModal がレンダリングされる', () => {
+    const data = cloneInitialData();
+
+    // place_on_board_request のモック実装
+    mockPlaceOnBoardRequest.mockImplementation((dog, move, onSuccess, onError) => {
+      const mockWinner = {
+        id: 2,
+        username: 'Player2',
+      };
+      onSuccess({ success: true, dog: { ...dog }, winner: mockWinner });
+    });
+
+    // applyHandRules のモック実装
+    mockApplyHandRules.mockReturnValue({
+      candidatePositions: [{ x: 0, y: 0 }],
+      updatedState: {},
+    });
+
+    render(<GameBoard initialData={data} />);
+
+    // 手札のコマをクリックして選択状態にする (Player 1)
+    const handDogElement = screen.getByTestId('hand-dog-1');
+    fireEvent.click(handDogElement);
+
+    // ハイライトされたマスを取得
+    const candidatePositionElement = screen.getByTestId('candidate-position-0-0');
+    expect(candidatePositionElement).toBeInTheDocument();
+
+    // ハイライトされたマスをクリック
+    fireEvent.click(candidatePositionElement);
+
+    // WinnerModal がレンダリングされていることを確認
+    const winnerModal = screen.getByTestId('winner-modal');
+    expect(winnerModal).toBeInTheDocument();
+
+    // 勝者の名前が表示されていることを確認
+    const winnerName = screen.getByTestId('winner-name');
+    expect(winnerName).toHaveTextContent("おめでとうございます、Player2さん！");
+
+    // WinnerModal の閉じるボタンをクリックして閉じることを確認
+    const closeButton = screen.getByTestId('close-winner-modal');
+    fireEvent.click(closeButton);
+    expect(screen.queryByTestId('winner-modal')).not.toBeInTheDocument();
   });
 });
