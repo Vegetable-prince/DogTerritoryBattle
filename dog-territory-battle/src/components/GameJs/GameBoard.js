@@ -1,193 +1,169 @@
-// src/components/GameJs/GameBoard.js
-import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
+import React, { useState } from 'react';
 import HandArea from './HandArea';
 import Board from './Board';
-import WinnerModal from './WinnerModal';
 import ShowCurrentTurn from './ShowCurrentTurn';
-// import ExtraOperation from './ExtraOperation';
-import '../../css/GameCss/GameBoard.css';
-import * as rules from '../../utils/rules';
+import { applyHandRules, applyBoardRules } from '../../utils/rules';
+import {
+  place_on_board_request,
+  move_request,
+  remove_from_board_request,
+} from '../../api/operation_requests';
 
-const GameBoard = ({ initialData, operationRequest, rulesFunction = rules }) => {
-  const { game, player1_hand_dogs, player2_hand_dogs, board_dogs } = initialData;
+const GameBoard = ({ initialData }) => {
+  const [handDogs, setHandDogs] = useState(initialData.handDogs);
+  const [boardDogs, setBoardDogs] = useState(initialData.boardDogs);
+  const [currentPlayerId, setCurrentPlayerId] = useState(initialData.currentPlayerId);
 
-  const [player1HandDogs, setPlayer1HandDogs] = useState(player1_hand_dogs);
-  const [player2HandDogs, setPlayer2HandDogs] = useState(player2_hand_dogs);
-  const [boardDogs, setBoardDogs] = useState(board_dogs);
-  const [currentTurn, setCurrentTurn] = useState(game.current_turn);
-  const [winner, setWinner] = useState(null);
   const [selectedDog, setSelectedDog] = useState(null);
+  const [candidatePositions, setCandidatePositions] = useState([]);
+  const [isHandAreaHighlighted, setIsHandAreaHighlighted] = useState(false);
+  const [canRemove, setCanRemove] = useState(false);
+  const [isHandDogSelected, setIsHandDogSelected] = useState(false);
 
-  // ゲーム終了のチェック
-  useEffect(() => {
-    const bossDogs = boardDogs.filter((dog) => dog.dog_type.name === 'ボス犬');
-    if (bossDogs.length === 0) {
-      const winningPlayer = currentTurn === 1 ? 2 : 1;
-      setWinner(`おめでとうございます、Player ${winningPlayer}さんが勝ちました！`);
+  // 手札のコマをクリックしたとき
+  const handleHandDogClick = (dog) => {
+    if (dog.player === currentPlayerId && !dog.isSelected && !dog.isDisabled) {
+      resetSelection();
+
+      const updatedHandDogs = handDogs.map(d => 
+        d.id === dog.id ? { ...d, isSelected: true } : d
+      );
+      setHandDogs(updatedHandDogs);
+      setSelectedDog(dog);
+      setIsHandDogSelected(true);
+
+      const result = applyHandRules({ handDogs, boardDogs }, dog);
+      setCandidatePositions(result.candidatePositions);
     }
-  }, [boardDogs, currentTurn]);
-
-  const switchTurn = () => {
-    setCurrentTurn((prevTurn) => (prevTurn === 1 ? 2 : 1));
   };
 
-  const handleWinnerModalClose = () => {
-    setWinner(null);
-    // ゲームのリセットやその他の処理を追加可能
+  // ボード上のコマをクリックしたとき
+  const handleBoardDogClick = (dog) => {
+    if (dog.player === currentPlayerId && !dog.isSelected && !dog.isDisabled) {
+      resetSelection();
+
+      const updatedBoardDogs = boardDogs.map(d => 
+        d.id === dog.id ? { ...d, isSelected: true } : d
+      );
+      setBoardDogs(updatedBoardDogs);
+      setSelectedDog(dog);
+      setIsHandDogSelected(false);
+
+      const result = applyBoardRules({ handDogs, boardDogs }, dog);
+      setCandidatePositions(result.candidatePositions);
+      setCanRemove(result.canRemove);
+      setIsHandAreaHighlighted(result.canRemove);
+    }
   };
 
-  // const handleReset = () => {
-  //   operationRequest.reset_game_request();
-  // };
-
-  // const handleUndo = () => {
-  //   operationRequest.undo_move_request();
-  // };
-
-  const handleRemove = () => {
+  // ボード上のハイライトされたマスをクリックしたとき
+  const handleBoardSquareClick = (x, y) => {
     if (selectedDog) {
-      operationRequest.remove_from_board_request(selectedDog, () => {}, () => {});
-      setSelectedDog(null);
+      if (isHandDogSelected) {
+        place_on_board_request(
+          selectedDog,
+          { x, y },
+          (response) => {
+            selectedDog.left = x * 100;
+            selectedDog.top = y * 100;
+            selectedDog.is_in_hand = false;
+
+            setBoardDogs([...boardDogs, selectedDog]);
+            setHandDogs(handDogs.filter((dog) => dog.id !== selectedDog.id));
+
+            resetSelection();
+            setCurrentPlayerId(currentPlayerId === 1 ? 2 : 1);
+          },
+          (error) => {
+            console.error(error);
+          }
+        );
+      } else {
+        move_request(
+          selectedDog,
+          { x, y },
+          (response) => {
+            const updatedBoardDogs = boardDogs.map(d => 
+              d.id === selectedDog.id ? { ...d, left: x * 100, top: y * 100 } : d
+            );
+            setBoardDogs(updatedBoardDogs);
+            resetSelection();
+            setCurrentPlayerId(currentPlayerId === 1 ? 2 : 1);
+          },
+          (error) => {
+            console.error(error);
+          }
+        );
+      }
     }
+  };
+
+  // HandArea がハイライトされている状態でクリックされたとき
+  const handleHandAreaClick = (playerId) => {
+    if (selectedDog && !isHandDogSelected && canRemove && playerId === currentPlayerId) {
+      remove_from_board_request(
+        selectedDog,
+        (response) => {
+          const updatedHandDogs = [...handDogs, { ...selectedDog, is_in_hand: true, left: null, top: null }];
+          const updatedBoardDogs = boardDogs.filter((dog) => dog.id !== selectedDog.id);
+          setHandDogs(updatedHandDogs);
+          setBoardDogs(updatedBoardDogs);
+
+          resetSelection();
+          setIsHandAreaHighlighted(false);
+          setCurrentPlayerId(currentPlayerId === 1 ? 2 : 1);
+        },
+        (error) => {
+          console.error(error);
+        }
+      );
+    }
+  };
+
+  // 選択状態をリセット
+  const resetSelection = () => {
+    const updatedHandDogs = handDogs.map(d => ({ ...d, isSelected: false }));
+    const updatedBoardDogs = boardDogs.map(d => ({ ...d, isSelected: false }));
+    setHandDogs(updatedHandDogs);
+    setBoardDogs(updatedBoardDogs);
+    setSelectedDog(null);
+    setCandidatePositions([]);
+    setIsHandDogSelected(false);
+    setCanRemove(false);
+    setIsHandAreaHighlighted(false);
   };
 
   return (
-    <div id="game-board-container">
-      <ShowCurrentTurn currentTurn={currentTurn} />
-      <div className="players-container">
-        <HandArea
-          dogs={player1HandDogs}
-          setHandDogs={setPlayer1HandDogs}
-          setBoardDogs={setBoardDogs}
-          switchTurn={switchTurn}
-          currentTurn={currentTurn}
-          player={1}
-          boardDogs={boardDogs}
-          rulesFunction={rulesFunction}
-          operationRequest={operationRequest}
-          selectedDog={selectedDog}
-          setSelectedDog={setSelectedDog}
-          handleRemove={handleRemove}
-          data-testid="hand-area-player-1"
-        />
-      </div>
+    <div>
+      <ShowCurrentTurn currentPlayerId={currentPlayerId} />
+
+      <HandArea
+        handDogs={handDogs.filter((dog) => dog.player === 1)}
+        onHandDogClick={handleHandDogClick}
+        onHandAreaClick={() => handleHandAreaClick(1)}
+        currentPlayerId={currentPlayerId}
+        isHighlighted={isHandAreaHighlighted && currentPlayerId === 1}
+        playerId={1}
+      />
+
       <Board
-        dogs={boardDogs}
-        setBoardDogs={setBoardDogs}
-        switchTurn={switchTurn}
-        currentTurn={currentTurn}
-        rulesFunction={rulesFunction}
-        operationRequest={operationRequest}
-        selectedDog={selectedDog}
-        setSelectedDog={setSelectedDog}
+        boardDogs={boardDogs}
+        candidatePositions={candidatePositions}
+        onBoardDogClick={handleBoardDogClick}
+        onBoardSquareClick={handleBoardSquareClick}
+        currentPlayerId={currentPlayerId}
       />
-      <div className="players-container">
-        <HandArea
-          dogs={player2HandDogs}
-          setHandDogs={setPlayer2HandDogs}
-          setBoardDogs={setBoardDogs}
-          switchTurn={switchTurn}
-          currentTurn={currentTurn}
-          player={2}
-          boardDogs={boardDogs}
-          rulesFunction={rulesFunction}
-          operationRequest={operationRequest}
-          selectedDog={selectedDog}
-          setSelectedDog={setSelectedDog}
-          handleRemove={handleRemove}
-          data-testid="hand-area-player-2"
-        />
-      </div>
-      <WinnerModal
-        winner={winner}
-        onClose={handleWinnerModalClose}
-        data-testid="winner-modal"
+
+      <HandArea
+        handDogs={handDogs.filter((dog) => dog.player === 2)}
+        onHandDogClick={handleHandDogClick}
+        onHandAreaClick={() => handleHandAreaClick(2)}
+        currentPlayerId={currentPlayerId}
+        isHighlighted={isHandAreaHighlighted && currentPlayerId === 2}
+        playerId={2}
       />
-      {/* ExtraOperation はコメントアウト */}
-      {/* <ExtraOperation
-        onReset={handleReset}
-        onUndo={handleUndo}
-        data-testid="extra-operation"
-      /> */}
     </div>
   );
-};
-
-GameBoard.propTypes = {
-  initialData: PropTypes.shape({
-    game: PropTypes.shape({
-      current_turn: PropTypes.number.isRequired,
-      id: PropTypes.number.isRequired,
-      player1: PropTypes.number.isRequired,
-      player2: PropTypes.number.isRequired,
-      winner: PropTypes.number,
-    }).isRequired,
-    player1_hand_dogs: PropTypes.arrayOf(
-      PropTypes.shape({
-        id: PropTypes.number.isRequired,
-        name: PropTypes.string.isRequired,
-        left: PropTypes.number,
-        top: PropTypes.number,
-        is_in_hand: PropTypes.bool.isRequired,
-        dog_type: PropTypes.shape({
-          id: PropTypes.number.isRequired,
-          name: PropTypes.string.isRequired,
-          movement_type: PropTypes.string.isRequired,
-          max_steps: PropTypes.number.isRequired,
-        }).isRequired,
-        player: PropTypes.number.isRequired,
-      })
-    ).isRequired,
-    player2_hand_dogs: PropTypes.arrayOf(
-      PropTypes.shape({
-        id: PropTypes.number.isRequired,
-        name: PropTypes.string.isRequired,
-        left: PropTypes.number,
-        top: PropTypes.number,
-        is_in_hand: PropTypes.bool.isRequired,
-        dog_type: PropTypes.shape({
-          id: PropTypes.number.isRequired,
-          name: PropTypes.string.isRequired,
-          movement_type: PropTypes.string.isRequired,
-          max_steps: PropTypes.number.isRequired,
-        }).isRequired,
-        player: PropTypes.number.isRequired,
-      })
-    ).isRequired,
-    board_dogs: PropTypes.arrayOf(
-      PropTypes.shape({
-        id: PropTypes.number.isRequired,
-        name: PropTypes.string.isRequired,
-        left: PropTypes.number.isRequired,
-        top: PropTypes.number.isRequired,
-        is_in_hand: PropTypes.bool.isRequired,
-        dog_type: PropTypes.shape({
-          id: PropTypes.number.isRequired,
-          name: PropTypes.string.isRequired,
-          movement_type: PropTypes.string.isRequired,
-          max_steps: PropTypes.number.isRequired,
-        }).isRequired,
-        player: PropTypes.number.isRequired,
-      })
-    ).isRequired,
-  }).isRequired,
-  operationRequest: PropTypes.shape({
-    move_request: PropTypes.func.isRequired,
-    remove_from_board_request: PropTypes.func.isRequired,
-    place_on_board_request: PropTypes.func.isRequired,
-    reset_game_request: PropTypes.func.isRequired,
-    undo_move_request: PropTypes.func.isRequired,
-  }).isRequired,
-  rulesFunction: PropTypes.shape({
-    check_movement_type: PropTypes.func.isRequired,
-    check_duplicate: PropTypes.func.isRequired,
-    check_over_max_board: PropTypes.func.isRequired,
-    check_no_adjacent: PropTypes.func.isRequired,
-    check_own_adjacent: PropTypes.func.isRequired,
-    check_would_lose: PropTypes.func.isRequired,
-    check_boss_cant_remove: PropTypes.func.isRequired,
-  }),
 };
 
 export default GameBoard;
