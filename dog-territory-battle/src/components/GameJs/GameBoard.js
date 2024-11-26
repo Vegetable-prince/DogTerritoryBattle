@@ -9,11 +9,16 @@ import {
   move_request,
   remove_from_board_request,
 } from '../../api/operation_requests';
+import PropTypes from 'prop-types';
 
 const GameBoard = ({ initialData }) => {
-  const [handDogs, setHandDogs] = useState(initialData.handDogs);
-  const [boardDogs, setBoardDogs] = useState(initialData.boardDogs);
-  const [currentPlayerId, setCurrentPlayerId] = useState(initialData.currentPlayerId);
+  // player1_hand_dogs と player2_hand_dogs を統合し、player プロパティを追加
+  const [handDogs, setHandDogs] = useState([
+    ...(initialData.player1_hand_dogs || []).map(dog => ({ ...dog, player: 1 })),
+    ...(initialData.player2_hand_dogs || []).map(dog => ({ ...dog, player: 2 })),
+  ]);
+  const [boardDogs, setBoardDogs] = useState(initialData.board_dogs || []);
+  const [currentPlayerId, setCurrentPlayerId] = useState(initialData.game.current_turn || 1);
 
   const [selectedDog, setSelectedDog] = useState(null);
   const [candidatePositions, setCandidatePositions] = useState([]);
@@ -36,7 +41,7 @@ const GameBoard = ({ initialData }) => {
       setSelectedDog(dog);
       setIsHandDogSelected(true);
 
-      const result = applyHandRules({ handDogs, boardDogs }, dog);
+      const result = applyHandRules({ handDogs, boardDogs }, dog, selectedDog);
       setCandidatePositions(result.candidatePositions);
     }
   };
@@ -45,15 +50,22 @@ const GameBoard = ({ initialData }) => {
   const handleBoardDogClick = (dog) => {
     if (dog.player === currentPlayerId && !dog.isSelected && !dog.isDisabled) {
       resetSelection();
-
+  
       const updatedBoardDogs = boardDogs.map(d => 
         d.id === dog.id ? { ...d, isSelected: true } : d
       );
       setBoardDogs(updatedBoardDogs);
       setSelectedDog(dog);
       setIsHandDogSelected(false);
-
-      const result = applyBoardRules({ handDogs, boardDogs }, dog);
+  
+      console.log(dog);
+  
+      const data = {
+        boardDogs,
+        playerId: dog.player,
+        selectedDog: dog
+      };
+      const result = applyBoardRules(data);
       setCandidatePositions(result.candidatePositions);
       setCanRemove(result.canRemove);
       setIsHandAreaHighlighted(result.canRemove);
@@ -70,8 +82,8 @@ const GameBoard = ({ initialData }) => {
           { x, y },
           (response) => {
             if (response.success) {
-              selectedDog.x_position = x;
-              selectedDog.y_position = y;
+              selectedDog.x = x;
+              selectedDog.y = y;
               selectedDog.is_in_hand = false;
 
               setBoardDogs([...boardDogs, selectedDog]);
@@ -100,7 +112,7 @@ const GameBoard = ({ initialData }) => {
           (response) => {
             if (response.success) {
               const updatedBoardDogs = boardDogs.map(d => 
-                d.id === selectedDog.id ? { ...d, x_position: x, y_position: y } : d
+                d.id === selectedDog.id ? { ...d, x: x, y: y } : d
               );
               setBoardDogs(updatedBoardDogs);
               resetSelection();
@@ -130,7 +142,7 @@ const GameBoard = ({ initialData }) => {
         selectedDog,
         (response) => {
           if (response.success) {
-            const updatedHandDogs = [...handDogs, { ...selectedDog, is_in_hand: true, x_position: null, y_position: null }];
+            const updatedHandDogs = [...handDogs, { ...selectedDog, is_in_hand: true, x: null, y: null }];
             const updatedBoardDogs = boardDogs.filter((dog) => dog.id !== selectedDog.id);
             setHandDogs(updatedHandDogs);
             setBoardDogs(updatedBoardDogs);
@@ -210,6 +222,21 @@ const GameBoard = ({ initialData }) => {
       />
     </div>
   );
+};
+
+// PropTypes の定義（オプション）
+GameBoard.propTypes = {
+  initialData: PropTypes.shape({
+    game: PropTypes.shape({
+      current_turn: PropTypes.number,
+      id: PropTypes.number,
+      player1: PropTypes.number,
+      player2: PropTypes.number,
+    }),
+    player1_hand_dogs: PropTypes.arrayOf(PropTypes.object),
+    player2_hand_dogs: PropTypes.arrayOf(PropTypes.object),
+    board_dogs: PropTypes.arrayOf(PropTypes.object),
+  }).isRequired,
 };
 
 export default GameBoard;
