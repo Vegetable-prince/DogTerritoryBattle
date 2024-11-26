@@ -3,8 +3,6 @@
  * 各関数は同じ形式のデータを受け取り、同じ形式でデータを返します。
  */
 
-const BOARD_WIDTH = 5; // ボードの幅（マス数）
-const BOARD_HEIGHT = 5; // ボードの高さ（マス数）
 const SQUARE_SIZE = 100; // マスのサイズ（ピクセル）
 
 /**
@@ -49,8 +47,8 @@ const generateOwnAdjacentPositions = (data) => {
   // 隣接マスを生成
   let candidatePositions = [];
   ownDogs.forEach((dog) => {
-    const x = dog.left / SQUARE_SIZE;
-    const y = dog.top / SQUARE_SIZE;
+    const x = dog.x / SQUARE_SIZE;
+    const y = dog.y / SQUARE_SIZE;
 
     const adjacentOffsets = [
       { dx: -1, dy: 0 }, // 左
@@ -86,8 +84,8 @@ const generateOwnAdjacentPositions = (data) => {
  */
 const generateMovementPositions = (data) => {
   const { selectedDog, boardDogs } = data;
-  const fromX = selectedDog.left / SQUARE_SIZE;
-  const fromY = selectedDog.top / SQUARE_SIZE;
+  const fromX = selectedDog.x / SQUARE_SIZE;
+  const fromY = selectedDog.y / SQUARE_SIZE;
   let candidatePositions = [];
 
   const MAX_STEPS_LIMIT = 4; // 現実的な上限値を設定
@@ -124,7 +122,7 @@ const generateMovementPositions = (data) => {
 
         // 移動先に他のコマがあるか確認
         const isDestinationOccupied = boardDogs.some(
-          (dog) => dog.left / SQUARE_SIZE === secondX && dog.top / SQUARE_SIZE === secondY
+          (dog) => dog.x / SQUARE_SIZE === secondX && dog.y / SQUARE_SIZE === secondY
         );
 
         if (!isDestinationOccupied) {
@@ -161,7 +159,7 @@ const generateMovementPositions = (data) => {
 
       // マスに他のコマがいるか確認
       const isOccupied = boardDogs.some(
-        (dog) => dog.left / SQUARE_SIZE === newX && dog.top / SQUARE_SIZE === newY
+        (dog) => dog.x / SQUARE_SIZE === newX && dog.y / SQUARE_SIZE === newY
       );
 
       if (isOccupied) {
@@ -184,8 +182,8 @@ const filterDuplicatePositions = (data) => {
   const { candidatePositions, boardDogs } = data;
 
   const occupiedPositions = boardDogs.map((dog) => ({
-    x: dog.left / SQUARE_SIZE,
-    y: dog.top / SQUARE_SIZE,
+    x: dog.x / SQUARE_SIZE,
+    y: dog.y / SQUARE_SIZE,
   }));
 
   const filteredPositions = candidatePositions.filter((pos) => {
@@ -211,8 +209,8 @@ const filterNoAdjacentPositions = (data) => {
     // 仮想的にコマを移動した場合のボード状態を作成
     const hypotheticalBoardDogs = [...otherDogs, {
       id: selectedDog.id,
-      left: pos.x * SQUARE_SIZE,
-      top: pos.y * SQUARE_SIZE,
+      x: pos.x * SQUARE_SIZE,
+      y: pos.y * SQUARE_SIZE,
       player: selectedDog.player,
     }];
 
@@ -241,8 +239,8 @@ const checkBoardConnectivity = (dogs) => {
   // コマの位置をノードとして扱う
   const nodes = dogs.map((dog) => ({
     id: dog.id,
-    x: dog.left / SQUARE_SIZE,
-    y: dog.top / SQUARE_SIZE,
+    x: dog.x / SQUARE_SIZE,
+    y: dog.y / SQUARE_SIZE,
   }));
 
   // 隣接リストを作成
@@ -300,21 +298,22 @@ const checkWouldLose = (data) => {
   if (!bossDog) return data;
 
   // ボス犬の位置
-  const bossX = bossDog.left / SQUARE_SIZE;
-  const bossY = bossDog.top / SQUARE_SIZE;
+  const bossX = bossDog.x / SQUARE_SIZE;
+  const bossY = bossDog.y / SQUARE_SIZE;
 
   const filteredPositions = candidatePositions.filter((pos) => {
     // 仮想的にコマを配置
     const hypotheticalBoardDogs = [...boardDogs, {
-      left: pos.x * SQUARE_SIZE,
-      top: pos.y * SQUARE_SIZE,
+      x: pos.x * SQUARE_SIZE,
+      y: pos.y * SQUARE_SIZE,
       player: selectedDog.player,
       dog_type: selectedDog.dog_type,
+      id: selectedDog.id,
     }];
 
     // 仮想的なボード上のコマのx座標とy座標の範囲を取得
-    const xs = hypotheticalBoardDogs.map((dog) => dog.left / SQUARE_SIZE);
-    const ys = hypotheticalBoardDogs.map((dog) => dog.top / SQUARE_SIZE);
+    const xs = hypotheticalBoardDogs.map((dog) => dog.x / SQUARE_SIZE);
+    const ys = hypotheticalBoardDogs.map((dog) => dog.y / SQUARE_SIZE);
 
     const minX = Math.min(...xs);
     const maxX = Math.max(...xs);
@@ -354,8 +353,8 @@ const checkWouldLose = (data) => {
       // 敵のコマがいるか確認
       const hasEnemyDog = hypotheticalBoardDogs.some(
         (dog) =>
-          dog.left / SQUARE_SIZE === adjacentX &&
-          dog.top / SQUARE_SIZE === adjacentY
+          dog.x / SQUARE_SIZE === adjacentX &&
+          dog.y / SQUARE_SIZE === adjacentY
       );
 
       if (isEdge || hasEnemyDog) {
@@ -381,8 +380,8 @@ const checkOverMaxBoard = (data) => {
   const { candidatePositions, boardDogs } = data;
 
   // ボード上のコマのx座標とy座標の範囲を取得
-  const xs = boardDogs.map((dog) => dog.left / SQUARE_SIZE);
-  const ys = boardDogs.map((dog) => dog.top / SQUARE_SIZE);
+  const xs = boardDogs.map((dog) => dog.x / SQUARE_SIZE);
+  const ys = boardDogs.map((dog) => dog.y / SQUARE_SIZE);
 
   const minX = Math.min(...xs);
   const maxX = Math.max(...xs);
@@ -410,13 +409,12 @@ const checkOverMaxBoard = (data) => {
 
 /**
  * ボス犬を削除できないようにする
- * また、削除可能な場合は handAreaHighlight フラグを設定する
+ * また、削除可能な場合は canRemove フラグを設定する
  */
 const checkBossCantRemove = (data) => {
   const { selectedDog } = data;
   let canRemove = true;
-
-  if (selectedDog.name === 'ボス犬') {
+  if (selectedDog && selectedDog.name === 'ボス犬') {
     canRemove = false;
   }
 
