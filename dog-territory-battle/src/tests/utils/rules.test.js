@@ -15,8 +15,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 1,
           name: 'ボス犬',
-          left: 1 * SQUARE_SIZE,
-          top: 2 * SQUARE_SIZE,
+          x_position: 1 * SQUARE_SIZE,
+          y_position: 2 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -26,8 +26,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 2,
           name: 'ボス犬',
-          left: 1 * SQUARE_SIZE,
-          top: 1 * SQUARE_SIZE,
+          x_position: 1 * SQUARE_SIZE,
+          y_position: 1 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -85,8 +85,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 1,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -96,8 +96,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 2,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 1 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 1 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -145,8 +145,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 1,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -156,8 +156,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 2,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 1 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 1 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -167,8 +167,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 3,
           name: 'アニキ犬',
-          left: 1 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 1 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -178,8 +178,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 4,
           name: 'ヤイバ犬',
-          left: -1 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: -1 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'orthogonal',
@@ -234,8 +234,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 1,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -245,8 +245,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 2,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 1 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 1 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -256,8 +256,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 3,
           name: 'アニキ犬',
-          left: 1 * SQUARE_SIZE,
-          top: 2 * SQUARE_SIZE,
+          x_position: 1 * SQUARE_SIZE,
+          y_position: 2 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -267,8 +267,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 4,
           name: 'ヤイバ犬',
-          left: 2 * SQUARE_SIZE,
-          top: 3 * SQUARE_SIZE,
+          x_position: 2 * SQUARE_SIZE,
+          y_position: 3 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'orthogonal',
@@ -278,8 +278,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 5,
           name: '豆でっぽう犬',
-          left: 1 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 1 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'diagonal',
@@ -337,8 +337,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 1,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -348,8 +348,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 2,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 1 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 1 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -394,8 +394,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 1,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -405,8 +405,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 2,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 1 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 1 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -416,8 +416,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 3,
           name: 'ヤイバ犬',
-          left: 1 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 1 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'orthogonal',
@@ -460,8 +460,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 1,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -471,8 +471,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 2,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 1 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 1 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -482,8 +482,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 3,
           name: '豆でっぽう犬',
-          left: 1 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 1 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal',
@@ -526,8 +526,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 1,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -537,8 +537,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 2,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 1 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 1 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -548,8 +548,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 3,
           name: 'トツ犬',
-          left: 1 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 1 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'orthogonal',
@@ -597,8 +597,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 1,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -608,8 +608,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 2,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 1 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 1 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -619,8 +619,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 3,
           name: 'ハジケ犬',
-          left: 1 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 1 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'special_hajike',
@@ -666,8 +666,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 1,
           name: 'ボス犬',
-          left: 1 * SQUARE_SIZE,
-          top: 2 * SQUARE_SIZE,
+          x_position: 1 * SQUARE_SIZE,
+          y_position: 2 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -677,8 +677,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 2,
           name: 'ボス犬',
-          left: 1 * SQUARE_SIZE,
-          top: 1 * SQUARE_SIZE,
+          x_position: 1 * SQUARE_SIZE,
+          y_position: 1 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -688,8 +688,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 3,
           name: 'アニキ犬',
-          left: 2 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 2 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -734,8 +734,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 1,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -745,8 +745,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 2,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 1 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 1 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -756,8 +756,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 3,
           name: 'アニキ犬',
-          left: 1 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 1 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -794,8 +794,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 1,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -806,8 +806,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 2,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 1 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 1 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -818,8 +818,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 3,
           name: 'アニキ犬',
-          left: 1 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 1 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -830,8 +830,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 4,
           name: 'ヤイバ犬',
-          left: -1 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: -1 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'orthogonal',
@@ -842,8 +842,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 5,
           name: 'アニキ犬',
-          left: 1 * SQUARE_SIZE,
-          top: -1 * SQUARE_SIZE,
+          x_position: 1 * SQUARE_SIZE,
+          y_position: -1 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -889,8 +889,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 1,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -901,8 +901,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 2,
           name: 'アニキ犬',
-          left: 2 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 2 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -913,8 +913,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 3,
           name: '豆でっぽう犬',
-          left: 2 * SQUARE_SIZE,
-          top: 2 * SQUARE_SIZE,
+          x_position: 2 * SQUARE_SIZE,
+          y_position: 2 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal',
@@ -925,8 +925,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 4,
           name: 'ヤイバ犬',
-          left: 1 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 1 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'orthogonal',
@@ -937,8 +937,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 5,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 1 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 1 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -949,8 +949,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 6,
           name: 'アニキ犬',
-          left: 1 * SQUARE_SIZE,
-          top: 2 * SQUARE_SIZE,
+          x_position: 1 * SQUARE_SIZE,
+          y_position: 2 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -961,8 +961,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 7,
           name: 'ヤイバ犬',
-          left: 3 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 3 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'orthogonal',
@@ -1007,8 +1007,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 1,
           name: 'ボス犬',
-          left: 100,
-          top: 200,
+          x_position: 100,
+          y_position: 200,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -1036,8 +1036,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 1,
           name: 'アニキ犬',
-          left: 100,
-          top: 200,
+          x_position: 100,
+          y_position: 200,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -1065,8 +1065,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 1,
           name: 'アニキ犬',
-          left: 100,
-          top: 200,
+          x_position: 100,
+          y_position: 200,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -1095,8 +1095,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 1,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -1107,8 +1107,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 2,
           name: 'アニキ犬',
-          left: 1 * SQUARE_SIZE,
-          top: -1 * SQUARE_SIZE,
+          x_position: 1 * SQUARE_SIZE,
+          y_position: -1 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -1119,8 +1119,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 3,
           name: 'ボス犬',
-          left: 1 * SQUARE_SIZE,
-          top: -2 * SQUARE_SIZE,
+          x_position: 1 * SQUARE_SIZE,
+          y_position: -2 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -1167,8 +1167,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 1,
           name: 'ボス犬',
-          left: 0 * SQUARE_SIZE,
-          top: 0 * SQUARE_SIZE,
+          x_position: 0 * SQUARE_SIZE,
+          y_position: 0 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -1179,8 +1179,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 2,
           name: 'アニキ犬',
-          left: 1 * SQUARE_SIZE,
-          top: -1 * SQUARE_SIZE,
+          x_position: 1 * SQUARE_SIZE,
+          y_position: -1 * SQUARE_SIZE,
           player: 1,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
@@ -1191,8 +1191,8 @@ describe('Rules Utility Functions', () => {
         {
           id: 3,
           name: 'ボス犬',
-          left: 1 * SQUARE_SIZE,
-          top: -2 * SQUARE_SIZE,
+          x_position: 1 * SQUARE_SIZE,
+          y_position: -2 * SQUARE_SIZE,
           player: 2,
           dog_type: {
             movement_type: 'diagonal_orthogonal',
