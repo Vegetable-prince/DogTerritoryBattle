@@ -10,12 +10,12 @@ import {
   remove_from_board_request,
 } from '../../api/operation_requests';
 import PropTypes from 'prop-types';
+import '../../css/GameCss/GameBoard.css';
 
 const GameBoard = ({ initialData }) => {
-  // player1_hand_dogs と player2_hand_dogs を統合し、player プロパティを追加
   const [handDogs, setHandDogs] = useState([
-    ...(initialData.player1_hand_dogs || []).map(dog => ({ ...dog, player: 1 })),
-    ...(initialData.player2_hand_dogs || []).map(dog => ({ ...dog, player: 2 })),
+    ...(initialData.player1_hand_dogs || []).map((dog) => ({ ...dog, player: 1 })),
+    ...(initialData.player2_hand_dogs || []).map((dog) => ({ ...dog, player: 2 })),
   ]);
   const [boardDogs, setBoardDogs] = useState(initialData.board_dogs || []);
   const [currentPlayerId, setCurrentPlayerId] = useState(initialData.game.current_turn || 1);
@@ -31,45 +31,56 @@ const GameBoard = ({ initialData }) => {
 
   // 手札のコマをクリックしたとき
   const handleHandDogClick = (dog) => {
-    if (dog.player === currentPlayerId && !dog.isSelected && !dog.isDisabled) {
+    if (dog.player !== currentPlayerId || dog.isDisabled) return;
+
+    if (selectedDog && selectedDog.id === dog.id) {
+      // 同じコマをクリックした場合は選択解除
       resetSelection();
-
-      const updatedHandDogs = handDogs.map(d => 
-        d.id === dog.id ? { ...d, isSelected: true } : d
-      );
-      setHandDogs(updatedHandDogs);
-      setSelectedDog(dog);
-      setIsHandDogSelected(true);
-
-      const result = applyHandRules({ handDogs, boardDogs }, dog, selectedDog);
-      setCandidatePositions(result.candidatePositions);
+      return;
     }
+
+    resetSelection(); // 他のコマをクリックした場合も選択解除
+
+    const updatedHandDogs = handDogs.map((d) =>
+      d.id === dog.id ? { ...d, isSelected: true } : d
+    );
+    setHandDogs(updatedHandDogs);
+    setSelectedDog(dog);
+    setIsHandDogSelected(true);
+
+    // applyHandRules を直接呼び出して処理
+    const result = applyHandRules({ handDogs, boardDogs, playerId: currentPlayerId, selectedDog: dog });
+    setCandidatePositions(result.candidatePositions);
   };
 
   // ボード上のコマをクリックしたとき
   const handleBoardDogClick = (dog) => {
-    if (dog.player === currentPlayerId && !dog.isSelected && !dog.isDisabled) {
+    if (dog.player !== currentPlayerId || dog.isDisabled) return;
+
+    if (selectedDog && selectedDog.id === dog.id) {
+      // 同じコマをクリックした場合は選択解除
       resetSelection();
-  
-      const updatedBoardDogs = boardDogs.map(d => 
-        d.id === dog.id ? { ...d, isSelected: true } : d
-      );
-      setBoardDogs(updatedBoardDogs);
-      setSelectedDog(dog);
-      setIsHandDogSelected(false);
-  
-      console.log(dog);
-  
-      const data = {
-        boardDogs,
-        playerId: dog.player,
-        selectedDog: dog
-      };
-      const result = applyBoardRules(data);
-      setCandidatePositions(result.candidatePositions);
-      setCanRemove(result.canRemove);
-      setIsHandAreaHighlighted(result.canRemove);
+      return;
     }
+
+    resetSelection(); // 他のコマをクリックした場合も選択解除
+
+    const updatedBoardDogs = boardDogs.map((d) =>
+      d.id === dog.id ? { ...d, isSelected: true } : d
+    );
+    setBoardDogs(updatedBoardDogs);
+    setSelectedDog(dog);
+
+    // applyBoardRules を直接呼び出して処理
+    const data = {
+      boardDogs: updatedBoardDogs,
+      playerId: dog.player,
+      selectedDog: dog,
+    };
+    const result = applyBoardRules(data);
+    setCandidatePositions(result.candidatePositions);
+    setCanRemove(result.canRemove);
+    setIsHandAreaHighlighted(result.canRemove);
   };
 
   // ボード上のハイライトされたマスをクリックしたとき
@@ -111,7 +122,7 @@ const GameBoard = ({ initialData }) => {
           { x, y },
           (response) => {
             if (response.success) {
-              const updatedBoardDogs = boardDogs.map(d => 
+              const updatedBoardDogs = boardDogs.map((d) =>
                 d.id === selectedDog.id ? { ...d, x: x, y: y } : d
               );
               setBoardDogs(updatedBoardDogs);
@@ -168,8 +179,8 @@ const GameBoard = ({ initialData }) => {
 
   // 選択状態をリセット
   const resetSelection = () => {
-    const updatedHandDogs = handDogs.map(d => ({ ...d, isSelected: false }));
-    const updatedBoardDogs = boardDogs.map(d => ({ ...d, isSelected: false }));
+    const updatedHandDogs = handDogs.map((d) => ({ ...d, isSelected: false }));
+    const updatedBoardDogs = boardDogs.map((d) => ({ ...d, isSelected: false }));
     setHandDogs(updatedHandDogs);
     setBoardDogs(updatedBoardDogs);
     setSelectedDog(null);
@@ -185,34 +196,39 @@ const GameBoard = ({ initialData }) => {
   };
 
   return (
-    <div>
-      <ShowCurrentTurn currentPlayerId={currentPlayerId} />
-
-      <HandArea
-        handDogs={handDogs.filter((dog) => dog.player === 1)}
-        onHandDogClick={handleHandDogClick}
-        onHandAreaClick={() => handleHandAreaClick(1)}
-        currentPlayerId={currentPlayerId}
-        isHighlighted={isHandAreaHighlighted && currentPlayerId === 1}
-        playerId={1}
-      />
-
-      <Board
-        boardDogs={boardDogs}
-        candidatePositions={candidatePositions}
-        onBoardDogClick={handleBoardDogClick}
-        onBoardSquareClick={handleBoardSquareClick}
-        currentPlayerId={currentPlayerId}
-      />
-
-      <HandArea
-        handDogs={handDogs.filter((dog) => dog.player === 2)}
-        onHandDogClick={handleHandDogClick}
-        onHandAreaClick={() => handleHandAreaClick(2)}
-        currentPlayerId={currentPlayerId}
-        isHighlighted={isHandAreaHighlighted && currentPlayerId === 2}
-        playerId={2}
-      />
+    <div id="game-board-container">
+      <div className="show-current-turn">
+        <ShowCurrentTurn currentPlayerId={currentPlayerId} />
+      </div>
+      <div className="hand-area">
+        <HandArea
+          handDogs={handDogs.filter((dog) => dog.player === 1)}
+          onHandDogClick={handleHandDogClick}
+          onHandAreaClick={() => handleHandAreaClick(1)}
+          currentPlayerId={currentPlayerId}
+          isHighlighted={isHandAreaHighlighted && currentPlayerId === 1}
+          playerId={1}
+        />
+      </div>
+      <div className="board-container">
+        <Board
+          boardDogs={boardDogs}
+          candidatePositions={candidatePositions}
+          onBoardDogClick={handleBoardDogClick}
+          onBoardSquareClick={handleBoardSquareClick}
+          currentPlayerId={currentPlayerId}
+        />
+      </div>
+      <div className="hand-area player2">
+        <HandArea
+          handDogs={handDogs.filter((dog) => dog.player === 2)}
+          onHandDogClick={handleHandDogClick}
+          onHandAreaClick={() => handleHandAreaClick(2)}
+          currentPlayerId={currentPlayerId}
+          isHighlighted={isHandAreaHighlighted && currentPlayerId === 2}
+          playerId={2}
+        />
+      </div>
 
       {/* WinnerModal を条件付きでレンダリング */}
       <WinnerModal
