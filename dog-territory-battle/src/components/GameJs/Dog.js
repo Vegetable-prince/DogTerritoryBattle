@@ -1,9 +1,11 @@
 import React from 'react';
+import '../../css/GameCss/Dog.css';
 
-const Dog = ({ dog, onClick, isSelected, isDisabled }) => {
-  const handleClick = () => {
+const Dog = ({ dog, onClick, isSelected, isDisabled, style }) => {
+  const handleClick = (e) => {
+    e.stopPropagation(); // クリックイベントが親に伝播するのを防ぐ
     if (!isDisabled && onClick) {
-      onClick(dog);
+      onClick(dog, e); // イベントオブジェクトを渡す
     }
   };
 
@@ -16,6 +18,7 @@ const Dog = ({ dog, onClick, isSelected, isDisabled }) => {
       data-testid={`dog-${dog.id}`}
       className={classNames.join(' ')}
       onClick={handleClick}
+      style={style}
     >
       {dog.name}
     </div>

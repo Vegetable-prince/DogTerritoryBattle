@@ -1,11 +1,8 @@
 import React from 'react';
 import Dog from './Dog';
+import '../../css/GameCss/Board.css';
 
 const SQUARE_SIZE = 100;
-const BOARD_COLUMNS = 4;
-const BOARD_ROWS = 4;
-const BOARD_WIDTH = SQUARE_SIZE * BOARD_COLUMNS; // 400
-const BOARD_HEIGHT = SQUARE_SIZE * BOARD_ROWS; // 400
 
 const Board = ({
   boardDogs,
@@ -14,68 +11,30 @@ const Board = ({
   onBoardSquareClick,
   currentPlayerId,
 }) => {
-  // ボード上の犬の位置をグリッドに変換
-  const createGrid = () => {
-    const grid = Array.from({ length: BOARD_ROWS }, () =>
-      Array(BOARD_COLUMNS).fill(false)
-    );
-
-    boardDogs.forEach((dog) => {
-      const x = dog.left / SQUARE_SIZE;
-      const y = dog.top / SQUARE_SIZE;
-      grid[y][x] = true;
-    });
-
-    return grid;
-  };
-
-  // ラインのチェック
+  // 縦横の上限チェック
   const checkForLine = () => {
-    const grid = createGrid();
+    const xPositions = boardDogs.map((dog) => dog.x_position / SQUARE_SIZE);
+    const yPositions = boardDogs.map((dog) => dog.y_position / SQUARE_SIZE);
 
-    // 縦方向のチェック
-    for (let x = 0; x < BOARD_COLUMNS; x++) {
-      let count = 0;
-      for (let y = 0; y < BOARD_ROWS; y++) {
-        if (grid[y][x]) {
-          count++;
-          if (count === 4) {
-            return 'vertical';
-          }
-        } else {
-          count = 0;
-        }
-      }
+    const minX = Math.min(...xPositions);
+    const maxX = Math.max(...xPositions);
+
+    const minY = Math.min(...yPositions);
+    const maxY = Math.max(...yPositions);
+
+    const lineTypes = [];
+    if (maxX - minX === 3) {
+      lineTypes.push('vertical');
+    }
+    if (maxY - minY === 3) {
+      lineTypes.push('horizontal');
     }
 
-    // 横方向のチェック
-    for (let y = 0; y < BOARD_ROWS; y++) {
-      let count = 0;
-      for (let x = 0; x < BOARD_COLUMNS; x++) {
-        if (grid[y][x]) {
-          count++;
-          if (count === 4) {
-            return 'horizontal';
-          }
-        } else {
-          count = 0;
-        }
-      }
-    }
-
-    return null;
+    return { lineTypes, minX, maxX, minY, maxY };
   };
 
-  const lineType = checkForLine();
+  const { lineTypes, minX, maxX, minY, maxY } = checkForLine();
 
-  const boardClasses = ['game-board'];
-  if (lineType === 'vertical') {
-    boardClasses.push('border-vertical');
-  } else if (lineType === 'horizontal') {
-    boardClasses.push('border-horizontal');
-  }
-
-  // ハイライトされたマス（square）をレンダリング
   const renderHighlightedSquares = () => {
     return candidatePositions.map((pos) => (
       <div
@@ -83,56 +42,59 @@ const Board = ({
         data-testid={`highlighted-square-${pos.x}-${pos.y}`}
         className="board-square highlighted"
         style={{
-          position: 'absolute',
-          left: pos.x * SQUARE_SIZE,
-          top: pos.y * SQUARE_SIZE,
+          left: (pos.x - minX) * SQUARE_SIZE,
+          top: (pos.y - minY) * SQUARE_SIZE,
           width: SQUARE_SIZE,
           height: SQUARE_SIZE,
         }}
-        onClick={() => onBoardSquareClick(pos.x, pos.y)}
+        onClick={(e) => onBoardSquareClick(pos.x, pos.y, e)}
       ></div>
     ));
   };
 
-  // ボード上の犬のコマをレンダリング
   const renderDogs = () => {
     return boardDogs.map((dog) => (
-      <div
+      <Dog
         key={dog.id}
+        dog={dog}
+        onClick={onBoardDogClick}
+        isSelected={dog.isSelected}
+        isDisabled={dog.player !== currentPlayerId}
         style={{
-          position: 'absolute',
-          left: dog.left,
-          top: dog.top,
+          left: (dog.x_position - minX * SQUARE_SIZE), // 最小xを引く
+          top: (dog.y_position - minY * SQUARE_SIZE), // 最小yを引く
+          position: 'absolute'
         }}
-      >
-        <Dog
-          dog={dog}
-          onClick={() => {
-            if (dog.player === currentPlayerId) {
-              onBoardDogClick(dog);
-            }
-          }}
-          isSelected={false} // 状態に応じて変更
-          isDisabled={dog.player !== currentPlayerId}
-        />
-      </div>
+      />
     ));
   };
 
   return (
     <div
       data-testid="game-board"
-      className={boardClasses.join(' ')}
+      className="game-board"
       style={{
         position: 'relative',
-        width: BOARD_WIDTH,
-        height: BOARD_HEIGHT,
+        width: `${(maxX - minX + 1) * SQUARE_SIZE}px`, // 必要な幅に調整
+        height: `${(maxY - minY + 1) * SQUARE_SIZE}px`, // 必要な高さに調整
       }}
     >
-      {/* ハイライトされたマス（square） */}
       {renderHighlightedSquares()}
 
-      {/* 犬のコマ */}
+      {lineTypes.includes('vertical') && (
+        <>
+          <div className="line-vertical-left"></div>
+          <div className="line-vertical-right"></div>
+        </>
+      )}
+
+      {lineTypes.includes('horizontal') && (
+        <>
+          <div className="line-horizontal-top"></div>
+          <div className="line-horizontal-bottom"></div>
+        </>
+      )}
+
       {renderDogs()}
     </div>
   );

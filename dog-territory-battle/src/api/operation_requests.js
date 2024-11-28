@@ -1,4 +1,3 @@
-// src/api/operation_requests.js
 import apiClient from './apiClient';
 
 /**
@@ -33,7 +32,7 @@ const apiPost = async (endpoint, data, onSuccess, onError) => {
  * 移動リクエストを送信する関数
  */
 export const move_request = (dog, move, onSuccess, onError) => {
-  return apiPost(`/dogs/${dog.id}/move/`, { move }, onSuccess, onError);
+  return apiPost(`/dogs/${dog.id}/move/`, { x: move.x, y: move.y }, onSuccess, onError);
 };
 
 /**
@@ -47,7 +46,7 @@ export const remove_from_board_request = (dog, onSuccess, onError) => {
  * ボードに配置するリクエストを送信する関数
  */
 export const place_on_board_request = (dog, move, onSuccess, onError) => {
-  return apiPost(`/dogs/${dog.id}/place_on_board/`, { move }, onSuccess, onError);
+  return apiPost(`/dogs/${dog.id}/place_on_board/`, { x: move.x, y: move.y }, onSuccess, onError);
 };
 
 // /**

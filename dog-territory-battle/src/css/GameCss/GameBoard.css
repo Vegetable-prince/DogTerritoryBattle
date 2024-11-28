@@ -1,14 +1,39 @@
 #game-board-container {
   position: relative;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: 20% 20% 40% 20%; /* HandAreaの高さを調整 */
+  grid-template-columns: 1fr;
+  justify-items: center;
   align-items: center;
   width: 100%;
-  height: 100%;
-  overflow: hidden;
+  height: 100vh;
+  gap: 5px; /* 全体の間隔を狭める */
 }
 
-.game-board {
+.show-current-turn {
+  grid-row: 1;
   width: 100%;
-  height: 100%;
+  text-align: center;
+  font-size: 1.2em; /* フォントサイズを少し小さく */
+  font-weight: bold;
+  margin-bottom: 5px; /* HandAreaとの間隔を縮める */
+}
+
+.hand-area {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap; /* コマが重ならないように折り返す */
+  gap: 5px; /* コマ同士の間隔を設定 */
+  width: 80%;
+  height: 120px; /* 高さを少し増加 */
+  background-color: #eee;
+}
+
+.board-container {
+  grid-row: 3;
+  width: 400px;
+  height: 400px;
+  position: relative;
 }

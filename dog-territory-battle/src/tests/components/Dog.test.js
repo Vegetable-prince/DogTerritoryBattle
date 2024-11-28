@@ -16,8 +16,8 @@ describe('Dog Component', () => {
       max_steps: 1,
     },
     player: 1,
-    left: 0,
-    top: 0,
+    x_position: 0,
+    y_position: 0,
   };
 
   beforeEach(() => {

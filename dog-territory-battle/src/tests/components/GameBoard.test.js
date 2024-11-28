@@ -60,7 +60,7 @@ jest.mock('../../components/GameJs/Board', () => (props) => {
 
 jest.mock('../../components/GameJs/WinnerModal', () => (props) => {
   const { isOpen, winner, onClose } = props;
-  if (!isOpen) return null;
+  if (!isOpen || !winner) return null;
   return (
     <div data-testid="winner-modal">
       <div data-testid="winner-name">おめでとうございます、{winner.username}さん！</div>
@@ -83,37 +83,136 @@ describe('GameBoard Component', () => {
 
   // テスト用の initialData
   const initialData = {
-    handDogs: [
+    game: {
+      current_turn: 1,
+      id: 1,
+      player1: 1,
+      player2: 2,
+    },
+    player1_hand_dogs: [
       {
-        id: 1,
-        name: 'アニキ犬',
-        dog_type: { id: 2, name: 'アニキ犬', movement_type: 'orthogonal', max_steps: 1 },
+        id: 11,
+        name: 'トツ犬',
+        x: null,
+        y: null,
+        is_in_hand: true,
+        isSelected: false,
+        isDisabled: false,
         player: 1,
-        is_in_hand: true,
-        isSelected: false,
-        isDisabled: false,
-      },
-      {
-        id: 3,
-        name: 'シスター犬',
-        dog_type: { id: 3, name: 'シスター犬', movement_type: 'orthogonal', max_steps: 2 },
-        player: 2,
-        is_in_hand: true,
-        isSelected: false,
-        isDisabled: false,
       },
     ],
-    boardDogs: [
+    player2_hand_dogs: [
       {
-        id: 2,
-        name: 'ボス犬',
-        dog_type: { id: 1, name: 'ボス犬', movement_type: 'diagonal_orthogonal', max_steps: 1 },
-        player: 1,
-        x_position: 0,
-        y_position: 0,
+        id: 14,
+        name: 'ハジケ犬',
+        x: null,
+        y: null,
+        is_in_hand: true,
+        isSelected: false,
+        isDisabled: false,
+        player: 2,
+      },
+      {
+        id: 10,
+        name: '豆でっぽう犬',
+        x: null,
+        y: null,
+        is_in_hand: true,
+        isSelected: false,
+        isDisabled: false,
+        player: 2,
+      },
+      {
+        id: 6,
+        name: 'アニキ犬',
+        x: null,
+        y: null,
+        is_in_hand: true,
+        isSelected: false,
+        isDisabled: false,
+        player: 2,
+      },
+    ],
+    board_dogs: [
+      {
+        id: 5,
+        name: 'アニキ犬',
+        x: 200,
+        y: 0,
         is_in_hand: false,
         isSelected: false,
         isDisabled: false,
+        player: 1,
+      },
+      {
+        id: 13,
+        name: 'ハジケ犬',
+        x: 300,
+        y: 300,
+        is_in_hand: false,
+        isSelected: false,
+        isDisabled: false,
+        player: 2,
+      },
+      {
+        id: 9,
+        name: '豆でっぽう犬',
+        x: 100,
+        y: 200,
+        is_in_hand: false,
+        isSelected: false,
+        isDisabled: false,
+        player: 1,
+      },
+      {
+        id: 8,
+        name: 'ヤイバ犬',
+        x: 400,
+        y: 0,
+        is_in_hand: false,
+        isSelected: false,
+        isDisabled: false,
+        player: 2,
+      },
+      {
+        id: 4,
+        name: 'ボス犬',
+        x: 100,
+        y: 300,
+        is_in_hand: false,
+        isSelected: false,
+        isDisabled: false,
+        player: 1,
+      },
+      {
+        id: 3,
+        name: 'ボス犬',
+        x: 100,
+        y: 0,
+        is_in_hand: false,
+        isSelected: false,
+        isDisabled: false,
+        player: 2,
+      },
+      {
+        id: 7,
+        name: 'ヤイバ犬',
+        x: 400,
+        y: 100,
+        is_in_hand: false,
+        isSelected: false,
+        isDisabled: false,
+        player: 1,
+      },
+      {
+        id: 12,
+        name: 'トツ犬',
+        x: 100,
+        y: 100,
+        is_in_hand: false,
+        isSelected: false,
+        isDisabled: false,
+        player: 2,
       },
     ],
     currentPlayerId: 1,
@@ -144,7 +243,7 @@ describe('GameBoard Component', () => {
 
     render(<GameBoard initialData={data} />);
 
-    const handDogElement = screen.getByTestId('hand-dog-1');
+    const handDogElement = screen.getByTestId('hand-dog-11');
 
     // コマの isSelected と isDisabled を確認（仮にクラス名で判定）
     expect(handDogElement).not.toHaveClass('selected');
@@ -154,14 +253,17 @@ describe('GameBoard Component', () => {
     fireEvent.click(handDogElement);
 
     // applyHandRules が呼ばれたことを確認
-    expect(mockApplyHandRules).toHaveBeenCalledWith(expect.any(Object), data.handDogs[0]);
+    expect(mockApplyHandRules).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({ id: 11, player: 1 })
+    );
 
     // Board.js に candidatePositions が渡され、ハイライトされていることを確認
     const candidatePositionElement = screen.getByTestId('candidate-position-0-0');
     expect(candidatePositionElement).toBeInTheDocument();
 
     // コマの isSelected が変わったことを確認（仮にクラス名で判定）
-    const updatedHandDogElement = screen.getByTestId('hand-dog-1');
+    const updatedHandDogElement = screen.getByTestId('hand-dog-11');
     expect(updatedHandDogElement).toHaveClass('selected');
   });
 
@@ -176,7 +278,7 @@ describe('GameBoard Component', () => {
 
     render(<GameBoard initialData={data} />);
 
-    const boardDogElement = screen.getByTestId('board-dog-2');
+    const boardDogElement = screen.getByTestId('board-dog-5');
 
     // コマの isSelected と isDisabled を確認（仮にクラス名で判定）
     expect(boardDogElement).not.toHaveClass('selected');
@@ -186,7 +288,7 @@ describe('GameBoard Component', () => {
     fireEvent.click(boardDogElement);
 
     // applyBoardRules が呼ばれたことを確認
-    expect(mockApplyBoardRules).toHaveBeenCalledWith(expect.any(Object), data.boardDogs[0]);
+    expect(mockApplyBoardRules).toHaveBeenCalledWith(expect.any(Object), data.board_dogs[0]);
 
     // Board.js に candidatePositions が渡され、ハイライトされていることを確認
     const candidatePositionElement = screen.getByTestId('candidate-position-1-1');
@@ -197,7 +299,7 @@ describe('GameBoard Component', () => {
     expect(handAreaHighlighted).toBeInTheDocument();
 
     // コマの isSelected が変わったことを確認
-    const updatedBoardDogElement = screen.getByTestId('board-dog-2');
+    const updatedBoardDogElement = screen.getByTestId('board-dog-5');
     expect(updatedBoardDogElement).toHaveClass('selected');
   });
 
@@ -219,7 +321,7 @@ describe('GameBoard Component', () => {
     render(<GameBoard initialData={data} />);
 
     // ボード上のコマをクリックして選択状態にする
-    const boardDogElement = screen.getByTestId('board-dog-2');
+    const boardDogElement = screen.getByTestId('board-dog-5');
 
     // コマの isSelected と isDisabled を確認（仮にクラス名で判定）
     expect(boardDogElement).not.toHaveClass('selected');
@@ -240,7 +342,7 @@ describe('GameBoard Component', () => {
 
     // remove_from_board_request が呼ばれたことを確認
     expect(mockRemoveFromBoardRequest).toHaveBeenCalledWith(
-      data.boardDogs[0],
+      data.board_dogs[0],
       expect.any(Function),
       expect.any(Function)
     );
@@ -267,7 +369,7 @@ describe('GameBoard Component', () => {
     render(<GameBoard initialData={data} />);
 
     // 手札のコマをクリックして選択状態にする (Player 1)
-    const handDogElement = screen.getByTestId('hand-dog-1');
+    const handDogElement = screen.getByTestId('hand-dog-11');
     fireEvent.click(handDogElement);
 
     // ハイライトされたマスを取得
@@ -279,7 +381,7 @@ describe('GameBoard Component', () => {
 
     // place_on_board_request が呼ばれたことを確認
     expect(mockPlaceOnBoardRequest).toHaveBeenCalledWith(
-      data.handDogs[0],
+      expect.objectContaining({ id: 11, player: 1, is_in_hand: false, x: 0, y: 0 }),
       { x: 0, y: 0 },
       expect.any(Function),
       expect.any(Function)
@@ -308,7 +410,7 @@ describe('GameBoard Component', () => {
     expect(currentPlayerElement).toHaveTextContent("Player 1's Turn");
 
     // 手札のコマをクリック
-    const handDogElement = screen.getByTestId('hand-dog-1');
+    const handDogElement = screen.getByTestId('hand-dog-11');
     fireEvent.click(handDogElement);
 
     // ハイライトされたマスをクリックしてコマを配置（ターンが変更される）
@@ -317,6 +419,14 @@ describe('GameBoard Component', () => {
 
     // ターンが変更されたことを確認
     expect(currentPlayerElement).toHaveTextContent("Player 2's Turn");
+  });
+
+  test('WinnerModal がレンダリングされていないことを確認する（勝者が決定していない場合）', () => {
+    render(<GameBoard initialData={cloneInitialData()} />);
+
+    // WinnerModal がレンダリングされていないことを確認
+    const winnerModal = screen.queryByTestId('winner-modal');
+    expect(winnerModal).not.toBeInTheDocument();
   });
 
   test('バックエンドから勝者が決定したレスポンスが返ってきた場合に WinnerModal がレンダリングされる', () => {
@@ -340,7 +450,7 @@ describe('GameBoard Component', () => {
     render(<GameBoard initialData={data} />);
 
     // 手札のコマをクリックして選択状態にする (Player 1)
-    const handDogElement = screen.getByTestId('hand-dog-1');
+    const handDogElement = screen.getByTestId('hand-dog-11');
     fireEvent.click(handDogElement);
 
     // ハイライトされたマスを取得

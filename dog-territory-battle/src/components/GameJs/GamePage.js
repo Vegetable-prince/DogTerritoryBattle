@@ -2,12 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import GameBoard from './GameBoard';
 import '../../css/GameCss/GamePage.css';
-import apiClient from '../../api/apiClient'; // 追加
+import apiClient from '../../api/apiClient';
 
 const GamePage = () => {
     const { game_id } = useParams();
     const [initialData, setInitialData] = useState(null);
-    console.log(initialData);
 
     useEffect(() => {
         const fetchInitialData = async () => {

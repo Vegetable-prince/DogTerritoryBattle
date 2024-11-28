@@ -1,5 +1,6 @@
 import React from 'react';
 import Dog from './Dog';
+import '../../css/GameCss/HandArea.css';
 
 const HandArea = ({
   handDogs,
@@ -12,7 +13,8 @@ const HandArea = ({
     <div
       data-testid="hand-area"
       className={`hand-area ${isHighlighted ? 'highlighted' : ''}`}
-      onClick={() => {
+      onClick={(e) => {
+        e.stopPropagation(); // 背景クリックイベントを防止
         if (isHighlighted && onHandAreaClick) {
           onHandAreaClick();
         }
@@ -22,11 +24,7 @@ const HandArea = ({
         <Dog
           key={dog.id}
           dog={dog}
-          onClick={() => {
-            if (dog.player === currentPlayerId && onHandDogClick) {
-              onHandDogClick(dog);
-            }
-          }}
+          onClick={(dog, e) => onHandDogClick(dog, e)}
           isSelected={false}
           isDisabled={dog.player !== currentPlayerId}
         />

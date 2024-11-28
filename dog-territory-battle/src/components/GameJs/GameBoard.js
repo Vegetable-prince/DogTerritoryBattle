@@ -30,16 +30,17 @@ const GameBoard = ({ initialData }) => {
   const [isWinnerModalOpen, setIsWinnerModalOpen] = useState(false);
 
   // 手札のコマをクリックしたとき
-  const handleHandDogClick = (dog) => {
+  const handleHandDogClick = (dog, e) => {
+    e.stopPropagation(); // イベントの伝播を止める
+
     if (dog.player !== currentPlayerId || dog.isDisabled) return;
 
     if (selectedDog && selectedDog.id === dog.id) {
-      // 同じコマをクリックした場合は選択解除
       resetSelection();
       return;
     }
 
-    resetSelection(); // 他のコマをクリックした場合も選択解除
+    resetSelection();
 
     const updatedHandDogs = handDogs.map((d) =>
       d.id === dog.id ? { ...d, isSelected: true } : d
@@ -48,105 +49,13 @@ const GameBoard = ({ initialData }) => {
     setSelectedDog(dog);
     setIsHandDogSelected(true);
 
-    // applyHandRules を直接呼び出して処理
     const result = applyHandRules({ handDogs, boardDogs, playerId: currentPlayerId, selectedDog: dog });
     setCandidatePositions(result.candidatePositions);
   };
 
-  // ボード上のコマをクリックしたとき
-  const handleBoardDogClick = (dog) => {
-    if (dog.player !== currentPlayerId || dog.isDisabled) return;
-
-    if (selectedDog && selectedDog.id === dog.id) {
-      // 同じコマをクリックした場合は選択解除
-      resetSelection();
-      return;
-    }
-
-    resetSelection(); // 他のコマをクリックした場合も選択解除
-
-    const updatedBoardDogs = boardDogs.map((d) =>
-      d.id === dog.id ? { ...d, isSelected: true } : d
-    );
-    setBoardDogs(updatedBoardDogs);
-    setSelectedDog(dog);
-
-    // applyBoardRules を直接呼び出して処理
-    const data = {
-      boardDogs: updatedBoardDogs,
-      playerId: dog.player,
-      selectedDog: dog,
-    };
-    const result = applyBoardRules(data);
-    setCandidatePositions(result.candidatePositions);
-    setCanRemove(result.canRemove);
-    setIsHandAreaHighlighted(result.canRemove);
-  };
-
-  // ボード上のハイライトされたマスをクリックしたとき
-  const handleBoardSquareClick = (x, y) => {
-    if (selectedDog) {
-      if (isHandDogSelected) {
-        // 手札からボードに配置
-        place_on_board_request(
-          selectedDog,
-          { x, y },
-          (response) => {
-            if (response.success) {
-              selectedDog.x = x;
-              selectedDog.y = y;
-              selectedDog.is_in_hand = false;
-
-              setBoardDogs([...boardDogs, selectedDog]);
-              setHandDogs(handDogs.filter((dog) => dog.id !== selectedDog.id));
-
-              resetSelection();
-
-              if (response.winner) {
-                setWinner(response.winner);
-                setIsWinnerModalOpen(true);
-              } else {
-                // ターンを変更（仮に 2 プレイヤーの場合）
-                setCurrentPlayerId(currentPlayerId === 1 ? 2 : 1);
-              }
-            }
-          },
-          (error) => {
-            console.error(error);
-          }
-        );
-      } else {
-        // ボード上のコマを移動
-        move_request(
-          selectedDog,
-          { x, y },
-          (response) => {
-            if (response.success) {
-              const updatedBoardDogs = boardDogs.map((d) =>
-                d.id === selectedDog.id ? { ...d, x: x, y: y } : d
-              );
-              setBoardDogs(updatedBoardDogs);
-              resetSelection();
-
-              if (response.winner) {
-                setWinner(response.winner);
-                setIsWinnerModalOpen(true);
-              } else {
-                // ターンを変更
-                setCurrentPlayerId(currentPlayerId === 1 ? 2 : 1);
-              }
-            }
-          },
-          (error) => {
-            console.error(error);
-          }
-        );
-      }
-    }
-  };
-
   // HandArea がハイライトされている状態でクリックされたとき
-  const handleHandAreaClick = (playerId) => {
+  const handleHandAreaClick = (playerId, e) => {
+
     if (selectedDog && !isHandDogSelected && canRemove && playerId === currentPlayerId) {
       // ボードからコマを削除して手札に戻す
       remove_from_board_request(
@@ -177,6 +86,100 @@ const GameBoard = ({ initialData }) => {
     }
   };
 
+  // ボード上のコマをクリックしたとき
+  const handleBoardDogClick = (dog, e) => {
+
+    if (dog.player !== currentPlayerId || dog.isDisabled) return;
+
+    if (selectedDog && selectedDog.id === dog.id) {
+      resetSelection();
+      return;
+    }
+
+    resetSelection();
+
+    const updatedBoardDogs = boardDogs.map((d) =>
+      d.id === dog.id ? { ...d, isSelected: true } : d
+    );
+    setBoardDogs(updatedBoardDogs);
+    setSelectedDog(dog);
+
+    const data = {
+      boardDogs: updatedBoardDogs,
+      playerId: dog.player,
+      selectedDog: dog,
+    };
+    const result = applyBoardRules(data);
+    setCandidatePositions(result.candidatePositions);
+    setCanRemove(result.canRemove);
+    setIsHandAreaHighlighted(result.canRemove);
+  };
+
+  // ボード上のハイライトされたマスをクリックしたとき
+  const handleBoardSquareClick = (x, y, e) => {
+    e.stopPropagation(); // イベントの伝播を止める
+
+    if (selectedDog) {
+      if (isHandDogSelected) {
+        place_on_board_request(
+          selectedDog,
+          { x, y },
+          (response) => {
+            if (response.success) {
+              selectedDog.x = x;
+              selectedDog.y = y;
+              selectedDog.is_in_hand = false;
+
+              setBoardDogs([...boardDogs, selectedDog]);
+              setHandDogs(handDogs.filter((dog) => dog.id !== selectedDog.id));
+
+              resetSelection();
+
+              if (response.winner) {
+                setWinner(response.winner);
+                setIsWinnerModalOpen(true);
+              } else {
+                setCurrentPlayerId(currentPlayerId === 1 ? 2 : 1);
+              }
+            }
+          },
+          (error) => {
+            console.error(error);
+          }
+        );
+      } else {
+        move_request(
+          selectedDog,
+          { x, y },
+          (response) => {
+            if (response.success) {
+              const updatedBoardDogs = boardDogs.map((d) =>
+                d.id === selectedDog.id ? { ...d, x: x, y: y } : d
+              );
+              setBoardDogs(updatedBoardDogs);
+              resetSelection();
+
+              if (response.winner) {
+                setWinner(response.winner);
+                setIsWinnerModalOpen(true);
+              } else {
+                setCurrentPlayerId(currentPlayerId === 1 ? 2 : 1);
+              }
+            }
+          },
+          (error) => {
+            console.error(error);
+          }
+        );
+      }
+    }
+  };
+
+  // 任意の空白部分をクリックしたとき選択を解除
+  const handleBackgroundClick = () => {
+    resetSelection();
+  };
+
   // 選択状態をリセット
   const resetSelection = () => {
     const updatedHandDogs = handDogs.map((d) => ({ ...d, isSelected: false }));
@@ -196,7 +199,7 @@ const GameBoard = ({ initialData }) => {
   };
 
   return (
-    <div id="game-board-container">
+    <div id="game-board-container" onClick={handleBackgroundClick}>
       <div className="show-current-turn">
         <ShowCurrentTurn currentPlayerId={currentPlayerId} />
       </div>

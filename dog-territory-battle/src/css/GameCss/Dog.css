@@ -1,17 +1,22 @@
 .dog {
-  position: absolute;
   width: 100px;
   height: 100px;
-  background-color: lightgray;
+  border: 2px solid black; /* デフォルトの境界線色 */
   display: flex;
-  justify-content: center;
   align-items: center;
-  border: 1px solid black;
-  box-sizing: border-box;
+  justify-content: center;
   cursor: pointer;
+  margin-left: 0px; /* 初期値。Dogコンポーネントで動的に設定します */
+  margin-top: 0px;  /* 初期値。Dogコンポーネントで動的に設定します */
+  box-sizing: border-box;
 }
 
-.not-current-turn {
-  border: 2px solid green;
-  background-color: #d3ffd3;
+.dog.selected {
+  border-color: rgba(144, 238, 144, 0.5); /* 選択された時の境界線色 */
+}
+
+.dog.disabled {
+  border-color: black; /* disabled状態の境界線色 */
+  cursor: not-allowed;
+  opacity: 0.6; /* 見た目の変化を追加（任意） */
 }

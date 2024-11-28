@@ -3,11 +3,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
-  height: 100px;
+  flex-wrap: wrap; /* コマが重ならないように折り返す */
+  gap: 5px; /* コマ同士の間隔を設定 */
   background-color: #eee;
-  border: 1px solid #ccc;
-  margin: 10px 0;
 }
 
 .empty-hand {
@@ -18,8 +16,5 @@
 .hand-area.highlighted {
   background-color: rgba(144, 238, 144, 0.5);
   transition: background-color 0.3s ease;
-}
-
-.valid-move {
-  /* すでにDog.cssで定義されているので必要に応じて調整 */
+  width: 100%;
 }
