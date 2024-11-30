@@ -50,7 +50,7 @@ describe('Operation Requests', () => {
       const mockResponse = { success: true, message: 'Dog removed from board.' };
 
       // モックされたエンドポイントに対するレスポンスを設定
-      mock.onPost(endpoint).reply(200, mockResponse);
+      mock.onPost(endpoint, {}).reply(200, mockResponse);
 
       // onSuccess と onError をモック
       const onSuccess = jest.fn();
@@ -61,6 +61,7 @@ describe('Operation Requests', () => {
       // Axiosのpostが正しいエンドポイントに呼び出されたか確認
       expect(mock.history.post.length).toBe(1);
       expect(mock.history.post[0].url).toBe(endpoint);
+      expect(mock.history.post[0].data).toBe(JSON.stringify({})); // 空オブジェクトが送信されていることを確認
       expect(response).toEqual(mockResponse);
       expect(onSuccess).toHaveBeenCalledWith(mockResponse);
       expect(onError).not.toHaveBeenCalled();
@@ -68,7 +69,7 @@ describe('Operation Requests', () => {
 
     test('remove_from_board_request throws error on failure', async () => {
       // モックされたエンドポイントに対するエラーレスポンスを設定
-      mock.onPost(endpoint).reply(404);
+      mock.onPost(endpoint, {}).reply(404);
 
       // onSuccess と onError をモック
       const onSuccess = jest.fn();
@@ -81,6 +82,7 @@ describe('Operation Requests', () => {
       // Axiosのpostが正しいエンドポイントに呼び出されたか確認
       expect(mock.history.post.length).toBe(1);
       expect(mock.history.post[0].url).toBe(endpoint);
+      expect(mock.history.post[0].data).toBe(JSON.stringify({})); // 空オブジェクトが送信されていることを確認
       expect(onSuccess).not.toHaveBeenCalled();
       expect(onError).toHaveBeenCalledWith('Request failed with status code 404');
     });
@@ -104,25 +106,25 @@ describe('Operation Requests', () => {
       },
       player: 1,
     };
-    const moveData = { move: { x: 1, y: 1 } };
+    const moveData = { x: 1, y: 1 };
     const endpoint = `/dogs/${dog.id}/place_on_board/`;
 
     test('place_on_board_request sends correct API call', async () => {
       const mockResponse = { success: true, message: 'Dog placed on board.', dog: { ...dog, x: 1, y: 1 } };
 
       // モックされたエンドポイントに対するレスポンスを設定
-      mock.onPost(endpoint, { move: { x: 1, y: 1 } }).reply(200, mockResponse);
+      mock.onPost(endpoint, moveData).reply(200, mockResponse);
 
       // onSuccess と onError をモック
       const onSuccess = jest.fn();
       const onError = jest.fn();
 
-      const response = await place_on_board_request(dog, moveData.move, onSuccess, onError);
+      const response = await place_on_board_request(dog, moveData, onSuccess, onError);
 
       // Axiosのpostが正しいエンドポイントとデータで呼び出されたか確認
       expect(mock.history.post.length).toBe(1);
       expect(mock.history.post[0].url).toBe(endpoint);
-      expect(JSON.parse(mock.history.post[0].data)).toEqual({ move: { x: 1, y: 1 } });
+      expect(JSON.parse(mock.history.post[0].data)).toEqual(moveData); // {x:1, y:1} が送信されていることを確認
       expect(response).toEqual(mockResponse);
       expect(onSuccess).toHaveBeenCalledWith(mockResponse);
       expect(onError).not.toHaveBeenCalled();
@@ -130,22 +132,22 @@ describe('Operation Requests', () => {
 
     test('place_on_board_request throws error on failure', async () => {
       // モックされたエンドポイントに対するエラーレスポンスを設定
-      mock.onPost(endpoint, { move: { x: 1, y: 1 } }).reply(400);
+      mock.onPost(endpoint, moveData).reply(400, { message: 'Invalid move.' });
 
       // onSuccess と onError をモック
       const onSuccess = jest.fn();
       const onError = jest.fn();
 
-      await expect(place_on_board_request(dog, moveData.move, onSuccess, onError))
+      await expect(place_on_board_request(dog, moveData, onSuccess, onError))
         .rejects
         .toThrow(`${endpoint} request failed`);
 
       // Axiosのpostが正しいエンドポイントとデータで呼び出されたか確認
       expect(mock.history.post.length).toBe(1);
       expect(mock.history.post[0].url).toBe(endpoint);
-      expect(JSON.parse(mock.history.post[0].data)).toEqual({ move: { x: 1, y: 1 } });
+      expect(JSON.parse(mock.history.post[0].data)).toEqual(moveData); // {x:1, y:1} が送信されていることを確認
       expect(onSuccess).not.toHaveBeenCalled();
-      expect(onError).toHaveBeenCalledWith('Request failed with status code 400');
+      expect(onError).toHaveBeenCalledWith('Invalid move.');
     });
   });
 
@@ -167,7 +169,7 @@ describe('Operation Requests', () => {
       },
       player: 1,
     };
-    const moveData = { move: { x: 2, y: 3 } };
+    const moveData = { x: 2, y: 3 };
     const endpoint = `/dogs/${dog.id}/move/`;
 
     test('move_request sends correct API call', async () => {
@@ -180,12 +182,12 @@ describe('Operation Requests', () => {
       const onSuccess = jest.fn();
       const onError = jest.fn();
 
-      const response = await move_request(dog, moveData.move, onSuccess, onError);
+      const response = await move_request(dog, moveData, onSuccess, onError);
 
       // Axiosのpostが正しいエンドポイントとデータで呼び出されたか確認
       expect(mock.history.post.length).toBe(1);
       expect(mock.history.post[0].url).toBe(endpoint);
-      expect(JSON.parse(mock.history.post[0].data)).toEqual(moveData);
+      expect(JSON.parse(mock.history.post[0].data)).toEqual(moveData); // {x:2, y:3} が送信されていることを確認
       expect(response).toEqual(mockResponse);
       expect(onSuccess).toHaveBeenCalledWith(mockResponse);
       expect(onError).not.toHaveBeenCalled();
@@ -193,22 +195,22 @@ describe('Operation Requests', () => {
 
     test('move_request throws error on failure', async () => {
       // モックされたエンドポイントに対するエラーレスポンスを設定
-      mock.onPost(endpoint, moveData).reply(400);
+      mock.onPost(endpoint, moveData).reply(400, { message: 'Move not allowed.' });
 
       // onSuccess と onError をモック
       const onSuccess = jest.fn();
       const onError = jest.fn();
 
-      await expect(move_request(dog, moveData.move, onSuccess, onError))
+      await expect(move_request(dog, moveData, onSuccess, onError))
         .rejects
         .toThrow(`${endpoint} request failed`);
 
       // Axiosのpostが正しいエンドポイントとデータで呼び出されたか確認
       expect(mock.history.post.length).toBe(1);
       expect(mock.history.post[0].url).toBe(endpoint);
-      expect(JSON.parse(mock.history.post[0].data)).toEqual(moveData);
+      expect(JSON.parse(mock.history.post[0].data)).toEqual(moveData); // {x:2, y:3} が送信されていることを確認
       expect(onSuccess).not.toHaveBeenCalled();
-      expect(onError).toHaveBeenCalledWith('Request failed with status code 400');
+      expect(onError).toHaveBeenCalledWith('Move not allowed.');
     });
   });
 });

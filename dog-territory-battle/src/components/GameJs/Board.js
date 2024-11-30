@@ -83,15 +83,15 @@ const Board = ({
 
       {lineTypes.includes('vertical') && (
         <>
-          <div className="line-vertical-left"></div>
-          <div className="line-vertical-right"></div>
+          <div data-testid="line-vertical-left" className="line-vertical-left"></div>
+          <div data-testid="line-vertical-right" className="line-vertical-right"></div>
         </>
       )}
 
       {lineTypes.includes('horizontal') && (
         <>
-          <div className="line-horizontal-top"></div>
-          <div className="line-horizontal-bottom"></div>
+          <div data-testid="line-horizontal-top" className="line-horizontal-top"></div>
+          <div data-testid="line-horizontal-bottom" className="line-horizontal-bottom"></div>
         </>
       )}
 

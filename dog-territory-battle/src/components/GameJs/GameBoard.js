@@ -30,6 +30,8 @@ const GameBoard = ({ initialData }) => {
   const [isWinnerModalOpen, setIsWinnerModalOpen] = useState(false);
 
   const updateDogState = (updatedDog) => {
+    if (!updatedDog) return;
+
     setBoardDogs((prevDogs) => {
       const exists = prevDogs.some((dog) => dog.id === updatedDog.id);
       const normalizedDog = {
@@ -203,6 +205,7 @@ const GameBoard = ({ initialData }) => {
     }
   };
 
+  // ボードやコマ、手札以外の箇所をクリックした際に各種選択状態をリセット
   const handleBackgroundClick = () => {
     const updatedHandDogs = handDogs.map((d) => ({ ...d, isSelected: false }));
     const updatedBoardDogs = boardDogs.map((d) => ({ ...d, isSelected: false }));
@@ -227,7 +230,7 @@ const GameBoard = ({ initialData }) => {
   };
 
   return (
-    <div id="game-board-container" onClick={handleBackgroundClick}>
+    <div id="game-board-container" data-testid="game-board-container" onClick={handleBackgroundClick}>
       <div className="show-current-turn">
         <ShowCurrentTurn currentPlayerId={currentPlayerId} />
       </div>

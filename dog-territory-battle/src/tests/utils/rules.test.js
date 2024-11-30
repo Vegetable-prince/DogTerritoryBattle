@@ -75,8 +75,6 @@ describe('Rules Utility Functions', () => {
         });
       };
 
-      console.log('候補マス:', result.candidatePositions);
-
       expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
 
@@ -135,8 +133,6 @@ describe('Rules Utility Functions', () => {
         { x: -1, y: 1 },
       ];
 
-      console.log('候補マス:', result.candidatePositions);
-    
       expect(result.candidatePositions).toEqual(expectedPositions);
     });
 
@@ -224,8 +220,6 @@ describe('Rules Utility Functions', () => {
         });
       };
 
-      console.log('候補マス:', result.candidatePositions);
-    
       expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
 
@@ -321,8 +315,6 @@ describe('Rules Utility Functions', () => {
           return a.y - b.y;
         });
       };
-
-      console.log('候補マス:', result.candidatePositions);
     
       expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
@@ -586,8 +578,6 @@ describe('Rules Utility Functions', () => {
           return a.y - b.y;
         });
       };
-
-      console.log('候補マス:', result.candidatePositions);
     
       expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
@@ -724,8 +714,6 @@ describe('Rules Utility Functions', () => {
         });
       };
 
-      console.log('候補マス:', result.candidatePositions);
-
       expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
 
@@ -782,8 +770,6 @@ describe('Rules Utility Functions', () => {
         { x: 1, y: 1 }, 
         { x: 0, y: -1 }
       ];
-
-      console.log('候補マス:', result.candidatePositions);
 
       expect(result.candidatePositions).toEqual(expectedPositions);
     });
@@ -877,8 +863,6 @@ describe('Rules Utility Functions', () => {
           return a.y - b.y;
         });
       };
-
-      console.log('候補マス:', result.candidatePositions);
 
       expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
@@ -997,8 +981,6 @@ describe('Rules Utility Functions', () => {
         });
       };
 
-      console.log('候補マス:', result.candidatePositions);
-
       expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
 
@@ -1035,7 +1017,7 @@ describe('Rules Utility Functions', () => {
       const boardDogs = [
         {
           id: 1,
-          name: 'アニキ犬',
+          name: 'ボス犬',
           x_position: 100,
           y_position: 200,
           player: 1,
@@ -1044,8 +1026,30 @@ describe('Rules Utility Functions', () => {
             max_steps: 1,
           },
         },
+        {
+          id: 2,
+          name: 'ボス犬',
+          x_position: 200,
+          y_position: 200,
+          player: 2,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
+        {
+          id: 3,
+          name: 'アニキ犬',
+          x_position: 0,
+          y_position: 200,
+          player: 1,
+          dog_type: {
+            movement_type: 'diagonal_orthogonal',
+            max_steps: 1,
+          },
+        },
       ];
-      const selectedDog = boardDogs[0];
+      const selectedDog = boardDogs[2];
       const playerId = 1;
 
       const initialData = {
@@ -1140,9 +1144,6 @@ describe('Rules Utility Functions', () => {
       };
 
       const result = applyBoardRules(initialData);
-
-      // デバッグ用出力
-      console.log('候補マス:', result.candidatePositions);
 
       const expectedPositions = [
         { x: 0, y: -1 }

@@ -224,11 +224,22 @@ const filterNoAdjacentPositions = (data) => {
     return allHaveAdjacent;
   });
 
-  // フィルタリング前後の候補マスの比較
-  const positionsWereFiltered = filteredPositions.length < candidatePositions.length;
+  // canRemove が true の場合のみ、コマを手札に戻す操作で孤立するコマが存在するかをチェック
+  let updatedCanRemove = canRemove;
 
-  // 一つでも無効な移動マスが存在する場合、canRemove を false に設定
-  const updatedCanRemove = positionsWereFiltered ? false : canRemove;
+  if (canRemove) {
+    // コマを手札に戻す操作をシミュレート（selectedDog を手札に戻す）
+    const boardDogsAfterRemoval = boardDogs.filter((dog) => dog.id !== selectedDog.id);
+
+    // ボード上の各コマが少なくとも1つの隣接するコマを持っているかを確認
+    const anyIsolatedAfterRemoval = boardDogsAfterRemoval.some((dog) => {
+      return !hasAdjacentDog(dog, boardDogsAfterRemoval.filter((d) => d.id !== dog.id));
+    });
+
+    if (anyIsolatedAfterRemoval) {
+      updatedCanRemove = false;
+    }
+  }
 
   return {
     ...data,

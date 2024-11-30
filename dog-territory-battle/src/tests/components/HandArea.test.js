@@ -9,7 +9,11 @@ jest.mock('../../components/GameJs/Dog', () => (props) => {
   return (
     <div
       data-testid={`dog-${dog.id}`}
-      onClick={onClick}
+      onClick={(e) => {
+        if (!isDisabled && onClick) {
+          onClick(dog, e);
+        }
+      }}
       className={`dog-mock ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}`}
     >
       {dog.name}
@@ -27,6 +31,7 @@ const dogs = [
     is_in_hand: true,
     name: 'アニキ犬',
     player: 1,
+    isSelected: false,
   },
 ];
 
@@ -50,11 +55,14 @@ describe('HandArea Component', () => {
     expect(dogElement).toBeInTheDocument();
     expect(dogElement).toHaveTextContent('アニキ犬');
 
-    // クリック
+    // クリックイベントを発火
     fireEvent.click(dogElement);
 
     // コールバック関数が呼ばれたことを確認
-    expect(mockOnHandDogClick).toHaveBeenCalledWith(dogs[0]);
+    expect(mockOnHandDogClick).toHaveBeenCalledWith(
+      dogs[0],
+      expect.any(Object)
+    );
   });
 
   test('現在のプレイヤー以外のコマはクリックしてもコールバックが呼ばれない', () => {
@@ -72,7 +80,7 @@ describe('HandArea Component', () => {
     expect(dogElement).toBeInTheDocument();
     expect(dogElement).toHaveTextContent('アニキ犬');
 
-    // クリック
+    // クリックイベントを発火
     fireEvent.click(dogElement);
 
     // コールバック関数が呼ばれていないことを確認
@@ -114,7 +122,10 @@ describe('HandArea Component', () => {
     fireEvent.click(handAreaElement);
 
     // コールバック関数が呼ばれたことを確認
-    expect(mockOnHandAreaClick).toHaveBeenCalled();
+    expect(mockOnHandAreaClick).toHaveBeenCalledWith(
+      1,
+      expect.any(Object)
+    );
   });
 
   test('HandArea がハイライトされていない場合にクリックしてもコールバック関数が呼ばれない', () => {

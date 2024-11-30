@@ -133,7 +133,8 @@ describe('Board Component', () => {
     // コールバック関数が呼ばれたことを確認
     expect(mockOnBoardSquareClick).toHaveBeenCalledWith(
       candidatePositions[0].x,
-      candidatePositions[0].y
+      candidatePositions[0].y,
+      expect.any(Object)
     );
   });
 
@@ -203,10 +204,15 @@ describe('Board Component', () => {
       />
     );
 
-    const boardElement = screen.getByTestId('game-board');
+    // ボード上の縦ラインの左部分を取得
+    const verticalTopLine = screen.getByTestId('line-horizontal-top');
+    // ボード上の縦ラインの右部分を取得
+    const verticalBottomLine = screen.getByTestId('line-horizontal-bottom');
 
-    // ボードの上下枠線が表示されていることを確認
-    expect(boardElement).toHaveClass('border-vertical');
+    // 縦ラインの左部分が存在することを確認
+    expect(verticalTopLine).toBeInTheDocument();
+    // 縦ラインの右部分が存在することを確認
+    expect(verticalBottomLine).toBeInTheDocument();
   });
 
   test('コマが4つ並んでいない場合、ボードの枠線が表示されない', () => {

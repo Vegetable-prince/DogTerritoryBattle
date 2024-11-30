@@ -5,17 +5,20 @@ import '@testing-library/jest-dom';
 import * as rules from '../../utils/rules';
 import * as operationRequests from '../../api/operation_requests';
 
-// 子コンポーネントをモック化
+// HandArea コンポーネントをモック化
 jest.mock('../../components/GameJs/HandArea', () => (props) => {
-  const { handDogs, onHandDogClick, onHandAreaClick, isHighlighted, playerId } = props;
+  const { handDogs, onHandDogClick, onHandAreaClick, isHighlighted, currentPlayerId } = props;
   return (
-    <div data-testid={`hand-area-mock-${playerId}`} onClick={onHandAreaClick}>
+    <div
+      data-testid={`hand-area-mock-${currentPlayerId}`}
+      onClick={(e) => onHandAreaClick(currentPlayerId, e)}
+    >
       {handDogs.map((dog) => (
         <div
           key={dog.id}
           data-testid={`hand-dog-${dog.id}`}
           className={`hand-dog ${dog.isSelected ? 'selected' : ''} ${dog.isDisabled ? 'disabled' : ''}`}
-          onClick={() => onHandDogClick(dog)}
+          onClick={(e) => onHandDogClick(dog, e)}
         >
           {dog.name}
         </div>
@@ -25,6 +28,7 @@ jest.mock('../../components/GameJs/HandArea', () => (props) => {
   );
 });
 
+// Board コンポーネントをモック化
 jest.mock('../../components/GameJs/Board', () => (props) => {
   const {
     boardDogs,
@@ -40,7 +44,7 @@ jest.mock('../../components/GameJs/Board', () => (props) => {
           key={dog.id}
           data-testid={`board-dog-${dog.id}`}
           className={`board-dog ${dog.isSelected ? 'selected' : ''} ${dog.isDisabled ? 'disabled' : ''}`}
-          onClick={() => onBoardDogClick(dog)}
+          onClick={(e) => onBoardDogClick(dog, e)}
         >
           {dog.name}
         </div>
@@ -49,7 +53,7 @@ jest.mock('../../components/GameJs/Board', () => (props) => {
         <div
           key={`candidate-${index}`}
           data-testid={`candidate-position-${pos.x}-${pos.y}`}
-          onClick={() => onBoardSquareClick(pos.x, pos.y)}
+          onClick={(e) => onBoardSquareClick(pos.x, pos.y, e)}
         >
           Candidate Position ({pos.x}, {pos.y})
         </div>
@@ -58,6 +62,13 @@ jest.mock('../../components/GameJs/Board', () => (props) => {
   );
 });
 
+// ShowCurrentTurn コンポーネントをモック化
+jest.mock('../../components/GameJs/ShowCurrentTurn', () => (props) => {
+  const { currentPlayerId } = props;
+  return <div data-testid="current-player">Player {currentPlayerId}'s Turn</div>;
+});
+
+// WinnerModal コンポーネントをモック化
 jest.mock('../../components/GameJs/WinnerModal', () => (props) => {
   const { isOpen, winner, onClose } = props;
   if (!isOpen || !winner) return null;
@@ -215,7 +226,6 @@ describe('GameBoard Component', () => {
         player: 2,
       },
     ],
-    currentPlayerId: 1,
   };
 
   const cloneInitialData = () => JSON.parse(JSON.stringify(initialData));
@@ -254,8 +264,15 @@ describe('GameBoard Component', () => {
 
     // applyHandRules が呼ばれたことを確認
     expect(mockApplyHandRules).toHaveBeenCalledWith(
-      expect.any(Object),
-      expect.objectContaining({ id: 11, player: 1 })
+      expect.objectContaining({
+        handDogs: [
+          ...data.player1_hand_dogs.map(dog => ({ ...dog, player: 1 })),
+          ...data.player2_hand_dogs.map(dog => ({ ...dog, player: 2 })),
+        ],
+        boardDogs: data.board_dogs,
+        playerId: data.game.current_turn,
+        selectedDog: data.player1_hand_dogs[0],
+      })
     );
 
     // Board.js に candidatePositions が渡され、ハイライトされていることを確認
@@ -288,7 +305,15 @@ describe('GameBoard Component', () => {
     fireEvent.click(boardDogElement);
 
     // applyBoardRules が呼ばれたことを確認
-    expect(mockApplyBoardRules).toHaveBeenCalledWith(expect.any(Object), data.board_dogs[0]);
+    expect(mockApplyBoardRules).toHaveBeenCalledWith(
+      expect.objectContaining({
+        boardDogs: data.board_dogs.map(dog => 
+          dog.id === 5 ? { ...dog, isSelected: true } : dog
+        ),
+        playerId: data.game.current_turn,
+        selectedDog: data.board_dogs[0],
+      })
+    );
 
     // Board.js に candidatePositions が渡され、ハイライトされていることを確認
     const candidatePositionElement = screen.getByTestId('candidate-position-1-1');
@@ -303,50 +328,59 @@ describe('GameBoard Component', () => {
     expect(updatedBoardDogElement).toHaveClass('selected');
   });
 
-  test('HandArea がハイライトされている状態でクリックされたときに適切な処理が行われる', () => {
+  test('HandArea がハイライトされている状態でクリックするとコールバック関数が呼ばれる', () => {
     const data = cloneInitialData();
-
+  
     // applyBoardRules のモック実装
     mockApplyBoardRules.mockReturnValue({
       candidatePositions: [{ x: 1, y: 1 }],
       updatedState: {},
       canRemove: true,
     });
-
+  
     // remove_from_board_request のモック実装
     mockRemoveFromBoardRequest.mockImplementation((dog, onSuccess, onError) => {
       onSuccess({ success: true });
     });
-
+  
     render(<GameBoard initialData={data} />);
-
+  
     // ボード上のコマをクリックして選択状態にする
     const boardDogElement = screen.getByTestId('board-dog-5');
-
+  
     // コマの isSelected と isDisabled を確認（仮にクラス名で判定）
     expect(boardDogElement).not.toHaveClass('selected');
     expect(boardDogElement).not.toHaveClass('disabled');
-
+  
     fireEvent.click(boardDogElement);
-
+  
+    // HandArea がハイライトされていることを確認(プレイヤー1)
+    const handAreaElements = screen.getAllByTestId('hand-area-mock-1');
+  
+    // player1の HandArea を見つける（'hand-dog-11' が含まれている HandArea）
+    const handAreaElement1 = handAreaElements.find(element =>
+      within(element).queryByTestId('hand-dog-11')
+    );
+  
+    expect(handAreaElement1).toBeInTheDocument();
+  
     // HandArea がハイライトされていることを確認
-    const handAreaElement1 = screen.getByTestId('hand-area-mock-1'); // Player 1
-    const handAreaHighlighted = screen.getByTestId('hand-area-highlighted');
+    const handAreaHighlighted = within(handAreaElement1).getByTestId('hand-area-highlighted');
     expect(handAreaHighlighted).toBeInTheDocument();
-
+  
     // コマの isSelected を確認
     expect(boardDogElement).toHaveClass('selected');
-
+  
     // HandArea をクリック (Player 1 の HandArea)
     fireEvent.click(handAreaElement1);
-
+  
     // remove_from_board_request が呼ばれたことを確認
     expect(mockRemoveFromBoardRequest).toHaveBeenCalledWith(
       data.board_dogs[0],
       expect.any(Function),
       expect.any(Function)
     );
-
+  
     // ターンが変更されたことを確認
     const currentPlayerElement = screen.getByTestId('current-player');
     expect(currentPlayerElement).toHaveTextContent("Player 2's Turn");
@@ -357,7 +391,8 @@ describe('GameBoard Component', () => {
 
     // place_on_board_request のモック実装
     mockPlaceOnBoardRequest.mockImplementation((dog, move, onSuccess, onError) => {
-      onSuccess({ success: true });
+      const updatedDog = { ...dog, is_in_hand: false, x: move.x, y: move.y };
+      onSuccess({ success: true, dog: updatedDog, current_turn: 2 });
     });
 
     // applyHandRules のモック実装
@@ -381,7 +416,7 @@ describe('GameBoard Component', () => {
 
     // place_on_board_request が呼ばれたことを確認
     expect(mockPlaceOnBoardRequest).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 11, player: 1, is_in_hand: false, x: 0, y: 0 }),
+      expect.objectContaining({ id: 11, player: 1, is_in_hand: true, x: null, y: null }),
       { x: 0, y: 0 },
       expect.any(Function),
       expect.any(Function)
@@ -401,7 +436,14 @@ describe('GameBoard Component', () => {
       updatedState: {},
     });
     mockPlaceOnBoardRequest.mockImplementation((dog, move, onSuccess, onError) => {
-      onSuccess({ success: true });
+      // 更新された犬オブジェクトを作成
+      const updatedDog = { 
+        ...dog, 
+        is_in_hand: false, 
+        x_position: move.x, 
+        y_position: move.y 
+      };
+      onSuccess({ success: true, dog: updatedDog, current_turn: 2 });
     });
 
     render(<GameBoard initialData={data} />);
@@ -409,16 +451,28 @@ describe('GameBoard Component', () => {
     const currentPlayerElement = screen.getByTestId('current-player');
     expect(currentPlayerElement).toHaveTextContent("Player 1's Turn");
 
-    // 手札のコマをクリック
+    // 手札のコマをクリックして選択状態にする (Player 1)
     const handDogElement = screen.getByTestId('hand-dog-11');
     fireEvent.click(handDogElement);
 
-    // ハイライトされたマスをクリックしてコマを配置（ターンが変更される）
+    // ハイライトされたマスを取得
     const candidatePositionElement = screen.getByTestId('candidate-position-0-0');
+    expect(candidatePositionElement).toBeInTheDocument();
+
+    // ハイライトされたマスをクリック
     fireEvent.click(candidatePositionElement);
 
+    // place_on_board_request が呼ばれたことを確認
+    expect(mockPlaceOnBoardRequest).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 11, player: 1, is_in_hand: true, x: null, y: null }), // 修正: 元のdogオブジェクトを期待
+      { x: 0, y: 0 },
+      expect.any(Function),
+      expect.any(Function)
+    );
+
     // ターンが変更されたことを確認
-    expect(currentPlayerElement).toHaveTextContent("Player 2's Turn");
+    const updatedPlayerElement = screen.getByTestId('current-player');
+    expect(updatedPlayerElement).toHaveTextContent("Player 2's Turn");
   });
 
   test('WinnerModal がレンダリングされていないことを確認する（勝者が決定していない場合）', () => {
@@ -472,5 +526,60 @@ describe('GameBoard Component', () => {
     const closeButton = screen.getByTestId('close-winner-modal');
     fireEvent.click(closeButton);
     expect(screen.queryByTestId('winner-modal')).not.toBeInTheDocument();
+  });
+
+  // ボード上のコマを選択後、背景をクリックして選択状態が解除される
+  test('ボード上のコマを選択してから背景をクリックすると選択状態が解除される', () => {
+    const data = cloneInitialData();
+
+    mockApplyBoardRules.mockReturnValue({
+      candidatePositions: [{ x: 1, y: 1 }],
+      updatedState: {},
+      canRemove: false,
+    });
+
+    render(<GameBoard initialData={data} />);
+
+    const boardDogElement = screen.getByTestId('board-dog-5');
+
+    // コマをクリックして選択状態にする
+    fireEvent.click(boardDogElement);
+
+    // コマが選択されていることを確認
+    expect(boardDogElement).toHaveClass('selected');
+
+    // 背景（ゲームボードコンテナ）をクリック
+    const gameBoardContainer = screen.getByTestId('game-board-container');
+    fireEvent.click(gameBoardContainer);
+
+    // コマの選択状態が解除されていることを確認
+    expect(boardDogElement).not.toHaveClass('selected');
+  });
+
+  // 新しいテストケース2: 手札のコマを選択後、背景をクリックして選択状態が解除される
+  test('手札のコマを選択してから背景をクリックすると選択状態が解除される', () => {
+    const data = cloneInitialData();
+
+    mockApplyHandRules.mockReturnValue({
+      candidatePositions: [{ x: 2, y: 2 }],
+      updatedState: {},
+    });
+
+    render(<GameBoard initialData={data} />);
+
+    const handDogElement = screen.getByTestId('hand-dog-11');
+
+    // 手札のコマをクリックして選択状態にする
+    fireEvent.click(handDogElement);
+
+    // コマが選択されていることを確認
+    expect(handDogElement).toHaveClass('selected');
+
+    // 背景（ゲームボードコンテナ）をクリック
+    const gameBoardContainer = screen.getByTestId('game-board-container');
+    fireEvent.click(gameBoardContainer);
+
+    // コマの選択状態が解除されていることを確認
+    expect(handDogElement).not.toHaveClass('selected');
   });
 });

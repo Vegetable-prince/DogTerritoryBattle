@@ -47,7 +47,10 @@ describe('Dog Component', () => {
     fireEvent.click(dogElement);
 
     // コールバック関数が呼ばれたことを確認
-    expect(mockOnClick).toHaveBeenCalledWith(dog);
+    expect(mockOnClick).toHaveBeenCalledWith(
+      dog,
+      expect.any(Object)
+    );
   });
 
   test('クリック不可の場合、クリックイベントが発火しない', () => {

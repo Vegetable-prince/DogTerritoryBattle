@@ -6,10 +6,11 @@ import '@testing-library/jest-dom';
 describe('WinnerModal Component', () => {
   const mockOnClose = jest.fn();
 
-  const winner = {
-    id: 1,
-    username: 'player1',
-  };
+  const winner = 'player1';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
   test('モーダルが開いている場合、勝者の名前が表示される', () => {
     render(<WinnerModal isOpen={true} winner={winner} onClose={mockOnClose} />);
@@ -19,7 +20,7 @@ describe('WinnerModal Component', () => {
     expect(modalElement).toBeInTheDocument();
 
     // 勝者の名前が表示されていることを確認
-    const winnerText = screen.getByText(`おめでとうございます、${winner.username}さん！`);
+    const winnerText = screen.getByText(`おめでとうございます、${winner}さん！`);
     expect(winnerText).toBeInTheDocument();
   });
 
