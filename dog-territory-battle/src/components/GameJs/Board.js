@@ -53,7 +53,7 @@ const Board = ({
   };
 
   const renderDogs = () => {
-    return boardDogs.map((dog) => (
+        return boardDogs.map((dog) => (
       <Dog
         key={dog.id}
         dog={dog}

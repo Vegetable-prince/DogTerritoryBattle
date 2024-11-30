@@ -16,7 +16,7 @@ const HandArea = ({
       onClick={(e) => {
         e.stopPropagation(); // 背景クリックイベントを防止
         if (isHighlighted && onHandAreaClick) {
-          onHandAreaClick();
+          onHandAreaClick(currentPlayerId, e); // イベントを渡す
         }
       }}
     >
