@@ -36,8 +36,8 @@ const GameBoard = ({ initialData }) => {
       const exists = prevDogs.some((dog) => dog.id === updatedDog.id);
       const normalizedDog = {
         ...updatedDog,
-        x_position: updatedDog.x_position * 100, // バックエンド座標をフロント用に変換
-        y_position: updatedDog.y_position * 100, // バックエンド座標をフロント用に変換
+        x_position: updatedDog.x_position,
+        y_position: updatedDog.y_position,
         name: updatedDog.name || updatedDog.dog_type.name,
       };
       return exists

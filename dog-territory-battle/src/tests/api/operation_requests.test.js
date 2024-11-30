@@ -33,8 +33,8 @@ describe('Operation Requests', () => {
     const dog = {
       id: 2,
       name: 'アニキ犬',
-      x_position: 100,
-      y_position: 200,
+      x_position: 1,
+      y_position: 2,
       is_in_hand: false,
       dog_type: {
         id: 1,
@@ -95,8 +95,8 @@ describe('Operation Requests', () => {
     const dog = {
       id: 3,
       name: 'ボス犬',
-      x_position: 100,
-      y_position: 200,
+      x_position: 1,
+      y_position: 2,
       is_in_hand: true,
       dog_type: {
         id: 2,
@@ -158,8 +158,8 @@ describe('Operation Requests', () => {
     const dog = {
       id: 4,
       name: 'ボス犬',
-      x_position: 200,
-      y_position: 300,
+      x_position: 2,
+      y_position: 3,
       is_in_hand: false,
       dog_type: {
         id: 3,

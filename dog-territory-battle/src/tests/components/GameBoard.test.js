@@ -148,7 +148,7 @@ describe('GameBoard Component', () => {
       {
         id: 5,
         name: 'アニキ犬',
-        x: 200,
+        x: 2,
         y: 0,
         is_in_hand: false,
         isSelected: false,
@@ -158,8 +158,8 @@ describe('GameBoard Component', () => {
       {
         id: 13,
         name: 'ハジケ犬',
-        x: 300,
-        y: 300,
+        x: 3,
+        y: 3,
         is_in_hand: false,
         isSelected: false,
         isDisabled: false,
@@ -168,8 +168,8 @@ describe('GameBoard Component', () => {
       {
         id: 9,
         name: '豆でっぽう犬',
-        x: 100,
-        y: 200,
+        x: 1,
+        y: 2,
         is_in_hand: false,
         isSelected: false,
         isDisabled: false,
@@ -178,7 +178,7 @@ describe('GameBoard Component', () => {
       {
         id: 8,
         name: 'ヤイバ犬',
-        x: 400,
+        x: 4,
         y: 0,
         is_in_hand: false,
         isSelected: false,
@@ -188,8 +188,8 @@ describe('GameBoard Component', () => {
       {
         id: 4,
         name: 'ボス犬',
-        x: 100,
-        y: 300,
+        x: 1,
+        y: 3,
         is_in_hand: false,
         isSelected: false,
         isDisabled: false,
@@ -198,7 +198,7 @@ describe('GameBoard Component', () => {
       {
         id: 3,
         name: 'ボス犬',
-        x: 100,
+        x: 1,
         y: 0,
         is_in_hand: false,
         isSelected: false,
@@ -208,8 +208,8 @@ describe('GameBoard Component', () => {
       {
         id: 7,
         name: 'ヤイバ犬',
-        x: 400,
-        y: 100,
+        x: 4,
+        y: 1,
         is_in_hand: false,
         isSelected: false,
         isDisabled: false,
@@ -218,8 +218,8 @@ describe('GameBoard Component', () => {
       {
         id: 12,
         name: 'トツ犬',
-        x: 100,
-        y: 100,
+        x: 1,
+        y: 1,
         is_in_hand: false,
         isSelected: false,
         isDisabled: false,

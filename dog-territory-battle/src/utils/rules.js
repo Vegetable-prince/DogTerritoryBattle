@@ -3,8 +3,6 @@
  * 各関数は同じ形式のデータを受け取り、同じ形式でデータを返します。
  */
 
-const SQUARE_SIZE = 100; // マスのサイズ（ピクセル）
-
 /**
  * 手札にあるコマの場合のルール関数のパイプライン
  */
@@ -47,8 +45,8 @@ const generateOwnAdjacentPositions = (data) => {
   // 隣接マスを生成
   let candidatePositions = [];
   ownDogs.forEach((dog) => {
-    const x = dog.x_position / SQUARE_SIZE;
-    const y = dog.y_position / SQUARE_SIZE;
+    const x = dog.x_position;
+    const y = dog.y_position;
 
     const adjacentOffsets = [
       { dx: -1, dy: 0 }, // 左
@@ -84,8 +82,8 @@ const generateOwnAdjacentPositions = (data) => {
  */
 const generateMovementPositions = (data) => {
   const { selectedDog, boardDogs } = data;
-  const fromX = selectedDog.x_position / SQUARE_SIZE;
-  const fromY = selectedDog.y_position / SQUARE_SIZE;
+  const fromX = selectedDog.x_position;
+  const fromY = selectedDog.y_position;
   let candidatePositions = [];
 
   const MAX_STEPS_LIMIT = 4; // 現実的な上限値を設定
@@ -122,7 +120,7 @@ const generateMovementPositions = (data) => {
 
         // 移動先に他のコマがあるか確認
         const isDestinationOccupied = boardDogs.some(
-          (dog) => dog.x_position / SQUARE_SIZE === secondX && dog.y_position / SQUARE_SIZE === secondY
+          (dog) => dog.x_position === secondX && dog.y_position === secondY
         );
 
         if (!isDestinationOccupied) {
@@ -159,7 +157,7 @@ const generateMovementPositions = (data) => {
 
       // マスに他のコマがいるか確認
       const isOccupied = boardDogs.some(
-        (dog) => dog.x_position / SQUARE_SIZE === newX && dog.y_position / SQUARE_SIZE === newY
+        (dog) => dog.x_position === newX && dog.y_position === newY
       );
 
       if (isOccupied) {
@@ -182,8 +180,8 @@ const filterDuplicatePositions = (data) => {
   const { candidatePositions, boardDogs } = data;
 
   const occupiedPositions = boardDogs.map((dog) => ({
-    x: dog.x_position / SQUARE_SIZE,
-    y: dog.y_position / SQUARE_SIZE,
+    x: dog.x_position,
+    y: dog.y_position,
   }));
 
   const filteredPositions = candidatePositions.filter((pos) => {
@@ -209,8 +207,8 @@ const filterNoAdjacentPositions = (data) => {
     // 仮想的にコマを移動した場合のボード状態を作成
     const hypotheticalDog = {
       ...selectedDog,
-      x_position: pos.x * SQUARE_SIZE,
-      y_position: pos.y * SQUARE_SIZE,
+      x_position: pos.x,
+      y_position: pos.y,
     };
 
     // 新しいボード状態（他のコマ + 仮想的に移動したコマ）
@@ -252,8 +250,8 @@ const filterNoAdjacentPositions = (data) => {
  * 指定した位置に隣接するコマが存在するか確認
  */
 const hasAdjacentDog = (dog, otherDogs) => {
-  const x = dog.x_position / SQUARE_SIZE;
-  const y = dog.y_position / SQUARE_SIZE;
+  const x = dog.x_position;
+  const y = dog.y_position;
 
   const adjacentPositions = [
     { x: x - 1, y: y - 1 },
@@ -269,8 +267,8 @@ const hasAdjacentDog = (dog, otherDogs) => {
   return adjacentPositions.some((pos) =>
     otherDogs.some(
       (otherDog) =>
-        otherDog.x_position / SQUARE_SIZE === pos.x &&
-        otherDog.y_position / SQUARE_SIZE === pos.y
+        otherDog.x_position === pos.x &&
+        otherDog.y_position === pos.y
     )
   );
 };
@@ -290,22 +288,22 @@ const checkWouldLose = (data) => {
   if (!bossDog) return data;
 
   // ボス犬の位置
-  const bossX = bossDog.x_position / SQUARE_SIZE;
-  const bossY = bossDog.y_position / SQUARE_SIZE;
+  const bossX = bossDog.x_position;
+  const bossY = bossDog.y_position;
 
   const filteredPositions = candidatePositions.filter((pos) => {
     // 仮想的にコマを配置
     const hypotheticalBoardDogs = [...boardDogs, {
-      x_position: pos.x * SQUARE_SIZE,
-      y_position: pos.y * SQUARE_SIZE,
+      x_position: pos.x,
+      y_position: pos.y,
       player: selectedDog.player,
       dog_type: selectedDog.dog_type,
       id: selectedDog.id,
     }];
 
     // 仮想的なボード上のコマのx座標とy座標の範囲を取得
-    const xs = hypotheticalBoardDogs.map((dog) => dog.x_position / SQUARE_SIZE);
-    const ys = hypotheticalBoardDogs.map((dog) => dog.y_position / SQUARE_SIZE);
+    const xs = hypotheticalBoardDogs.map((dog) => dog.x_position);
+    const ys = hypotheticalBoardDogs.map((dog) => dog.y_position);
 
     const minX = Math.min(...xs);
     const maxX = Math.max(...xs);
@@ -345,8 +343,8 @@ const checkWouldLose = (data) => {
       // 敵のコマがいるか確認
       const hasEnemyDog = hypotheticalBoardDogs.some(
         (dog) =>
-          dog.x_position / SQUARE_SIZE === adjacentX &&
-          dog.y_position / SQUARE_SIZE === adjacentY
+          dog.x_position === adjacentX &&
+          dog.y_position === adjacentY
       );
 
       if (isEdge || hasEnemyDog) {
@@ -372,8 +370,8 @@ const checkOverMaxBoard = (data) => {
   const { candidatePositions, boardDogs } = data;
 
   // ボード上のコマのx座標とy座標の範囲を取得
-  const xs = boardDogs.map((dog) => dog.x_position / SQUARE_SIZE);
-  const ys = boardDogs.map((dog) => dog.y_position / SQUARE_SIZE);
+  const xs = boardDogs.map((dog) => dog.x_position);
+  const ys = boardDogs.map((dog) => dog.y_position);
 
   const minX = Math.min(...xs);
   const maxX = Math.max(...xs);

@@ -28,8 +28,8 @@ class GameViewSet(viewsets.ModelViewSet):
             dog_data = {
                 'id': dog.id,
                 'name': dog.dog_type.name,
-                'x_position': dog.x_position * 100 if dog.x_position is not None else None,
-                'y_position': dog.y_position * 100 if dog.y_position is not None else None,
+                'x_position': dog.x_position if dog.x_position is not None else None,
+                'y_position': dog.y_position if dog.y_position is not None else None,
                 'is_in_hand': dog.is_in_hand,
                 'dog_type': {
                     'id': dog.dog_type.id,

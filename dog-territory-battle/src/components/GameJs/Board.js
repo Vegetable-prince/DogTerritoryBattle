@@ -2,8 +2,6 @@ import React from 'react';
 import Dog from './Dog';
 import '../../css/GameCss/Board.css';
 
-const SQUARE_SIZE = 100;
-
 const Board = ({
   boardDogs,
   candidatePositions,
@@ -13,8 +11,8 @@ const Board = ({
 }) => {
   // 縦横の上限チェック
   const checkForLine = () => {
-    const xPositions = boardDogs.map((dog) => dog.x_position / SQUARE_SIZE);
-    const yPositions = boardDogs.map((dog) => dog.y_position / SQUARE_SIZE);
+    const xPositions = boardDogs.map((dog) => dog.x_position);
+    const yPositions = boardDogs.map((dog) => dog.y_position);
 
     const minX = Math.min(...xPositions);
     const maxX = Math.max(...xPositions);
@@ -42,10 +40,10 @@ const Board = ({
         data-testid={`highlighted-square-${pos.x}-${pos.y}`}
         className="board-square highlighted"
         style={{
-          left: (pos.x - minX) * SQUARE_SIZE,
-          top: (pos.y - minY) * SQUARE_SIZE,
-          width: SQUARE_SIZE,
-          height: SQUARE_SIZE,
+          left: (pos.x - minX),
+          top: (pos.y - minY),
+          width: 1,
+          height: 1,
         }}
         onClick={(e) => onBoardSquareClick(pos.x, pos.y, e)}
       ></div>
@@ -61,8 +59,8 @@ const Board = ({
         isSelected={dog.isSelected}
         isDisabled={dog.player !== currentPlayerId}
         style={{
-          left: (dog.x_position - minX * SQUARE_SIZE), // 最小xを引く
-          top: (dog.y_position - minY * SQUARE_SIZE), // 最小yを引く
+          left: (dog.x_position - minX), // 最小xを引く
+          top: (dog.y_position - minY), // 最小yを引く
           position: 'absolute'
         }}
       />
@@ -75,8 +73,8 @@ const Board = ({
       className="game-board"
       style={{
         position: 'relative',
-        width: `${(maxX - minX + 1) * SQUARE_SIZE}px`, // 必要な幅に調整
-        height: `${(maxY - minY + 1) * SQUARE_SIZE}px`, // 必要な高さに調整
+        width: `${(maxX - minX + 1)}px`, // 必要な幅に調整
+        height: `${(maxY - minY + 1)}px`, // 必要な高さに調整
       }}
     >
       {renderHighlightedSquares()}
