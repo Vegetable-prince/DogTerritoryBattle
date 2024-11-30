@@ -73,15 +73,10 @@ const GameBoard = ({ initialData }) => {
 
     if (dog.player !== currentPlayerId || dog.isDisabled) return;
 
-    if (selectedDog && selectedDog.id === dog.id) {
-      resetSelection();
-      return;
-    }
-
     resetSelection();
 
     const updatedHandDogs = handDogs.map((d) =>
-      d.id === dog.id ? { ...d, isSelected: true } : d
+      d.id === dog.id ? { ...d, isSelected: true } : {...d, isSelected: false}
     );
     setHandDogs(updatedHandDogs);
     setSelectedDog(dog);

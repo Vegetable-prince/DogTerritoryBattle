@@ -27,9 +27,9 @@ export const applyBoardRules = (initialData) => {
     checkBossCantRemove,
     generateMovementPositions,
     filterDuplicatePositions,
-    filterNoAdjacentPositions,
     checkWouldLose,
     checkOverMaxBoard,
+    filterNoAdjacentPositions,
   ].reduce((data, ruleFunction) => {
     return ruleFunction(data);
   }, initialData);
@@ -196,7 +196,7 @@ const filterDuplicatePositions = (data) => {
 };
 
 /**
- * 孤立するマスを除外する
+ * 孤立するマスを除外し、canRemove を適切に設定する
  */
 const filterNoAdjacentPositions = (data) => {
   const { candidatePositions, boardDogs, selectedDog, canRemove } = data;
@@ -208,29 +208,32 @@ const filterNoAdjacentPositions = (data) => {
   const filteredPositions = candidatePositions.filter((pos) => {
     // 仮想的にコマを移動した場合のボード状態を作成
     const hypotheticalDog = {
-      id: selectedDog.id,
+      ...selectedDog,
       x_position: pos.x * SQUARE_SIZE,
       y_position: pos.y * SQUARE_SIZE,
-      player: selectedDog.player,
-      dog_type: selectedDog.dog_type,
     };
 
-    // 仮想的な移動後の状態で隣接するコマが存在するか確認
-    const isAdjacent = hasAdjacentDog(hypotheticalDog, [...otherDogs, hypotheticalDog]);
-    return isAdjacent;
+    // 新しいボード状態（他のコマ + 仮想的に移動したコマ）
+    const newBoardDogs = [...otherDogs, hypotheticalDog];
+
+    // すべてのコマが少なくとも1つの隣接するコマを持っているかを確認
+    const allHaveAdjacent = newBoardDogs.every((dog) => {
+      return hasAdjacentDog(dog, newBoardDogs.filter((d) => d.id !== dog.id));
+    });
+
+    return allHaveAdjacent;
   });
 
-  // コマを手札に戻せるかどうかを判定
-  const hypotheticalBoardDogsForRemoval = otherDogs;
+  // フィルタリング前後の候補マスの比較
+  const positionsWereFiltered = filteredPositions.length < candidatePositions.length;
 
-  const canRemoveUpdated = otherDogs.every((dog) =>
-    hasAdjacentDog(dog, hypotheticalBoardDogsForRemoval)
-  );
+  // 一つでも無効な移動マスが存在する場合、canRemove を false に設定
+  const updatedCanRemove = positionsWereFiltered ? false : canRemove;
 
   return {
     ...data,
     candidatePositions: filteredPositions,
-    canRemove: canRemove === false ? false : canRemoveUpdated,
+    canRemove: updatedCanRemove,
   };
 };
 

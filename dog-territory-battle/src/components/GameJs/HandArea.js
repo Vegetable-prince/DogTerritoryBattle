@@ -25,7 +25,7 @@ const HandArea = ({
           key={dog.id}
           dog={dog}
           onClick={(dog, e) => onHandDogClick(dog, e)}
-          isSelected={false}
+          isSelected={dog.isSelected}
           isDisabled={dog.player !== currentPlayerId}
         />
       ))}
