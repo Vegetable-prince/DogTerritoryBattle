@@ -9,7 +9,7 @@ const Board = ({
   onBoardSquareClick,
   currentPlayerId,
 }) => {
-  // 縦横の上限チェック
+  // 縦横の上限チェック（コマが4マス分並んだときに枠線を表示するため）
   const checkForLine = () => {
     const xPositions = boardDogs.map((dog) => dog.x_position);
     const yPositions = boardDogs.map((dog) => dog.y_position);
@@ -22,15 +22,16 @@ const Board = ({
 
     const lineTypes = [];
     if (maxX - minX === 3) {
-      lineTypes.push('vertical');
+      lineTypes.push('vertical'); // 縦ライン
     }
     if (maxY - minY === 3) {
-      lineTypes.push('horizontal');
+      lineTypes.push('horizontal'); // 横ライン
     }
 
     return { lineTypes, minX, maxX, minY, maxY };
   };
 
+  // ライン判定結果を取得
   const { lineTypes, minX, maxX, minY, maxY } = checkForLine();
 
   const renderHighlightedSquares = () => {
@@ -40,10 +41,8 @@ const Board = ({
         data-testid={`highlighted-square-${pos.x}-${pos.y}`}
         className="board-square highlighted"
         style={{
-          left: (pos.x - minX),
-          top: (pos.y - minY),
-          width: 1,
-          height: 1,
+          '--x-position': pos.x + 1, // CSS Gridは1-based index
+          '--y-position': pos.y + 1,
         }}
         onClick={(e) => onBoardSquareClick(pos.x, pos.y, e)}
       ></div>
@@ -51,7 +50,7 @@ const Board = ({
   };
 
   const renderDogs = () => {
-        return boardDogs.map((dog) => (
+    return boardDogs.map((dog) => (
       <Dog
         key={dog.id}
         dog={dog}
@@ -59,26 +58,22 @@ const Board = ({
         isSelected={dog.isSelected}
         isDisabled={dog.player !== currentPlayerId}
         style={{
-          left: (dog.x_position - minX), // 最小xを引く
-          top: (dog.y_position - minY), // 最小yを引く
-          position: 'absolute'
+          '--x-position': dog.x_position + 1,
+          '--y-position': dog.y_position + 1,
         }}
       />
     ));
   };
 
   return (
-    <div
-      data-testid="game-board"
-      className="game-board"
-      style={{
-        position: 'relative',
-        width: `${(maxX - minX + 1)}px`, // 必要な幅に調整
-        height: `${(maxY - minY + 1)}px`, // 必要な高さに調整
-      }}
-    >
+    <div data-testid="game-board" className="game-board">
+      {/* ハイライトされたマス */}
       {renderHighlightedSquares()}
 
+      {/* コマを描画 */}
+      {renderDogs()}
+
+      {/* 縦の枠線（4マス分のライン条件が成立した場合） */}
       {lineTypes.includes('vertical') && (
         <>
           <div data-testid="line-vertical-left" className="line-vertical-left"></div>
@@ -86,14 +81,13 @@ const Board = ({
         </>
       )}
 
+      {/* 横の枠線（4マス分のライン条件が成立した場合） */}
       {lineTypes.includes('horizontal') && (
         <>
           <div data-testid="line-horizontal-top" className="line-horizontal-top"></div>
           <div data-testid="line-horizontal-bottom" className="line-horizontal-bottom"></div>
         </>
       )}
-
-      {renderDogs()}
     </div>
   );
 };
