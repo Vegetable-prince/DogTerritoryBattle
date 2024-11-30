@@ -1,13 +1,16 @@
+:root {
+  --dog-size: 75px; /* 犬とマスのサイズ */
+}
+
 .dog {
-  width: 100px;
-  height: 100px;
-  border: 2px solid black; /* デフォルトの境界線色 */
+  width: var(--dog-size);
+  height: var(--dog-size);
+  left: calc(var(--x-position) * var(--dog-size));
+  top: calc(var(--y-position) * var(--dog-size));
+  border: 2px solid black;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  margin-left: 0px; /* 初期値。Dogコンポーネントで動的に設定します */
-  margin-top: 0px;  /* 初期値。Dogコンポーネントで動的に設定します */
   box-sizing: border-box;
 }
 
@@ -16,7 +19,7 @@
 }
 
 .dog.disabled {
-  border-color: black; /* disabled状態の境界線色 */
+  border-color: gray; /* disabled状態の境界線色 */
   cursor: not-allowed;
-  opacity: 0.6; /* 見た目の変化を追加（任意） */
+  opacity: 0.6; /* 見た目の変化を追加 */
 }

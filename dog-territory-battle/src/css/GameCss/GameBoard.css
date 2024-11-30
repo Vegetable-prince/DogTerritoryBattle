@@ -1,7 +1,6 @@
 #game-board-container {
   position: relative;
   display: grid;
-  grid-template-rows: 20% 20% 40% 20%; /* HandAreaの高さを調整 */
   grid-template-columns: 1fr;
   justify-items: center;
   align-items: center;
@@ -27,13 +26,14 @@
   flex-wrap: wrap; /* コマが重ならないように折り返す */
   gap: 5px; /* コマ同士の間隔を設定 */
   width: 80%;
-  height: 120px; /* 高さを少し増加 */
+  height: 100px; /* 高さを少し増加 */
   background-color: #eee;
 }
 
 .board-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   grid-row: 3;
-  width: 400px;
-  height: 400px;
   position: relative;
 }

@@ -41,8 +41,8 @@ const Board = ({
         data-testid={`highlighted-square-${pos.x}-${pos.y}`}
         className="board-square highlighted"
         style={{
-          '--x-position': pos.x + 1, // CSS Gridは1-based index
-          '--y-position': pos.y + 1,
+          '--x-position': pos.x,
+          '--y-position': maxY - pos.y, // y座標を反転
         }}
         onClick={(e) => onBoardSquareClick(pos.x, pos.y, e)}
       ></div>
@@ -58,8 +58,9 @@ const Board = ({
         isSelected={dog.isSelected}
         isDisabled={dog.player !== currentPlayerId}
         style={{
-          '--x-position': dog.x_position + 1,
-          '--y-position': dog.y_position + 1,
+          '--x-position': dog.x_position,
+          '--y-position': maxY - dog.y_position, // y座標を反転
+          position: 'absolute'
         }}
       />
     ));
