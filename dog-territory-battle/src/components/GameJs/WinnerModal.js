@@ -1,4 +1,5 @@
 import React from 'react';
+import '../../css/GameCss/WinnerModal.css';
 
 const WinnerModal = ({ isOpen, winner, onClose }) => {
   if (!isOpen || !winner) return null;
@@ -10,7 +11,7 @@ const WinnerModal = ({ isOpen, winner, onClose }) => {
           &times;
         </span>
         <h2>勝者が決定しました！</h2>
-        <p>おめでとうございます、{winner.username}さん！</p>
+        <p>おめでとうございます、{winner}さん！</p>
       </div>
     </div>
   );
