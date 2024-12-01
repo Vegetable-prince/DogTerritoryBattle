@@ -1,5 +1,6 @@
 from django.shortcuts import render
 
+
 def home_view(request):
     """
     ホームページをレンダリングするビュー。
@@ -10,4 +11,4 @@ def home_view(request):
     Returns:
         HttpResponse: レンダリングされたHTMLを含むレスポンス。
     """
-    return render(request, 'index.html')
+    return render(request, "index.html")

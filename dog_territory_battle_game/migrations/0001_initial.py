@@ -137,19 +137,22 @@ class Migration(migrations.Migration):
                 (
                     "dog_type",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="dog_territory_battle_game.dogtype"
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="dog_territory_battle_game.dogtype",
                     ),
                 ),
                 (
                     "game",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="dog_territory_battle_game.game"
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="dog_territory_battle_game.game",
                     ),
                 ),
                 (
                     "player",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="dog_territory_battle_game.player"
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="dog_territory_battle_game.player",
                     ),
                 ),
             ],
