@@ -311,14 +311,14 @@ const checkWouldLose = (data) => {
  * ボードの最大サイズを超えるマスを除外する
  */
 const checkOverMaxBoard = (data) => {
-  const { candidatePositions, boardDogs, selectedDog } = data;
+  const { candidatePositions, boardDogs } = data;
 
   const MAX_WIDTH = 4;
   const MAX_HEIGHT = 4;
 
   const filteredPositions = candidatePositions.filter((pos) => {
     // 選択されたコマをその位置に配置した場合のボード範囲を計算
-    const { minX, maxX, minY, maxY, boardWidth, boardHeight } = calculateBoardBounds(boardDogs, {
+    const { boardWidth, boardHeight } = calculateBoardBounds(boardDogs, {
       candidatePosition: pos,
     });
 
