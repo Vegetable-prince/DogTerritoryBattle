@@ -6,11 +6,7 @@ from rest_framework import status
 
 logger = logging.getLogger(__name__)
 
-# フィールドの定数
-FIELD_MIN_X = 0
-FIELD_MAX_X = 3
-FIELD_MIN_Y = 0
-FIELD_MAX_Y = 3
+# フィールドの最大サイズ（縦横）
 FIELD_MAX_SIZE = 4  # フィールドの最大サイズ（縦横）
 
 def update_current_turn(game):
@@ -24,30 +20,120 @@ def update_current_turn(game):
     game.save()
     return game.current_turn.id
 
-def is_position_within_field(x, y):
+def is_position_within_field(x, y, field_bounds):
     """
     指定された座標がフィールド内にあるかどうかを確認します。
-    フィールドサイズが4x4の場合、0から3の範囲内です。
     """
-    return FIELD_MIN_X <= x <= FIELD_MAX_X and FIELD_MIN_Y <= y <= FIELD_MAX_Y
+    if field_bounds['min_x'] is None or field_bounds['min_y'] is None:
+        return False
+    return field_bounds['min_x'] <= x <= field_bounds['max_x'] and field_bounds['min_y'] <= y <= field_bounds['max_y']
 
-def is_field_at_max_size(game):
+def calculate_field_bounds(game):
     """
-    現在のゲームのフィールドサイズが最大サイズに達しているかを判定します。
+    ゲーム内の全コマのフィールド範囲（最小・最大座標）と幅・高さを計算するヘルパー関数。
     """
     dogs_in_game = Dog.objects.filter(game=game, is_in_hand=False)
     if not dogs_in_game.exists():
-        return False
+        return {
+            'min_x': None,
+            'max_x': None,
+            'min_y': None,
+            'max_y': None,
+            'width': 0,
+            'height': 0
+        }
 
     min_x = dogs_in_game.aggregate(min_x=models.Min('x_position'))['min_x']
     max_x = dogs_in_game.aggregate(max_x=models.Max('x_position'))['max_x']
     min_y = dogs_in_game.aggregate(min_y=models.Min('y_position'))['min_y']
     max_y = dogs_in_game.aggregate(max_y=models.Max('y_position'))['max_y']
 
-    field_width = max_x - min_x + 1
-    field_height = max_y - min_y + 1
+    width = max_x - min_x + 1
+    height = max_y - min_y + 1
 
-    return field_width >= FIELD_MAX_SIZE or field_height >= FIELD_MAX_SIZE
+    logger.debug(f"Calculated field bounds: min_x={min_x}, max_x={max_x}, min_y={min_y}, max_y={max_y}, width={width}, height={height}")
+
+    return {
+        'min_x': min_x,
+        'max_x': max_x,
+        'min_y': min_y,
+        'max_y': max_y,
+        'width': width,
+        'height': height
+    }
+
+def isBossSurrounded(bossDog, boardDogs, playerId, field_bounds):
+    """
+    ボス犬が囲まれているかどうかを判定する関数。
+    自分のコマも含めて囲み判定を行う。
+    
+    Args:
+        bossDog (Dog): 判定対象のボス犬。
+        boardDogs (QuerySet): ボード上の全コマ。
+        playerId (int): 現在のプレイヤーID。
+        field_bounds (dict): フィールドの範囲情報。
+    
+    Returns:
+        bool: 囲まれている場合はTrue、そうでない場合はFalse。
+    """
+    min_x = field_bounds['min_x']
+    max_x = field_bounds['max_x']
+    min_y = field_bounds['min_y']
+    max_y = field_bounds['max_y']
+    width = field_bounds['width']
+    height = field_bounds['height']
+
+    boss_x = bossDog.x_position
+    boss_y = bossDog.y_position
+
+    logger.debug(f"Checking if boss dog at ({boss_x}, {boss_y}) is surrounded.")
+
+    # 判定する方向: 上、下、左、右
+    directions = [
+        {'name': 'up', 'dx': 0, 'dy': -1},
+        {'name': 'down', 'dx': 0, 'dy': 1},
+        {'name': 'left', 'dx': -1, 'dy': 0},
+        {'name': 'right', 'dx': 1, 'dy': 0},
+    ]
+
+    blocked_count = 0
+
+    for direction in directions:
+        adj_x = boss_x + direction['dx']
+        adj_y = boss_y + direction['dy']
+
+        logger.debug(f"Checking direction: {direction['name']}, position: ({adj_x}, {adj_y})")
+
+        # フィールド外に出る場合
+        is_edge = False
+        if direction['dx'] == -1 and width >= FIELD_MAX_SIZE and adj_x < min_x:
+            is_edge = True
+            logger.debug(f"{direction['name']}方向はフィールド外に出ています。ブロックとみなします。")
+        if direction['dx'] == 1 and width >= FIELD_MAX_SIZE and adj_x > max_x:
+            is_edge = True
+            logger.debug(f"{direction['name']}方向はフィールド外に出ています。ブロックとみなします。")
+        if direction['dy'] == -1 and height >= FIELD_MAX_SIZE and adj_y < min_y:
+            is_edge = True
+            logger.debug(f"{direction['name']}方向はフィールド外に出ています。ブロックとみなします。")
+        if direction['dy'] == 1 and height >= FIELD_MAX_SIZE and adj_y > max_y:
+            is_edge = True
+            logger.debug(f"{direction['name']}方向はフィールド外に出ています。ブロックとみなします。")
+
+        # 隣接位置にコマが存在するか（自分のコマも含む）
+        has_any_dog = any(
+            dog.x_position == adj_x and dog.y_position == adj_y
+            for dog in boardDogs
+        )
+
+        if is_edge or has_any_dog:
+            blocked_count += 1
+            logger.debug(f"{direction['name']}方向はブロックされています。")
+        else:
+            logger.debug(f"{direction['name']}方向はブロックされていません。")
+
+    logger.debug(f"Blocked directions count: {blocked_count}")
+
+    return blocked_count >= 4
 
 def would_cause_self_loss(game, player):
     """
@@ -59,77 +145,19 @@ def would_cause_self_loss(game, player):
         logger.debug("ボス犬が存在しません。")
         return False  # ボス犬が存在しない場合、安全策として False を返す
 
-    x, y = boss_dog.x_position, boss_dog.y_position
+    field_bounds = calculate_field_bounds(game)
+    logger.debug(f"フィールドの範囲: {field_bounds}")
 
-    # 現在のフィールドの最小・最大座標を取得
-    dogs_in_game = Dog.objects.filter(game=game, is_in_hand=False)
+    boardDogs = Dog.objects.filter(game=game, is_in_hand=False)
 
-    logger.debug(f"ボード上の全コマの位置は{dogs_in_game}")
+    surrounded = isBossSurrounded(boss_dog, boardDogs, player, field_bounds)
 
-    if not dogs_in_game.exists():
-        logger.debug("ゲーム内に犬が存在しません。")
-        return False
-
-    min_x = dogs_in_game.aggregate(min_x=models.Min('x_position'))['min_x']
-    max_x = dogs_in_game.aggregate(max_x=models.Max('x_position'))['max_x']
-    min_y = dogs_in_game.aggregate(min_y=models.Min('y_position'))['min_y']
-    max_y = dogs_in_game.aggregate(max_y=models.Max('y_position'))['max_y']
-
-    field_width = max_x - min_x + 1
-    field_height = max_y - min_y + 1
-
-    logger.debug(f"Field dimensions: width={field_width}, height={field_height}")
-    logger.debug(f"Field bounds: x={min_x} to {max_x}, y={min_y} to {max_y}")
-
-    # 各方向ごとのブロック判定
-    directions = {
-        'up': (x, y - 1),
-        'down': (x, y + 1),
-        'left': (x - 1, y),
-        'right': (x + 1, y)
-    }
-
-    blocked_directions = 0
-
-    for direction, pos in directions.items():
-        logger.debug(f"Checking direction: {direction}, position: {pos}")
-
-        if direction in ['up', 'down']:
-            # 縦方向のフィールドサイズが最大かどうかを判定
-            if field_height >= FIELD_MAX_SIZE:
-                if (direction == 'up' and y == min_y) or (direction == 'down' and y == max_y):
-                    logger.debug(f"{direction}方向はフィールドが最大サイズで、ボス犬が端に位置しています。ブロックとみなします。")
-                    blocked_directions += 1
-                    continue
-
-        if direction in ['left', 'right']:
-            # 横方向のフィールドサイズが最大かどうかを判定
-            if field_width >= FIELD_MAX_SIZE:
-                if (direction == 'left' and x == min_x) or (direction == 'right' and x == max_x):
-                    logger.debug(f"{direction}方向はフィールドが最大サイズで、ボス犬が端に位置しています。ブロックとみなします。")
-                    blocked_directions += 1
-                    continue
-
-        # フィールドが最大サイズでなく、かつボス犬が端にいない場合、隣接位置に犬がいるか確認
-        if is_position_within_field(pos[0], pos[1]):
-            if Dog.objects.filter(game=game, x_position=pos[0], y_position=pos[1], is_in_hand=False).exists():
-                logger.debug(f"{direction}方向に犬が存在します。ブロックとみなします。")
-                blocked_directions += 1
-            else:
-                logger.debug(f"{direction}方向には犬が存在しません。ブロックされていません。")
-        else:
-            # フィールドが最大サイズでない場合、フィールド外はブロックとみなさない
-            logger.debug(f"{direction}方向はフィールド外ですが、フィールドが最大サイズに達していないため、ブロックされていません。")
-
-    logger.debug(f"Blocked directions count: {blocked_directions}")
-
-    # ボス犬がすべての方向でブロックされているか判定
-    if blocked_directions >= 4:
-        logger.debug("Boss dog is surrounded.")
-        return True  # すべての方向でブロックされている
+    if surrounded:
+        logger.debug("ボス犬が囲まれています。")
     else:
-        logger.debug("Boss dog is not surrounded.")
-        return False  # 一部の方向でブロックされていない
+        logger.debug("ボス犬は囲まれていません。")
+
+    return surrounded
 
 def check_winner(game):
     """
@@ -212,7 +240,12 @@ def is_within_field_after_move(game, new_x, new_y, moving_dog_id):
     min_y = min(ys)
     max_y = max(ys)
 
-    return (max_x - min_x + 1) <= FIELD_MAX_SIZE and (max_y - min_y + 1) <= FIELD_MAX_SIZE
+    width = max_x - min_x + 1
+    height = max_y - min_y + 1
+
+    logger.debug(f"Field dimensions after move: width={width}, height={height}")
+
+    return (width <= FIELD_MAX_SIZE) and (height <= FIELD_MAX_SIZE)
 
 def is_valid_move(dog, new_x, new_y):
     """
@@ -227,8 +260,9 @@ def is_valid_move(dog, new_x, new_y):
     abs_dx = abs(dx)
     abs_dy = abs(dy)
 
+    logger.debug(f"is_valid_moveメソッド: {dog}の動きは{movement_type}で最大歩数が{max_steps}で最新の移動先が{dx}と{dy}")
+
     if movement_type == 'diagonal_orthogonal':
-        logger.debug(f"is_valid_moveメソッド: {dog}の動きは{movement_type}で最大歩数が{max_steps}で最新の移動先が{dx}と{dy}")
         return max(abs_dx, abs_dy) == 1 and (abs_dx != 0 or abs_dy != 0)
     elif movement_type == 'orthogonal':
         if max_steps is None:
@@ -252,7 +286,8 @@ def is_adjacent_after_move(game, x, y, exclude_dog_id):
     """
     移動後のマスが他のコマと隣接しているかを判定する。
     """
-    return is_adjacent_to_other_dogs(game, x, y, exclude_dog_id=exclude_dog_id)
+    field_bounds = calculate_field_bounds(game)
+    return is_adjacent_to_other_dogs(game, x, y, exclude_dog_id=exclude_dog_id, field_bounds=field_bounds)
 
 def is_adjacent_after_place(game, x, y, dog):
     """
@@ -260,7 +295,7 @@ def is_adjacent_after_place(game, x, y, dog):
     """
     return is_adjacent_to_other_dogs(game, x, y, own_pieces_only=True, player=dog.player)
 
-def is_adjacent_to_other_dogs(game, x, y, exclude_dog_id=None, own_pieces_only=False, player=None):
+def is_adjacent_to_other_dogs(game, x, y, exclude_dog_id=None, own_pieces_only=False, player=None, field_bounds=None):
     """
     指定した座標が他のコマと隣接しているかを判定する。
     """
@@ -274,7 +309,9 @@ def is_adjacent_to_other_dogs(game, x, y, exclude_dog_id=None, own_pieces_only=F
         other_dogs = other_dogs.filter(player=player)
     for dog in other_dogs:
         if (dog.x_position, dog.y_position) in adjacent_positions:
+            logger.debug(f"Adjacent dog found at ({dog.x_position}, {dog.y_position})")
             return True
+    logger.debug("No adjacent dogs found.")
     return False
 
 def save_original_position(dog):
