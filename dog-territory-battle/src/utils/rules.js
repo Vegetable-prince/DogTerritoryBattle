@@ -164,10 +164,7 @@ const generateMovementPositions = (data) => {
 
   const MAX_STEPS_LIMIT = 4; // 現実的な上限値を設定
 
-  let maxSteps = selectedDog.dog_type.max_steps ? selectedDog.dog_type.max_steps : null;
-  if (maxSteps === null) {
-    maxSteps = MAX_STEPS_LIMIT;
-  }
+  let maxSteps = selectedDog.dog_type?.max_steps || MAX_STEPS_LIMIT;
 
   const movementType = selectedDog.dog_type.movement_type;
 

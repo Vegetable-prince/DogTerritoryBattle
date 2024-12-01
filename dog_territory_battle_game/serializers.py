@@ -37,6 +37,7 @@ class GameSerializer(serializers.ModelSerializer):
 class DogSerializer(serializers.ModelSerializer):
     player = serializers.PrimaryKeyRelatedField(read_only=True)
     name = serializers.CharField(source="dog_type.name")
+    dog_type = DogTypeSerializer(read_only=True)
     movement_type = serializers.CharField(source="dog_type.movement_type")
     max_steps = serializers.IntegerField(source="dog_type.max_steps")
 
@@ -45,6 +46,7 @@ class DogSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "player",
+            "dog_type",
             "name",
             "movement_type",
             "max_steps",
