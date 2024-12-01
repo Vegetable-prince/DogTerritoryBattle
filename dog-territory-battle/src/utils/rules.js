@@ -34,6 +34,82 @@ export const applyBoardRules = (initialData) => {
 };
 
 /**
+ * ボードの範囲（最小・最大座標）と幅・高さを計算するヘルパー関数
+ * @param {Array} boardDogs - ボード上の全コマ
+ * @param {Object} [options] - オプションオブジェクト
+ * @param {Object} [options.candidatePosition] - 移動候補マス（オプション）
+ * @returns {Object} - minX, maxX, minY, maxY, boardWidth, boardHeight
+ */
+const calculateBoardBounds = (boardDogs, options = {}) => {
+  let allX = boardDogs.map((dog) => dog.x_position);
+  let allY = boardDogs.map((dog) => dog.y_position);
+
+  if (options.candidatePosition) {
+    allX.push(options.candidatePosition.x);
+    allY.push(options.candidatePosition.y);
+  }
+
+  const minX = Math.min(...allX);
+  const maxX = Math.max(...allX);
+  const minY = Math.min(...allY);
+  const maxY = Math.max(...allY);
+
+  const boardWidth = maxX - minX + 1;
+  const boardHeight = maxY - minY + 1;
+
+  return { minX, maxX, minY, maxY, boardWidth, boardHeight };
+};
+
+/**
+ * ボス犬が囲まれているかどうかを判定するヘルパー関数
+ * @param {Object} bossDog - ボス犬のオブジェクト
+ * @param {Array} boardDogs - ボード上の全コマ
+ * @param {number} playerId - 現在のプレイヤーID
+ * @param {Object} boardBounds - ボードの範囲情報
+ * @returns {boolean} - 囲まれている場合は true, そうでない場合は false
+ */
+const isBossSurrounded = (bossDog, boardDogs, playerId, boardBounds) => {
+  const { minX, maxX, minY, maxY, boardWidth, boardHeight } = boardBounds;
+  const bossX = bossDog.x_position;
+  const bossY = bossDog.y_position;
+
+  const directions = [
+    { dx: 0, dy: -1 }, // 上
+    { dx: 0, dy: 1 },  // 下
+    { dx: -1, dy: 0 }, // 左
+    { dx: 1, dy: 0 },  // 右
+  ];
+
+  let surroundedCount = 0;
+
+  for (const { dx, dy } of directions) {
+    const adjacentX = bossX + dx;
+    const adjacentY = bossY + dy;
+
+    // ボードの枠に面しているか確認
+    let isEdge = false;
+    if (dx === -1 && boardWidth >= 4 && adjacentX < minX) isEdge = true;
+    if (dx === 1 && boardWidth >= 4 && adjacentX > maxX) isEdge = true;
+    if (dy === -1 && boardHeight >= 4 && adjacentY < minY) isEdge = true;
+    if (dy === 1 && boardHeight >= 4 && adjacentY > maxY) isEdge = true;
+
+    // 敵のコマがいるか確認
+    const hasEnemyDog = boardDogs.some(
+      (dog) =>
+        dog.x_position === adjacentX &&
+        dog.y_position === adjacentY
+    );
+
+    if (isEdge || hasEnemyDog) {
+      surroundedCount++;
+    }
+  }
+
+  // 4方向すべてが囲まれている場合
+  return surroundedCount >= 4;
+};
+
+/**
  * 自分のコマに隣接するマスを生成する
  */
 const generateOwnAdjacentPositions = (data) => {
@@ -49,14 +125,14 @@ const generateOwnAdjacentPositions = (data) => {
     const y = dog.y_position;
 
     const adjacentOffsets = [
-      { dx: -1, dy: 0 }, // 左
+      { dx: -1, dy: 0 },  // 左
       { dx: -1, dy: -1 }, // 左上
-      { dx: 0, dy: -1 }, // 上
-      { dx: 1, dy: -1 }, // 右上
-      { dx: 1, dy: 0 }, // 右
-      { dx: 1, dy: 1 }, // 右下
-      { dx: 0, dy: 1 }, // 下
-      { dx: -1, dy: 1 }, // 左下
+      { dx: 0, dy: -1 },  // 上
+      { dx: 1, dy: -1 },  // 右上
+      { dx: 1, dy: 0 },   // 右
+      { dx: 1, dy: 1 },   // 右下
+      { dx: 0, dy: 1 },   // 下
+      { dx: -1, dy: 1 },  // 左下
     ];
 
     adjacentOffsets.forEach(({ dx, dy }) => {
@@ -88,7 +164,7 @@ const generateMovementPositions = (data) => {
 
   const MAX_STEPS_LIMIT = 4; // 現実的な上限値を設定
 
-  let maxSteps = selectedDog.dog_type.max_steps;
+  let maxSteps = selectedDog.dog_type.max_steps || null;
   if (maxSteps === null) {
     maxSteps = MAX_STEPS_LIMIT;
   }
@@ -194,6 +270,96 @@ const filterDuplicatePositions = (data) => {
 };
 
 /**
+ * 自身が敗北する可能性のあるマスを除外する
+ */
+const checkWouldLose = (data) => {
+  const { candidatePositions, boardDogs, selectedDog, playerId } = data;
+
+  console.log('選択されたコマ', selectedDog);
+  console.log('ボード上の全てのコマ', boardDogs);
+  console.log('checkWouldLose実行前の候補マス', candidatePositions);
+
+  // 自分のボス犬を取得（仮想ボード上で再取得）
+  const filteredPositions = candidatePositions.filter((pos) => {
+    // 仮想的にコマを配置（元の位置から削除して新しい位置に追加）
+    const hypotheticalBoardDogs = [
+      ...boardDogs.filter(dog => dog.id !== selectedDog.id),
+      {
+        ...selectedDog,
+        x_position: pos.x,
+        y_position: pos.y,
+      },
+    ];
+    console.log('仮想ボード上のコマ', hypotheticalBoardDogs);
+
+    // 仮想ボード上での自分のボス犬を取得
+    const bossDog = hypotheticalBoardDogs.find(
+      (dog) => dog.name === 'ボス犬' && dog.player === playerId
+    );
+
+    // ボス犬が存在しない場合は除外しない
+    if (!bossDog) return true;
+
+    const boardBounds = calculateBoardBounds(hypotheticalBoardDogs);
+
+    // 囲み判定
+    const isSurrounded = isBossSurrounded(bossDog, hypotheticalBoardDogs, playerId, boardBounds);
+
+    // 囲まれている場合は除外
+    return !isSurrounded;
+  });
+
+  console.log('checkWouldLose実行後の候補マス', filteredPositions);
+
+  return { ...data, candidatePositions: filteredPositions };
+};
+
+/**
+ * ボードの最大サイズを超えるマスを除外する
+ */
+const checkOverMaxBoard = (data) => {
+  const { candidatePositions, boardDogs, selectedDog } = data;
+
+  console.log('ボード上の全コマ', boardDogs);
+  console.log('checkOverMaxBoardの処理前の候補マス', candidatePositions);
+
+  const MAX_WIDTH = 4;
+  const MAX_HEIGHT = 4;
+
+  const filteredPositions = candidatePositions.filter((pos) => {
+    // 選択されたコマをその位置に配置した場合のボード範囲を計算
+    const { minX, maxX, minY, maxY, boardWidth, boardHeight } = calculateBoardBounds(boardDogs, {
+      candidatePosition: pos,
+    });
+
+    // ボードの幅または高さが最大枠を超える場合は除外
+    if (boardWidth > MAX_WIDTH || boardHeight > MAX_HEIGHT) {
+      return false;
+    }
+
+    return true;
+  });
+
+  console.log('checkOverMaxBoardの処理後の候補マス', filteredPositions);
+
+  return { ...data, candidatePositions: filteredPositions };
+};
+
+/**
+ * ボス犬を削除できないようにする
+ * また、削除可能な場合は canRemove フラグを設定する
+ */
+const checkBossCantRemove = (data) => {
+  const { selectedDog } = data;
+  let canRemove = true;
+  if (selectedDog && selectedDog.name === 'ボス犬') {
+    canRemove = false;
+  }
+
+  return { ...data, canRemove };
+};
+
+/**
  * 孤立するマスを除外し、canRemove を適切に設定する
  */
 const filterNoAdjacentPositions = (data) => {
@@ -271,142 +437,4 @@ const hasAdjacentDog = (dog, otherDogs) => {
         otherDog.y_position === pos.y
     )
   );
-};
-
-/**
- * 自身が敗北する可能性のあるマスを除外する
- */
-const checkWouldLose = (data) => {
-  const { candidatePositions, boardDogs, selectedDog, playerId } = data;
-
-  // 自分のボス犬を取得
-  const bossDog = boardDogs.find(
-    (dog) => dog.name === 'ボス犬' && dog.player === playerId
-  );
-
-  // ボス犬が存在しない場合はそのまま返す
-  if (!bossDog) return data;
-
-  // ボス犬の位置
-  const bossX = bossDog.x_position;
-  const bossY = bossDog.y_position;
-
-  const filteredPositions = candidatePositions.filter((pos) => {
-    // 仮想的にコマを配置
-    const hypotheticalBoardDogs = [...boardDogs, {
-      x_position: pos.x,
-      y_position: pos.y,
-      player: selectedDog.player,
-      dog_type: selectedDog.dog_type,
-      id: selectedDog.id,
-    }];
-
-    // 仮想的なボード上のコマのx座標とy座標の範囲を取得
-    const xs = hypotheticalBoardDogs.map((dog) => dog.x_position);
-    const ys = hypotheticalBoardDogs.map((dog) => dog.y_position);
-
-    const minX = Math.min(...xs);
-    const maxX = Math.max(...xs);
-    const minY = Math.min(...ys);
-    const maxY = Math.max(...ys);
-
-    const boardWidth = maxX - minX + 1;
-    const boardHeight = maxY - minY + 1;
-
-    // ボードの枠を決定
-    const hasLeftEdge = boardWidth >= 4;
-    const hasRightEdge = boardWidth >= 4;
-    const hasTopEdge = boardHeight >= 4;
-    const hasBottomEdge = boardHeight >= 4;
-
-    // ボス犬の上下左右のマスを確認
-    const directions = [
-      { dx: 0, dy: -1 }, // 上
-      { dx: 0, dy: 1 },  // 下
-      { dx: -1, dy: 0 }, // 左
-      { dx: 1, dy: 0 },  // 右
-    ];
-
-    let surroundedCount = 0;
-
-    for (const { dx, dy } of directions) {
-      const adjacentX = bossX + dx;
-      const adjacentY = bossY + dy;
-
-      // ボードの枠に面しているか確認
-      let isEdge = false;
-      if (dx === -1 && hasLeftEdge && adjacentX < minX) isEdge = true;
-      if (dx === 1 && hasRightEdge && adjacentX > maxX) isEdge = true;
-      if (dy === -1 && hasTopEdge && adjacentY < minY) isEdge = true;
-      if (dy === 1 && hasBottomEdge && adjacentY > maxY) isEdge = true;
-
-      // 敵のコマがいるか確認
-      const hasEnemyDog = hypotheticalBoardDogs.some(
-        (dog) =>
-          dog.x_position === adjacentX &&
-          dog.y_position === adjacentY
-      );
-
-      if (isEdge || hasEnemyDog) {
-        surroundedCount++;
-      }
-    }
-
-    // 4方向すべてが囲まれている場合、この候補マスを除外
-    if (surroundedCount >= 4) {
-      return false;
-    }
-
-    return true;
-  });
-
-  return { ...data, candidatePositions: filteredPositions };
-};
-
-/**
- * ボードの最大サイズを超えるマスを除外する
- */
-const checkOverMaxBoard = (data) => {
-  const { candidatePositions, boardDogs } = data;
-
-  // ボード上のコマのx座標とy座標の範囲を取得
-  const xs = boardDogs.map((dog) => dog.x_position);
-  const ys = boardDogs.map((dog) => dog.y_position);
-
-  const minX = Math.min(...xs);
-  const maxX = Math.max(...xs);
-  const minY = Math.min(...ys);
-  const maxY = Math.max(...ys);
-
-  const boardWidth = maxX - minX + 1;
-  const boardHeight = maxY - minY + 1;
-
-  const isBoardMaxWidth = boardWidth >= 4;
-  const isBoardMaxHeight = boardHeight >= 4;
-
-  const filteredPositions = candidatePositions.filter((pos) => {
-    if (isBoardMaxWidth && (pos.x < minX || pos.x > maxX)) {
-      return false;
-    }
-    if (isBoardMaxHeight && (pos.y < minY || pos.y > maxY)) {
-      return false;
-    }
-    return true;
-  });
-
-  return { ...data, candidatePositions: filteredPositions };
-};
-
-/**
- * ボス犬を削除できないようにする
- * また、削除可能な場合は canRemove フラグを設定する
- */
-const checkBossCantRemove = (data) => {
-  const { selectedDog } = data;
-  let canRemove = true;
-  if (selectedDog && selectedDog.name === 'ボス犬') {
-    canRemove = false;
-  }
-
-  return { ...data, canRemove };
 };

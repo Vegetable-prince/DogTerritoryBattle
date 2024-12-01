@@ -4,11 +4,10 @@
 
 .game-board {
   display: grid;
-  grid-template-columns: repeat(4, var(--dog-size)); /* 4列 */
-  grid-template-rows: repeat(4, var(--dog-size)); /* 4行 */
+  grid-template-columns: repeat(var(--board-width), var(--dog-size));
+  grid-template-rows: repeat(var(--board-height), var(--dog-size));
   position: relative;
-  width: calc(var(--dog-size) * 4);
-  height: calc(var(--dog-size) * 4);
+  margin: 0 auto;
 }
 
 .board-square {

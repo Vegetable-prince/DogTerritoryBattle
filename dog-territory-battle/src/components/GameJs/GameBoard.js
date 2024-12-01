@@ -34,17 +34,11 @@ const GameBoard = ({ initialData }) => {
 
     setBoardDogs((prevDogs) => {
       const exists = prevDogs.some((dog) => dog.id === updatedDog.id);
-      const normalizedDog = {
-        ...updatedDog,
-        x_position: updatedDog.x_position,
-        y_position: updatedDog.y_position,
-        name: updatedDog.name || updatedDog.dog_type.name,
-      };
       return exists
         ? prevDogs.map((dog) =>
-            dog.id === updatedDog.id ? { ...dog, ...normalizedDog } : dog
+            dog.id === updatedDog.id ? { ...dog, ...updatedDog } : dog
           )
-        : [...prevDogs, normalizedDog];
+        : [...prevDogs, updatedDog];
     });
   
     if (updatedDog.is_in_hand) {
@@ -186,6 +180,7 @@ const GameBoard = ({ initialData }) => {
           { x, y },
           (response) => {
             if (response.success) {
+              console.log(response);
               const updatedDog = response.dog;
               updateDogState(updatedDog);
               setCurrentPlayerId(response.current_turn);

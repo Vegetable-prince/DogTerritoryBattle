@@ -41,8 +41,8 @@ const Board = ({
         data-testid={`highlighted-square-${pos.x}-${pos.y}`}
         className="board-square highlighted"
         style={{
-          '--x-position': pos.x,
-          '--y-position': maxY - pos.y, // y座標を反転
+          '--x-position': pos.x - minX,
+          '--y-position': pos.y - minY,
         }}
         onClick={(e) => onBoardSquareClick(pos.x, pos.y, e)}
       ></div>
@@ -58,8 +58,8 @@ const Board = ({
         isSelected={dog.isSelected}
         isDisabled={dog.player !== currentPlayerId}
         style={{
-          '--x-position': dog.x_position,
-          '--y-position': maxY - dog.y_position, // y座標を反転
+          '--x-position': dog.x_position - minX,
+          '--y-position': dog.y_position - minY,
           position: 'absolute'
         }}
       />
@@ -67,7 +67,14 @@ const Board = ({
   };
 
   return (
-    <div data-testid="game-board" className="game-board">
+    <div
+      data-testid="game-board"
+      className="game-board"
+      style={{
+        "--board-width": maxX - minX + 1,
+        "--board-height": maxY - minY + 1,
+      }}
+    >
       {/* ハイライトされたマス */}
       {renderHighlightedSquares()}
 
@@ -77,16 +84,28 @@ const Board = ({
       {/* 縦の枠線（4マス分のライン条件が成立した場合） */}
       {lineTypes.includes('vertical') && (
         <>
-          <div data-testid="line-vertical-left" className="line-vertical-left"></div>
-          <div data-testid="line-vertical-right" className="line-vertical-right"></div>
+          <div
+            data-testid="line-vertical-left"
+            className="line-vertical-left"
+          ></div>
+          <div
+            data-testid="line-vertical-right"
+            className="line-vertical-right"
+          ></div>
         </>
       )}
 
       {/* 横の枠線（4マス分のライン条件が成立した場合） */}
       {lineTypes.includes('horizontal') && (
         <>
-          <div data-testid="line-horizontal-top" className="line-horizontal-top"></div>
-          <div data-testid="line-horizontal-bottom" className="line-horizontal-bottom"></div>
+          <div
+            data-testid="line-horizontal-top"
+            className="line-horizontal-top"
+          ></div>
+          <div
+            data-testid="line-horizontal-bottom"
+            className="line-horizontal-bottom"
+          ></div>
         </>
       )}
     </div>

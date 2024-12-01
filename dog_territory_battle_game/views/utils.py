@@ -63,6 +63,9 @@ def would_cause_self_loss(game, player):
 
     # 現在のフィールドの最小・最大座標を取得
     dogs_in_game = Dog.objects.filter(game=game, is_in_hand=False)
+
+    logger.debug(f"ボード上の全コマの位置は{dogs_in_game}")
+
     if not dogs_in_game.exists():
         logger.debug("ゲーム内に犬が存在しません。")
         return False
