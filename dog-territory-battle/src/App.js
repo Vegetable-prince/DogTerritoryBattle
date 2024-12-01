@@ -5,14 +5,14 @@ import GamePage from './components/GameJs/GamePage';
 import './App.css';
 
 function App() {
-    return (
-        <Router>
-            <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/games/:game_id" element={<GamePage />} />
-            </Routes>
-        </Router>
-    );
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/games/:game_id" element={<GamePage />} />
+      </Routes>
+    </Router>
+  );
 }
 
 export default App;

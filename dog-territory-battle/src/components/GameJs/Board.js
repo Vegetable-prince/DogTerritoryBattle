@@ -71,8 +71,8 @@ const Board = ({
       data-testid="game-board"
       className="game-board"
       style={{
-        "--board-width": maxX - minX + 1,
-        "--board-height": maxY - minY + 1,
+        '--board-width': maxX - minX + 1,
+        '--board-height': maxY - minY + 1,
       }}
     >
       {/* ハイライトされたマス */}

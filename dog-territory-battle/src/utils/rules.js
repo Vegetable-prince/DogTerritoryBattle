@@ -88,10 +88,10 @@ const isBossSurrounded = (bossDog, boardDogs, playerId, boardBounds) => {
 
     // ボードの枠に面しているか確認
     let isEdge = false;
-    if (dx === -1 && boardWidth >= 4 && adjacentX < minX) isEdge = true;
-    if (dx === 1 && boardWidth >= 4 && adjacentX > maxX) isEdge = true;
-    if (dy === -1 && boardHeight >= 4 && adjacentY < minY) isEdge = true;
-    if (dy === 1 && boardHeight >= 4 && adjacentY > maxY) isEdge = true;
+    if (dx === -1 && boardWidth >= 4 && adjacentX < minX) {isEdge = true;}
+    if (dx === 1 && boardWidth >= 4 && adjacentX > maxX) {isEdge = true;}
+    if (dy === -1 && boardHeight >= 4 && adjacentY < minY) {isEdge = true;}
+    if (dy === 1 && boardHeight >= 4 && adjacentY > maxY) {isEdge = true;}
 
     // 敵のコマがいるか確認
     const hasEnemyDog = boardDogs.some(
@@ -293,7 +293,7 @@ const checkWouldLose = (data) => {
     );
 
     // ボス犬が存在しない場合は除外しない
-    if (!bossDog) return true;
+    if (!bossDog) {return true;}
 
     const boardBounds = calculateBoardBounds(hypotheticalBoardDogs);
 

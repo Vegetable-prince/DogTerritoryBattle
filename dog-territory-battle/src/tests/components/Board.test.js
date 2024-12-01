@@ -4,23 +4,28 @@ import Board from '../../components/GameJs/Board';
 import '@testing-library/jest-dom';
 
 // Dog コンポーネントをモック化
-jest.mock('../../components/GameJs/Dog', () => (props) => {
-  const { dog, onClick, isSelected, isDisabled } = props;
-  return (
-    <div
-      data-testid={`dog-${dog.id}`}
-      onClick={() => {
-        if (!isDisabled && onClick) {
-          onClick(dog);
-        }
-      }}
-      className={`dog-mock ${isSelected ? 'selected' : ''} ${
-        isDisabled ? 'disabled' : ''
-      }`}
-    >
-      {dog.name}
-    </div>
-  );
+jest.mock('../../components/GameJs/Dog', () => {
+  const MockDog = (props) => {
+    const { dog, onClick, isSelected, isDisabled } = props;
+    return (
+      <div
+        data-testid={`dog-${dog.id}`}
+        onClick={() => {
+          if (!isDisabled && onClick) {
+            onClick(dog);
+          }
+        }}
+        className={`dog-mock ${isSelected ? 'selected' : ''} ${
+          isDisabled ? 'disabled' : ''
+        }`}
+      >
+        {dog.name}
+      </div>
+    );
+  };
+
+  MockDog.displayName = 'Dog';
+  return MockDog;
 });
 
 describe('Board Component', () => {

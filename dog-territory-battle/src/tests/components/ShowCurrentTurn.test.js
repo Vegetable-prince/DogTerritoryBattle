@@ -10,10 +10,10 @@ describe('ShowCurrentTurn Component', () => {
     const currentPlayerElement = getByTestId('current-player');
 
     // 初期表示が正しいことを確認
-    expect(currentPlayerElement).toHaveTextContent("Player 1's Turn");
+    expect(currentPlayerElement).toHaveTextContent('Player 1\'s Turn');
 
     // プレイヤー 2 のターンに変更
     rerender(<ShowCurrentTurn currentPlayerId={2} />);
-    expect(currentPlayerElement).toHaveTextContent("Player 2's Turn");
+    expect(currentPlayerElement).toHaveTextContent('Player 2\'s Turn');
   });
 });
