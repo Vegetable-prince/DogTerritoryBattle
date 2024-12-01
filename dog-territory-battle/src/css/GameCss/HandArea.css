@@ -1,0 +1,20 @@
+.hand-area {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap; /* コマが重ならないように折り返す */
+  gap: 5px; /* コマ同士の間隔を設定 */
+  background-color: #eee;
+}
+
+.empty-hand {
+  text-align: center;
+  padding: 20px;
+}
+
+.hand-area.highlighted {
+  background-color: rgba(144, 238, 144, 0.5);
+  transition: background-color 0.3s ease;
+  width: 100%;
+}

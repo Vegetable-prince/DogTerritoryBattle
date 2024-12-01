@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from './components/HomePage';
-import GamePage from './components/GamePage';
+import GamePage from './components/GameJs/GamePage';
 import './App.css';
 
 function App() {

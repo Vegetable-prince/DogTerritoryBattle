@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import DogViewSet, PlayerViewSet, DogTypeViewSet, GameViewSet
 
 router = DefaultRouter()
-router.register(r'dogs', DogViewSet)
+router.register(r'dogs', DogViewSet, basename='dog')
 router.register(r'players', PlayerViewSet)
 router.register(r'dog_types', DogTypeViewSet)
 router.register(r'games', GameViewSet)
