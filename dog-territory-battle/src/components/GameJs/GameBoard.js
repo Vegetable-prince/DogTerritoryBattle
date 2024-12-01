@@ -69,6 +69,7 @@ const GameBoard = ({ initialData }) => {
 
     if (dog.player !== currentPlayerId || dog.isDisabled) return;
 
+    resetBoardSelection();
     resetSelection();
 
     const updatedHandDogs = handDogs.map((d) =>
@@ -99,7 +100,6 @@ const GameBoard = ({ initialData }) => {
             const updatedBoardDogs = boardDogs.filter((dog) => dog.id !== selectedDog.id);
             setHandDogs(updatedHandDogs);
             setBoardDogs(updatedBoardDogs);
-  
             resetSelection();
   
             if (response.winner) {
@@ -124,6 +124,7 @@ const GameBoard = ({ initialData }) => {
 
     if (dog.player !== currentPlayerId || dog.isDisabled) return;
 
+    resetHandSelection();
     resetSelection();
 
     const updatedBoardDogs = boardDogs.map((d) =>
@@ -180,7 +181,6 @@ const GameBoard = ({ initialData }) => {
           { x, y },
           (response) => {
             if (response.success) {
-              console.log(response);
               const updatedDog = response.dog;
               updateDogState(updatedDog);
               setCurrentPlayerId(response.current_turn);
@@ -202,12 +202,22 @@ const GameBoard = ({ initialData }) => {
 
   // ボードやコマ、手札以外の箇所をクリックした際に各種選択状態をリセット
   const handleBackgroundClick = () => {
-    const updatedHandDogs = handDogs.map((d) => ({ ...d, isSelected: false }));
-    const updatedBoardDogs = boardDogs.map((d) => ({ ...d, isSelected: false }));
-    setHandDogs(updatedHandDogs);
-    setBoardDogs(updatedBoardDogs);
-
+    resetHandSelection();
+    resetBoardSelection();
     resetSelection();
+  };
+
+
+  // 手札の選択状態をリセット
+  const resetHandSelection = () => {
+    const updatedHandDogs = handDogs.map((d) => ({ ...d, isSelected: false }));
+    setHandDogs(updatedHandDogs);
+  };
+
+  // ボードの選択状態をリセット
+  const resetBoardSelection = () => {
+    const updatedBoardDogs = boardDogs.map((d) => ({ ...d, isSelected: false }));
+    setBoardDogs(updatedBoardDogs);
   };
 
   // 選択状態をリセット

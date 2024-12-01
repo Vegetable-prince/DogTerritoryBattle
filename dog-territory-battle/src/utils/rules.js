@@ -164,7 +164,7 @@ const generateMovementPositions = (data) => {
 
   const MAX_STEPS_LIMIT = 4; // 現実的な上限値を設定
 
-  let maxSteps = selectedDog.dog_type.max_steps || null;
+  let maxSteps = selectedDog.dog_type.max_steps ? selectedDog.dog_type.max_steps : null;
   if (maxSteps === null) {
     maxSteps = MAX_STEPS_LIMIT;
   }
@@ -275,10 +275,6 @@ const filterDuplicatePositions = (data) => {
 const checkWouldLose = (data) => {
   const { candidatePositions, boardDogs, selectedDog, playerId } = data;
 
-  console.log('選択されたコマ', selectedDog);
-  console.log('ボード上の全てのコマ', boardDogs);
-  console.log('checkWouldLose実行前の候補マス', candidatePositions);
-
   // 自分のボス犬を取得（仮想ボード上で再取得）
   const filteredPositions = candidatePositions.filter((pos) => {
     // 仮想的にコマを配置（元の位置から削除して新しい位置に追加）
@@ -290,7 +286,6 @@ const checkWouldLose = (data) => {
         y_position: pos.y,
       },
     ];
-    console.log('仮想ボード上のコマ', hypotheticalBoardDogs);
 
     // 仮想ボード上での自分のボス犬を取得
     const bossDog = hypotheticalBoardDogs.find(
@@ -309,8 +304,6 @@ const checkWouldLose = (data) => {
     return !isSurrounded;
   });
 
-  console.log('checkWouldLose実行後の候補マス', filteredPositions);
-
   return { ...data, candidatePositions: filteredPositions };
 };
 
@@ -319,9 +312,6 @@ const checkWouldLose = (data) => {
  */
 const checkOverMaxBoard = (data) => {
   const { candidatePositions, boardDogs, selectedDog } = data;
-
-  console.log('ボード上の全コマ', boardDogs);
-  console.log('checkOverMaxBoardの処理前の候補マス', candidatePositions);
 
   const MAX_WIDTH = 4;
   const MAX_HEIGHT = 4;
@@ -339,8 +329,6 @@ const checkOverMaxBoard = (data) => {
 
     return true;
   });
-
-  console.log('checkOverMaxBoardの処理後の候補マス', filteredPositions);
 
   return { ...data, candidatePositions: filteredPositions };
 };
