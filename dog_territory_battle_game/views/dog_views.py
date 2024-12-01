@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from ..models import Dog
 from ..serializers import DogSerializer
-from ..views.utils import (
+from .dog_utils import (
     update_current_turn,
     get_new_coordinates,
     is_within_field_after_move,
