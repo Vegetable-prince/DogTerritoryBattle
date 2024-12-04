@@ -1,10 +1,11 @@
 from django import forms
 from .models import UploadedFile
 
+
 class UploadFileForm(forms.ModelForm):
     class Meta:
         model = UploadedFile
-        fields = ['file']
+        fields = ["file"]
         widgets = {
-            'file': forms.ClearableFileInput(attrs={'accept': '.zip'}),
+            "file": forms.ClearableFileInput(attrs={"accept": ".zip"}),
         }

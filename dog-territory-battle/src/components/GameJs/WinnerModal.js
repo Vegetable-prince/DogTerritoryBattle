@@ -2,7 +2,7 @@ import React from 'react';
 import '../../css/GameCss/WinnerModal.css';
 
 const WinnerModal = ({ isOpen, winner, onClose }) => {
-  if (!isOpen || !winner) return null;
+  if (!isOpen || !winner) {return null;}
 
   return (
     <div data-testid="winner-modal" className="modal">

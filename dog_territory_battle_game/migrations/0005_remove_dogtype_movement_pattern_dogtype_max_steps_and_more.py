@@ -6,7 +6,10 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("dog_territory_battle_game", "0004_dog_is_in_hand_alter_dog_x_position_and_more"),
+        (
+            "dog_territory_battle_game",
+            "0004_dog_is_in_hand_alter_dog_x_position_and_more",
+        ),
     ]
 
     operations = [

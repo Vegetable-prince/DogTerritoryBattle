@@ -10,8 +10,8 @@ const Dog = ({ dog, onClick, isSelected, isDisabled, style }) => {
   };
 
   const classNames = ['dog'];
-  if (isSelected) classNames.push('selected');
-  if (isDisabled) classNames.push('disabled');
+  if (isSelected) {classNames.push('selected');}
+  if (isDisabled) {classNames.push('disabled');}
 
   return (
     <div

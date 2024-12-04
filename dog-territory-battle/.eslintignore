@@ -1,0 +1,13 @@
+# ビルドフォルダとモジュール
+build/
+node_modules/
+
+# Cypressのスクリーンショットやダウンロード
+cypress/screenshots/
+cypress/downloads/
+
+# 一時ファイル
+.DS_Store
+
+# 静的ファイル（必要なら無視）
+static/

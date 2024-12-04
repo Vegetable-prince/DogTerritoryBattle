@@ -30,14 +30,14 @@ const GameBoard = ({ initialData }) => {
   const [isWinnerModalOpen, setIsWinnerModalOpen] = useState(false);
 
   const updateDogState = (updatedDog) => {
-    if (!updatedDog) return;
+    if (!updatedDog) {return;}
 
     setBoardDogs((prevDogs) => {
       const exists = prevDogs.some((dog) => dog.id === updatedDog.id);
       return exists
         ? prevDogs.map((dog) =>
-            dog.id === updatedDog.id ? { ...dog, ...updatedDog } : dog
-          )
+          dog.id === updatedDog.id ? { ...dog, ...updatedDog } : dog
+        )
         : [...prevDogs, updatedDog];
     });
   
@@ -47,8 +47,8 @@ const GameBoard = ({ initialData }) => {
         const exists = prevDogs.some((dog) => dog.id === updatedDog.id);
         return exists
           ? prevDogs.map((dog) =>
-              dog.id === updatedDog.id ? { ...dog, ...updatedDog } : dog
-            )
+            dog.id === updatedDog.id ? { ...dog, ...updatedDog } : dog
+          )
           : [...prevDogs, updatedDog];
       });
   
@@ -67,7 +67,7 @@ const GameBoard = ({ initialData }) => {
   const handleHandDogClick = (dog, e) => {
     e.stopPropagation(); // イベントの伝播を止める
 
-    if (dog.player !== currentPlayerId || dog.isDisabled) return;
+    if (dog.player !== currentPlayerId || dog.isDisabled) {return;}
 
     resetBoardSelection();
     resetSelection();
@@ -122,7 +122,7 @@ const GameBoard = ({ initialData }) => {
   const handleBoardDogClick = (dog, e) => {
     e.stopPropagation(); // イベントの伝播を止める
 
-    if (dog.player !== currentPlayerId || dog.isDisabled) return;
+    if (dog.player !== currentPlayerId || dog.isDisabled) {return;}
 
     resetHandSelection();
     resetSelection();

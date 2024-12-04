@@ -6,78 +6,102 @@ import * as rules from '../../utils/rules';
 import * as operationRequests from '../../api/operation_requests';
 
 // HandArea コンポーネントをモック化
-jest.mock('../../components/GameJs/HandArea', () => (props) => {
-  const { handDogs, onHandDogClick, onHandAreaClick, isHighlighted, currentPlayerId } = props;
-  return (
-    <div
-      data-testid={`hand-area-mock-${currentPlayerId}`}
-      onClick={(e) => onHandAreaClick(currentPlayerId, e)}
-    >
-      {handDogs.map((dog) => (
-        <div
-          key={dog.id}
-          data-testid={`hand-dog-${dog.id}`}
-          className={`hand-dog ${dog.isSelected ? 'selected' : ''} ${dog.isDisabled ? 'disabled' : ''}`}
-          onClick={(e) => onHandDogClick(dog, e)}
-        >
-          {dog.name}
-        </div>
-      ))}
-      {isHighlighted && <div data-testid="hand-area-highlighted">Highlighted</div>}
-    </div>
-  );
+jest.mock('../../components/GameJs/HandArea', () => {
+  const MockHandArea = (props) => {
+    const { handDogs, onHandDogClick, onHandAreaClick, isHighlighted, currentPlayerId } = props;
+    return (
+      <div
+        data-testid={`hand-area-mock-${currentPlayerId}`}
+        onClick={(e) => onHandAreaClick(currentPlayerId, e)}
+      >
+        {handDogs.map((dog) => (
+          <div
+            key={dog.id}
+            data-testid={`hand-dog-${dog.id}`}
+            className={`hand-dog ${dog.isSelected ? 'selected' : ''} ${dog.isDisabled ? 'disabled' : ''}`}
+            onClick={(e) => onHandDogClick(dog, e)}
+          >
+            {dog.name}
+          </div>
+        ))}
+        {isHighlighted && <div data-testid="hand-area-highlighted">Highlighted</div>}
+      </div>
+    );
+  };
+
+  MockHandArea.displayName = 'HandArea';
+  return MockHandArea;
 });
 
 // Board コンポーネントをモック化
-jest.mock('../../components/GameJs/Board', () => (props) => {
-  const {
-    boardDogs,
-    candidatePositions,
-    onBoardDogClick,
-    onBoardSquareClick,
-    currentPlayerId,
-  } = props;
-  return (
-    <div data-testid="board-mock">
-      {boardDogs.map((dog) => (
-        <div
-          key={dog.id}
-          data-testid={`board-dog-${dog.id}`}
-          className={`board-dog ${dog.isSelected ? 'selected' : ''} ${dog.isDisabled ? 'disabled' : ''}`}
-          onClick={(e) => onBoardDogClick(dog, e)}
-        >
-          {dog.name}
-        </div>
-      ))}
-      {candidatePositions.map((pos, index) => (
-        <div
-          key={`candidate-${index}`}
-          data-testid={`candidate-position-${pos.x}-${pos.y}`}
-          onClick={(e) => onBoardSquareClick(pos.x, pos.y, e)}
-        >
-          Candidate Position ({pos.x}, {pos.y})
-        </div>
-      ))}
-    </div>
-  );
+jest.mock('../../components/GameJs/Board', () => {
+  const MockBoard = (props) => {
+    const {
+      boardDogs,
+      candidatePositions,
+      onBoardDogClick,
+      onBoardSquareClick,
+      currentPlayerId,
+    } = props;
+    return (
+      <div data-testid="board-mock">
+        {boardDogs.map((dog) => (
+          <div
+            key={dog.id}
+            data-testid={`board-dog-${dog.id}`}
+            className={`board-dog ${dog.isSelected ? 'selected' : ''} ${dog.isDisabled ? 'disabled' : ''}`}
+            onClick={(e) => onBoardDogClick(dog, e)}
+          >
+            {dog.name}
+          </div>
+        ))}
+        {candidatePositions.map((pos, index) => (
+          <div
+            key={`candidate-${index}`}
+            data-testid={`candidate-position-${pos.x}-${pos.y}`}
+            onClick={(e) => onBoardSquareClick(pos.x, pos.y, e)}
+          >
+            Candidate Position ({pos.x}, {pos.y})
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  MockBoard.displayName = 'Board';
+  return MockBoard;
 });
 
 // ShowCurrentTurn コンポーネントをモック化
-jest.mock('../../components/GameJs/ShowCurrentTurn', () => (props) => {
-  const { currentPlayerId } = props;
-  return <div data-testid="current-player">Player {currentPlayerId}'s Turn</div>;
+jest.mock('../../components/GameJs/ShowCurrentTurn', () => {
+  const MockShowCurrentTurn = (props) => {
+    const { currentPlayerId } = props;
+    return <div data-testid="current-player">Player {currentPlayerId}&apos;s Turn</div>;
+  };
+
+  MockShowCurrentTurn.displayName = 'ShowCurrentTurn';
+  return MockShowCurrentTurn;
 });
 
 // WinnerModal コンポーネントをモック化
-jest.mock('../../components/GameJs/WinnerModal', () => (props) => {
-  const { isOpen, winner, onClose } = props;
-  if (!isOpen || !winner) return null;
-  return (
-    <div data-testid="winner-modal">
-      <div data-testid="winner-name">おめでとうございます、{winner.username}さん！</div>
-      <button data-testid="close-winner-modal" onClick={onClose}>閉じる</button>
-    </div>
-  );
+jest.mock('../../components/GameJs/WinnerModal', () => {
+  const MockWinnerModal = (props) => {
+    const { isOpen, winner, onClose } = props;
+    if (!isOpen || !winner) {
+      return null;
+    }
+    return (
+      <div data-testid="winner-modal">
+        <div data-testid="winner-name">おめでとうございます、{winner.username}さん！</div>
+        <button data-testid="close-winner-modal" onClick={onClose}>
+          閉じる
+        </button>
+      </div>
+    );
+  };
+
+  MockWinnerModal.displayName = 'WinnerModal';
+  return MockWinnerModal;
 });
 
 describe('GameBoard Component', () => {
@@ -383,7 +407,7 @@ describe('GameBoard Component', () => {
   
     // ターンが変更されたことを確認
     const currentPlayerElement = screen.getByTestId('current-player');
-    expect(currentPlayerElement).toHaveTextContent("Player 2's Turn");
+    expect(currentPlayerElement).toHaveTextContent('Player 2\'s Turn');
   });
 
   test('Board のハイライトされたマスをクリックしたときに適切な処理が行われる（手札から配置）', () => {
@@ -424,7 +448,7 @@ describe('GameBoard Component', () => {
 
     // ターンが変更されたことを確認
     const currentPlayerElement = screen.getByTestId('current-player');
-    expect(currentPlayerElement).toHaveTextContent("Player 2's Turn");
+    expect(currentPlayerElement).toHaveTextContent('Player 2\'s Turn');
   });
 
   test('ターンが切り替わると ShowCurrentTurn が更新される', () => {
@@ -449,7 +473,7 @@ describe('GameBoard Component', () => {
     render(<GameBoard initialData={data} />);
 
     const currentPlayerElement = screen.getByTestId('current-player');
-    expect(currentPlayerElement).toHaveTextContent("Player 1's Turn");
+    expect(currentPlayerElement).toHaveTextContent('Player 1\'s Turn');
 
     // 手札のコマをクリックして選択状態にする (Player 1)
     const handDogElement = screen.getByTestId('hand-dog-11');
@@ -472,7 +496,7 @@ describe('GameBoard Component', () => {
 
     // ターンが変更されたことを確認
     const updatedPlayerElement = screen.getByTestId('current-player');
-    expect(updatedPlayerElement).toHaveTextContent("Player 2's Turn");
+    expect(updatedPlayerElement).toHaveTextContent('Player 2\'s Turn');
   });
 
   test('WinnerModal がレンダリングされていないことを確認する（勝者が決定していない場合）', () => {
@@ -520,7 +544,7 @@ describe('GameBoard Component', () => {
 
     // 勝者の名前が表示されていることを確認
     const winnerName = screen.getByTestId('winner-name');
-    expect(winnerName).toHaveTextContent("おめでとうございます、Player2さん！");
+    expect(winnerName).toHaveTextContent('おめでとうございます、Player2さん！');
 
     // WinnerModal の閉じるボタンをクリックして閉じることを確認
     const closeButton = screen.getByTestId('close-winner-modal');
