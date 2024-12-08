@@ -1,0 +1,104 @@
+name: E2E Test
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  e2e-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # 環境変数の設定
+      - name: Set environment variables
+        run: |
+          echo "DJANGO_DEBUG=True" >> $GITHUB_ENV
+          echo "DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0" >> $GITHUB_ENV
+          echo "DATABASE_NAME=test_db" >> $GITHUB_ENV
+          echo "DATABASE_USER=postgres" >> $GITHUB_ENV
+          echo "DATABASE_PASSWORD=postgres" >> $GITHUB_ENV
+          echo "DATABASE_HOST=localhost" >> $GITHUB_ENV
+          echo "DATABASE_PORT=5432" >> $GITHUB_ENV
+
+      # バックエンドのセットアップ
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Migrate database
+        run: |
+          python manage.py migrate
+
+      - name: Start backend server
+        run: |
+          python manage.py runserver 0.0.0.0:8000 &
+        shell: bash
+
+      - name: Wait for backend to start
+        run: |
+          for i in {1..10}; do
+            if nc -z localhost 8000; then
+              echo "Backend is up!"
+              break
+            fi
+            sleep 5
+          done
+
+      # フロントエンドのセットアップ
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install frontend dependencies
+        working-directory: ./dog-territory-battle
+        run: |
+          npm install
+
+      - name: Start frontend server
+        working-directory: ./dog-territory-battle
+        run: |
+          npm start &
+        shell: bash
+
+      - name: Wait for frontend to start
+        run: |
+          for i in {1..10}; do
+            if nc -z localhost 3000; then
+              echo "Frontend is up!"
+              break
+            fi
+            sleep 5
+          done
+
+      # E2E テストの実行
+      - name: Run Cypress tests
+        working-directory: ./dog-territory-battle
+        run: |
+          npx cypress run

@@ -1,0 +1,11 @@
+<ul>
+  {% for name, subtree in tree.items %}
+      {% if subtree %}
+          <li class="directory">{{ name }}
+              {% include 'file_viewer/tree.html' with tree=subtree %}
+          </li>
+      {% else %}
+          <li class="file">{{ name }}</li>
+      {% endif %}
+  {% endfor %}
+</ul>
