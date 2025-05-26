@@ -1,0 +1,10 @@
+.background-container {
+  /* プロジェクト内で管理している背景画像へのパスに合わせてください */
+  background-image: url('../../assets/images/background_image.jpg'); /* 背景画像 */
+  background-size: cover;
+  background-position: center;
+  width: 100vw;
+  height: 100vh;                
+  position: relative;
+  overflow: hidden;
+}

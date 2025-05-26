@@ -18,18 +18,6 @@
   margin-bottom: 5px; /* HandAreaとの間隔を縮める */
 }
 
-.hand-area {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap; /* コマが重ならないように折り返す */
-  gap: 5px; /* コマ同士の間隔を設定 */
-  width: 80%;
-  height: 100px; /* 高さを少し増加 */
-  background-color: #eee;
-}
-
 .board-container {
   display: flex;
   justify-content: center;
