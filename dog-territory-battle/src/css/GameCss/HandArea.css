@@ -1,24 +1,21 @@
 .hand-area {
-  position: relative;
+  aspect-ratio: 1.944 / 1;  /* = 420 / 216 */
+  width: 100%;             /* 画面幅いっぱい */
+  height: 100%;             /* 高さは自動で計算 */
+  
+  /* 背景画像 */
+  background-image: url('../../assets/images/handarea_image.svg'); /* 手札エリアの背景画像 */
+  background-size: contain; /* アスペクト比を守りつつフィット */
+  background-position: center;
+  background-repeat: no-repeat;
+
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-wrap: wrap;       /* コマが重ならないように折り返す */
-  gap: 5px;              /* コマ同士の間隔 */
-  
-  width: 100vw;
-  height: 150px;         /* 枠画像の高さに合わせて調整 */
-  padding: 10px;         /* 内側の余白（コマとの隙間） */
+  flex-wrap: wrap;
+  padding: 10px;
   box-sizing: border-box;
-  
-  /* 背景画像 */
-  background-image: url('../../assets/images/handarea_image.png'); /* 手札エリアの背景画像 */
-  background-size: cover;       /* 枠いっぱいに伸縮 */
-  background-position: center;  /* 中央寄せ */
-  background-repeat: no-repeat;
-
-  /* contain にすると、コンテナ内に画像全体が収まるように縮小される */
-  background-size: contain;
+  gap: 5px;
 }
 
 /* 選択可能時のハイライトは擬似要素で上乗せ */

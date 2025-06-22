@@ -241,7 +241,7 @@ const GameBoard = ({ initialData }) => {
         <div className="show-current-turn">
           <ShowCurrentTurn currentPlayerId={currentPlayerId} />
         </div>
-        <div>
+        <div className="handarea-player1">
           <HandArea
             handDogs={handDogs.filter((dog) => dog.player === 1)}
             onHandDogClick={handleHandDogClick}
@@ -259,7 +259,7 @@ const GameBoard = ({ initialData }) => {
             currentPlayerId={currentPlayerId}
           />
         </div>
-        <div className="player2">
+        <div className="handarea-player2">
           <HandArea
             handDogs={handDogs.filter((dog) => dog.player === 2)}
             onHandDogClick={handleHandDogClick}

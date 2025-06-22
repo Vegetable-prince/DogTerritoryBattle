@@ -25,3 +25,20 @@
   grid-row: 3;
   position: relative;
 }
+
+.handarea-player1,
+.handarea-player2 {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  height: calc(100vw / 2.6);
+}
+
+.handarea-player1 {
+  top: 19.5%;
+}
+
+.handarea-player2 {
+  bottom: 0;
+}
