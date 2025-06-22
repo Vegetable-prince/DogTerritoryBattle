@@ -32,13 +32,13 @@ describe('Operation Requests', () => {
   describe('remove_from_board_request', () => {
     const dog = {
       id: 2,
-      name: 'アニキ犬',
+      name: 'corgi',
       x_position: 1,
       y_position: 2,
       is_in_hand: false,
       dog_type: {
         id: 1,
-        name: 'アニキ犬',
+        name: 'corgi',
         movement_type: 'diagonal_orthogonal',
         max_steps: 1,
       },
@@ -94,13 +94,13 @@ describe('Operation Requests', () => {
   describe('place_on_board_request', () => {
     const dog = {
       id: 3,
-      name: 'ボス犬',
+      name: 'bulldog',
       x_position: 1,
       y_position: 2,
       is_in_hand: true,
       dog_type: {
         id: 2,
-        name: 'ボス犬',
+        name: 'bulldog',
         movement_type: 'diagonal_orthogonal',
         max_steps: 1,
       },
@@ -157,13 +157,13 @@ describe('Operation Requests', () => {
   describe('move_request', () => {
     const dog = {
       id: 4,
-      name: 'ボス犬',
+      name: 'bulldog',
       x_position: 2,
       y_position: 3,
       is_in_hand: false,
       dog_type: {
         id: 3,
-        name: 'ボス犬',
+        name: 'bulldog',
         movement_type: 'diagonal_orthogonal',
         max_steps: 1,
       },

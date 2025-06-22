@@ -121,12 +121,12 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
         # 各コマを初期位置に配置
         movement_tests = [
             # (犬種, 初期位置, 有効な移動先)
-            (self.dog_type_boss, (0, 1), (0, 0)),  # ボス犬
-            (self.dog_type_aniki, (1, 0), (0, 1)),  # アニキ犬
-            (self.dog_type_yaiba, (0, 2), (1, 2)),  # ヤイバ犬
-            (self.dog_type_mame, (1, 1), (2, 2)),  # 豆でっぽう犬
-            (self.dog_type_totsu, (3, 0), (3, 1)),  # トツ犬
-            (self.dog_type_hajike, (2, 0), (3, 2)),  # ハジケ犬
+            (self.dog_type_boss, (0, 1), (0, 0)),  # bulldog
+            (self.dog_type_aniki, (1, 0), (0, 1)),  # corgi
+            (self.dog_type_yaiba, (0, 2), (1, 2)),  # husky
+            (self.dog_type_mame, (1, 1), (2, 2)),  # shiba
+            (self.dog_type_totsu, (3, 0), (3, 1)),  # shepherd
+            (self.dog_type_hajike, (2, 0), (3, 2)),  # raccoon
         ]
 
         dogs = []
@@ -169,12 +169,12 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
         # 各コマを初期位置に配置
         movement_tests = [
             # (犬種, 初期位置, 無効な移動先)
-            (self.dog_type_boss, (0, 1), (2, 2)),  # ボス犬
-            (self.dog_type_aniki, (1, 0), (3, 3)),  # アニキ犬
-            (self.dog_type_yaiba, (0, 2), (2, 1)),  # ヤイバ犬
-            (self.dog_type_mame, (1, 1), (3, 2)),  # 豆でっぽう犬
-            (self.dog_type_totsu, (3, 0), (2, 3)),  # トツ犬
-            (self.dog_type_hajike, (2, 0), (2, 2)),  # ハジケ犬
+            (self.dog_type_boss, (0, 1), (2, 2)),  # bulldog
+            (self.dog_type_aniki, (1, 0), (3, 3)),  # corgi
+            (self.dog_type_yaiba, (0, 2), (2, 1)),  # husky
+            (self.dog_type_mame, (1, 1), (3, 2)),  # shiba
+            (self.dog_type_totsu, (3, 0), (2, 3)),  # shepherd
+            (self.dog_type_hajike, (2, 0), (2, 2)),  # raccoon
         ]
 
         dogs = []
@@ -515,10 +515,10 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
 
     def test_winner_declared_when_boss_dog_surrounded_by_placing_piece_positive(self):
         """
-        テスト13: プレイヤー2がコマを配置してボス犬を囲み、勝利するかどうか（ポジティブチェック）
+        テスト13: プレイヤー2がコマを配置してbulldogを囲み、勝利するかどうか（ポジティブチェック）
         """
-        logger.debug("テスト開始: テスト13 - コマを配置してボス犬を囲み勝利 (ポジティブチェック)")
-        # プレイヤー1のボス犬を(1,1)に配置
+        logger.debug("テスト開始: テスト13 - コマを配置してbulldogを囲み勝利 (ポジティブチェック)")
+        # プレイヤー1のbulldogを(1,1)に配置
         boss_dog = Dog.objects.create(
             game=self.game,
             player=self.player1,
@@ -528,7 +528,7 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
             is_in_hand=False,
         )
 
-        # プレイヤー2のコマでボス犬を囲む（3方向）
+        # プレイヤー2のコマでbulldogを囲む（3方向）
         positions = [(1, 0), (0, 1), (2, 1)]
         for x, y in positions:
             Dog.objects.create(
@@ -544,7 +544,7 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
         self.game.current_turn = self.player2
         self.game.save()
 
-        # 手札から最後のコマを配置してボス犬を囲む
+        # 手札から最後のコマを配置してbulldogを囲む
         last_dog = Dog.objects.create(
             game=self.game,
             player=self.player2,
@@ -562,10 +562,10 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
 
     def test_winner_declared_when_boss_dog_surrounded_by_moving_piece_positive(self):
         """
-        テスト14: プレイヤー2がコマを移動してボス犬を囲み、勝利するかどうか（ポジティブチェック）
+        テスト14: プレイヤー2がコマを移動してbulldogを囲み、勝利するかどうか（ポジティブチェック）
         """
-        logger.debug("テスト開始: テスト14 - コマを移動してボス犬を囲み勝利 (ポジティブチェック)")
-        # プレイヤー1のボス犬を(1,1)に配置
+        logger.debug("テスト開始: テスト14 - コマを移動してbulldogを囲み勝利 (ポジティブチェック)")
+        # プレイヤー1のbulldogを(1,1)に配置
         boss_dog = Dog.objects.create(
             game=self.game,
             player=self.player1,
@@ -575,7 +575,7 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
             is_in_hand=False,
         )
 
-        # プレイヤー2のコマでボス犬を囲む（3方向）
+        # プレイヤー2のコマでbulldogを囲む（3方向）
         positions = [(0, 1), (2, 1), (3, 1), (1, 2), (1, 3)]
         for x, y in positions:
             Dog.objects.create(
@@ -600,7 +600,7 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
         self.game.current_turn = self.player2
         self.game.save()
 
-        # コマを移動してボス犬を囲む
+        # コマを移動してbulldogを囲む
         response = self.client.post(
             f"/api/dogs/{moving_dog.id}/move/", {"x": 1, "y": 0}
         )
@@ -616,7 +616,7 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
         """
         logger.debug("テスト開始: テスト15 - 特定のボード状態でプレイヤー2が勝利 (ポジティブチェック)")
 
-        # プレイヤー1のボス犬を(0,0)に配置
+        # プレイヤー1のbulldogを(0,0)に配置
         boss_dog = Dog.objects.create(
             game=self.game,
             player=self.player1,
@@ -642,7 +642,7 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
         self.game.current_turn = self.player2
         self.game.save()
 
-        # 手札からコマを(1,0)に配置してボス犬を囲む
+        # 手札からコマを(1,0)に配置してbulldogを囲む
         last_dog = Dog.objects.create(
             game=self.game,
             player=self.player2,
@@ -660,10 +660,10 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
 
     def test_boss_dog_cannot_be_removed_from_board_negative(self):
         """
-        テスト16: ボス犬は手札に戻せないかどうか（ネガティブチェック）
+        テスト16: bulldogは手札に戻せないかどうか（ネガティブチェック）
         """
-        logger.debug("テスト開始: テスト16 - ボス犬の手札戻し禁止 (ネガティブチェック)")
-        # プレイヤー1のボス犬をフィールドに配置
+        logger.debug("テスト開始: テスト16 - bulldogの手札戻し禁止 (ネガティブチェック)")
+        # プレイヤー1のbulldogをフィールドに配置
         boss_dog = Dog.objects.create(
             game=self.game,
             player=self.player1,
@@ -677,11 +677,11 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
         self.game.current_turn = self.player1
         self.game.save()
 
-        # ボス犬を手札に戻そうとする
+        # bulldogを手札に戻そうとする
         response = self.client.post(f"/api/dogs/{boss_dog.id}/remove_from_board/")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("ボス犬は手札に戻せません。", response.data.get("error", ""))
-        logger.debug("ボス犬を手札に戻そうとしましたがブロックされました")
+        self.assertIn("bulldogは手札に戻せません。", response.data.get("error", ""))
+        logger.debug("bulldogを手札に戻そうとしましたがブロックされました")
         logger.debug("テスト終了: テスト16 - ネガティブチェック")
 
     def test_board_size_not_exceed_4x4_after_operation_negative(self):
@@ -711,7 +711,7 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
                 is_in_hand=False,
             )
 
-        # ボス犬を配置（x=4, y=4）
+        # bulldogを配置（x=4, y=4）
         boss_dog = Dog.objects.create(
             game=self.game,
             player=self.player1,
@@ -729,7 +729,7 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
         response = self.client.post(f"/api/dogs/{boss_dog.id}/move/", {"x": 4, "y": 5})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("フィールドのサイズを超えるため移動できません。", response.data.get("error", ""))
-        logger.debug("ボス犬を(4,5)に移動しようとしましたがブロックされました")
+        logger.debug("bulldogを(4,5)に移動しようとしましたがブロックされました")
 
         # ターンを再度プレイヤー1に戻す
         self.game.current_turn = self.player1
@@ -739,15 +739,15 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
         response = self.client.post(f"/api/dogs/{boss_dog.id}/move/", {"x": 5, "y": 4})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("フィールドのサイズを超えるため移動できません。", response.data.get("error", ""))
-        logger.debug("ボス犬を(5,4)に移動しようとしましたがブロックされました")
+        logger.debug("bulldogを(5,4)に移動しようとしましたがブロックされました")
         logger.debug("テスト終了: テスト17 - ネガティブチェック")
 
     def test_cannot_move_piece_if_it_causes_self_boss_surrounded_negative(self):
         """
-        テスト18: 自分のボス犬が囲まれる移動を阻止できるかどうか（ネガティブチェック）
+        テスト18: 自分のbulldogが囲まれる移動を阻止できるかどうか（ネガティブチェック）
         """
-        logger.debug("テスト開始: テスト18 - 自分のボス犬が囲まれる移動の阻止 (ネガティブチェック)")
-        # プレイヤー1のボス犬を(1,1)に配置
+        logger.debug("テスト開始: テスト18 - 自分のbulldogが囲まれる移動の阻止 (ネガティブチェック)")
+        # プレイヤー1のbulldogを(1,1)に配置
         boss_dog = Dog.objects.create(
             game=self.game,
             player=self.player1,
@@ -757,7 +757,7 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
             is_in_hand=False,
         )
 
-        # 自分のコマでボス犬を囲む（3方向）
+        # 自分のコマでbulldogを囲む（3方向）
         positions = [(1, 0), (0, 1), (2, 1), (3, 1), (3, 2), (3, 3)]
         for x, y in positions:
             Dog.objects.create(
@@ -783,23 +783,23 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
         self.game.current_turn = self.player1
         self.game.save()
 
-        # 自分のコマを移動してボス犬を囲んでしまう
+        # 自分のコマを移動してbulldogを囲んでしまう
         response = self.client.post(
             f"/api/dogs/{moving_dog.id}/move/", {"x": 1, "y": 2}
         )
 
-        # 自分のボス犬が囲まれるため、移動は阻止される
+        # 自分のbulldogが囲まれるため、移動は阻止される
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("この移動はあなたのボス犬が囲まれるため、移動できません。", response.data.get("error", ""))
+        self.assertIn("この移動はあなたのbulldogが囲まれるため、移動できません。", response.data.get("error", ""))
         logger.debug("移動が正しくブロックされました")
         logger.debug("テスト終了: テスト18 - ネガティブチェック")
 
     def test_cannot_place_piece_if_it_causes_self_boss_surrounded_negative(self):
         """
-        テスト19: 自分のボス犬が囲まれる配置を阻止できるかどうか（ネガティブチェック）
+        テスト19: 自分のbulldogが囲まれる配置を阻止できるかどうか（ネガティブチェック）
         """
-        logger.debug("テスト開始: テスト19 - 自分のボス犬が囲まれる配置の阻止 (ネガティブチェック)")
-        # プレイヤー1のボス犬を(1,1)に配置
+        logger.debug("テスト開始: テスト19 - 自分のbulldogが囲まれる配置の阻止 (ネガティブチェック)")
+        # プレイヤー1のbulldogを(1,1)に配置
         boss_dog = Dog.objects.create(
             game=self.game,
             player=self.player1,
@@ -809,7 +809,7 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
             is_in_hand=False,
         )
 
-        # 自分のコマでボス犬を囲む（3方向）
+        # 自分のコマでbulldogを囲む（3方向）
         positions = [(1, 0), (0, 1), (2, 1)]
         for x, y in positions:
             Dog.objects.create(
@@ -833,23 +833,23 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
         self.game.current_turn = self.player1
         self.game.save()
 
-        # コマを配置してボス犬を囲んでしまう
+        # コマを配置してbulldogを囲んでしまう
         response = self.client.post(
             f"/api/dogs/{dog_in_hand.id}/place_on_board/", {"x": 1, "y": 2}
         )
-        # 自分のボス犬が囲まれるため、配置は阻止される
+        # 自分のbulldogが囲まれるため、配置は阻止される
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("この配置はあなたのボス犬が囲まれるため、配置できません。", response.data.get("error", ""))
+        self.assertIn("この配置はあなたのbulldogが囲まれるため、配置できません。", response.data.get("error", ""))
         logger.debug("配置が正しくブロックされました")
         logger.debug("テスト終了: テスト19 - ネガティブチェック")
 
     def test_player_cannot_surround_own_boss_negative(self):
         """
-        テスト20: 特定のボード状態でプレイヤー1が自分のボス犬を囲めないどうか（ネガティブチェック）
+        テスト20: 特定のボード状態でプレイヤー1が自分のbulldogを囲めないどうか（ネガティブチェック）
         """
-        logger.debug("テスト20: 特定のボード状態でプレイヤー1が自分のボス犬を囲めないどうか（ネガティブチェック）")
+        logger.debug("テスト20: 特定のボード状態でプレイヤー1が自分のbulldogを囲めないどうか（ネガティブチェック）")
 
-        # プレイヤー1のボス犬を(0,0)に配置
+        # プレイヤー1のbulldogを(0,0)に配置
         boss_dog = Dog.objects.create(
             game=self.game,
             player=self.player1,
@@ -888,6 +888,6 @@ class DogTerritoryBattleViewsTest(BaseTestCase):
             f"/api/dogs/{moving_dog.id}/move/", {"x": 1, "y": 0}
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("この移動はあなたのボス犬が囲まれるため、移動できません。", response.data.get("error", ""))
+        self.assertIn("この移動はあなたのbulldogが囲まれるため、移動できません。", response.data.get("error", ""))
         logger.debug("移動が正しくブロックされました")
         logger.debug("テスト終了: テスト15 - ポジティブチェック")

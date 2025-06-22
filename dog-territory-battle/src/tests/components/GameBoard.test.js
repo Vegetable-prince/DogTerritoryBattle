@@ -127,7 +127,7 @@ describe('GameBoard Component', () => {
     player1_hand_dogs: [
       {
         id: 11,
-        name: 'トツ犬',
+        name: 'shepherd',
         x: null,
         y: null,
         is_in_hand: true,
@@ -139,7 +139,7 @@ describe('GameBoard Component', () => {
     player2_hand_dogs: [
       {
         id: 14,
-        name: 'ハジケ犬',
+        name: 'raccoon',
         x: null,
         y: null,
         is_in_hand: true,
@@ -149,7 +149,7 @@ describe('GameBoard Component', () => {
       },
       {
         id: 10,
-        name: '豆でっぽう犬',
+        name: 'shiba',
         x: null,
         y: null,
         is_in_hand: true,
@@ -159,7 +159,7 @@ describe('GameBoard Component', () => {
       },
       {
         id: 6,
-        name: 'アニキ犬',
+        name: 'corgi',
         x: null,
         y: null,
         is_in_hand: true,
@@ -171,7 +171,7 @@ describe('GameBoard Component', () => {
     board_dogs: [
       {
         id: 5,
-        name: 'アニキ犬',
+        name: 'corgi',
         x: 2,
         y: 0,
         is_in_hand: false,
@@ -181,7 +181,7 @@ describe('GameBoard Component', () => {
       },
       {
         id: 13,
-        name: 'ハジケ犬',
+        name: 'raccoon',
         x: 3,
         y: 3,
         is_in_hand: false,
@@ -191,7 +191,7 @@ describe('GameBoard Component', () => {
       },
       {
         id: 9,
-        name: '豆でっぽう犬',
+        name: 'shiba',
         x: 1,
         y: 2,
         is_in_hand: false,
@@ -201,7 +201,7 @@ describe('GameBoard Component', () => {
       },
       {
         id: 8,
-        name: 'ヤイバ犬',
+        name: 'husky',
         x: 4,
         y: 0,
         is_in_hand: false,
@@ -211,7 +211,7 @@ describe('GameBoard Component', () => {
       },
       {
         id: 4,
-        name: 'ボス犬',
+        name: 'bulldog',
         x: 1,
         y: 3,
         is_in_hand: false,
@@ -221,7 +221,7 @@ describe('GameBoard Component', () => {
       },
       {
         id: 3,
-        name: 'ボス犬',
+        name: 'bulldog',
         x: 1,
         y: 0,
         is_in_hand: false,
@@ -231,7 +231,7 @@ describe('GameBoard Component', () => {
       },
       {
         id: 7,
-        name: 'ヤイバ犬',
+        name: 'husky',
         x: 4,
         y: 1,
         is_in_hand: false,
@@ -241,7 +241,7 @@ describe('GameBoard Component', () => {
       },
       {
         id: 12,
-        name: 'トツ犬',
+        name: 'shepherd',
         x: 1,
         y: 1,
         is_in_hand: false,

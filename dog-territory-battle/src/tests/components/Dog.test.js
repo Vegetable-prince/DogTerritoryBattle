@@ -8,10 +8,10 @@ describe('Dog Component', () => {
 
   const dog = {
     id: 1,
-    name: 'ボス犬',
+    name: 'bulldog',
     dog_type: {
       id: 1,
-      name: 'ボス犬',
+      name: 'bulldog',
       movement_type: 'diagonal_orthogonal',
       max_steps: 1,
     },
@@ -33,7 +33,7 @@ describe('Dog Component', () => {
 
     // コンポーネントが正しくレンダリングされていることを確認
     expect(dogElement).toBeInTheDocument();
-    expect(dogElement).toHaveTextContent('ボス犬');
+    expect(dogElement).toHaveTextContent('bulldog');
   });
 
   test('クリック可能な場合、クリックイベントが発火する', () => {

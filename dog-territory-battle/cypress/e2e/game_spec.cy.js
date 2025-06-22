@@ -141,8 +141,8 @@ describe('Dog Territory Battle Game Tests', () => {
     });
   });
 
-  it('8. コマの操作後にボス犬が囲まれた場合に勝者判定される', () => {
-    // テストのために、ボス犬を囲むようにコマを配置します
+  it('8. コマの操作後にbulldogが囲まれた場合に勝者判定される', () => {
+    // テストのために、bulldogを囲むようにコマを配置します
 
     // プレイヤー1の手札のコマを配置
     cy.get('#top-hand .hand-dog').first().click();
@@ -152,23 +152,23 @@ describe('Dog Territory Battle Game Tests', () => {
     cy.get('#bottom-hand .hand-dog').first().click();
     cy.get('.valid-move').first().click();
 
-    // ボス犬の周囲をコマで囲む手順を繰り返します
+    // bulldogの周囲をコマで囲む手順を繰り返します
     // 省略
 
     // 勝者のモーダルが表示されることを確認
     cy.get('.modal-content').should('contain', 'おめでとうございます、Player 1さんが勝ちました！');
   });
 
-  it('9. ボス犬は手札に戻せない', () => {
-    // ボード上のボス犬を選択
-    cy.get('#game-board .dog').contains('ボス犬').click();
+  it('9. bulldogは手札に戻せない', () => {
+    // ボード上のbulldogを選択
+    cy.get('#game-board .dog').contains('bulldog').click();
 
     // 手札に戻そうとする
     cy.get('#top-hand').click();
 
     // アラートが表示されることを確認
     cy.on('window:alert', (str) => {
-      expect(str).to.equal('ボス犬は手札に戻せません！');
+      expect(str).to.equal('bulldogは手札に戻せません！');
     });
   });
 

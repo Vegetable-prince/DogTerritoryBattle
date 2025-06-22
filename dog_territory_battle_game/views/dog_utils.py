@@ -73,11 +73,11 @@ def calculate_field_bounds(game):
 
 def isBossSurrounded(bossDog, boardDogs, playerId, field_bounds):
     """
-    ボス犬が囲まれているかどうかを判定する関数。
+    bulldogが囲まれているかどうかを判定する関数。
     自分のコマも含めて囲み判定を行う。
 
     Args:
-        bossDog (Dog): 判定対象のボス犬。
+        bossDog (Dog): 判定対象のbulldog。
         boardDogs (QuerySet): ボード上の全コマ。
         playerId (int): 現在のプレイヤーID。
         field_bounds (dict): フィールドの範囲情報。
@@ -148,15 +148,15 @@ def isBossSurrounded(bossDog, boardDogs, playerId, field_bounds):
 
 def would_cause_self_loss(game, player):
     """
-    プレイヤーのボス犬が囲まれているかをチェックするメソッド。
+    プレイヤーのbulldogが囲まれているかをチェックするメソッド。
     各方向ごとにフィールドが最大サイズに達しているかを判定し、枠線によるブロックを適用します。
     """
     boss_dog = Dog.objects.filter(
-        game=game, player=player, dog_type__name="ボス犬"
+        game=game, player=player, dog_type__name="bulldog"
     ).first()
     if not boss_dog:
-        logger.debug("ボス犬が存在しません。")
-        return False  # ボス犬が存在しない場合、安全策として False を返す
+        logger.debug("bulldogが存在しません。")
+        return False  # bulldogが存在しない場合、安全策として False を返す
 
     field_bounds = calculate_field_bounds(game)
     logger.debug(f"フィールドの範囲: {field_bounds}")
@@ -166,18 +166,18 @@ def would_cause_self_loss(game, player):
     surrounded = isBossSurrounded(boss_dog, boardDogs, player, field_bounds)
 
     if surrounded:
-        logger.debug("ボス犬が囲まれています。")
+        logger.debug("bulldogが囲まれています。")
     else:
-        logger.debug("ボス犬は囲まれていません。")
+        logger.debug("bulldogは囲まれていません。")
 
     return surrounded
 
 
 def check_winner(game):
     """
-    ボス犬が囲まれているかをチェックし、勝者を判定するメソッド。
+    bulldogが囲まれているかをチェックし、勝者を判定するメソッド。
     """
-    boss_dogs = Dog.objects.filter(game=game, dog_type__name="ボス犬")
+    boss_dogs = Dog.objects.filter(game=game, dog_type__name="bulldog")
     for boss in boss_dogs:
         if would_cause_self_loss(game, boss.player):
             winner = game.player2 if boss.player == game.player1 else game.player1
@@ -314,7 +314,7 @@ def is_valid_move(dog, new_x, new_y):
             return (abs_dx == 1 and dy == 0) or (dx == 0 and abs_dy == 1)
     elif movement_type == "diagonal":
         return abs_dx == 1 and abs_dy == 1
-    elif movement_type == "special_hajike":
+    elif movement_type == "special":
         return (abs_dx == 2 and abs_dy == 1) or (abs_dx == 1 and abs_dy == 2)
     else:
         return False

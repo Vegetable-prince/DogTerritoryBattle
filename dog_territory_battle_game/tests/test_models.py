@@ -10,8 +10,8 @@ class GameModelTestCase(BaseTestCase):
 
     def test_dog_type_creation(self):
         self.assertEqual(DogType.objects.count(), 6)
-        self.assertEqual(self.dog_type_boss.name, "ボス犬")
-        self.assertEqual(self.dog_type_hajike.movement_type, "special_hajike")
+        self.assertEqual(self.dog_type_boss.name, "bulldog")
+        self.assertEqual(self.dog_type_hajike.movement_type, "special")
 
     def test_player_creation(self):
         self.assertEqual(Player.objects.count(), 2)

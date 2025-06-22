@@ -61,8 +61,8 @@ const calculateBoardBounds = (boardDogs, options = {}) => {
 };
 
 /**
- * ボス犬が囲まれているかどうかを判定するヘルパー関数
- * @param {Object} bossDog - ボス犬のオブジェクト
+ * bulldogが囲まれているかどうかを判定するヘルパー関数
+ * @param {Object} bossDog - bulldogのオブジェクト
  * @param {Array} boardDogs - ボード上の全コマ
  * @param {number} playerId - 現在のプレイヤーID
  * @param {Object} boardBounds - ボードの範囲情報
@@ -168,8 +168,8 @@ const generateMovementPositions = (data) => {
 
   const movementType = selectedDog.dog_type.movement_type;
 
-  // ハジケ犬の特殊な移動を処理
-  if (movementType === 'special_hajike') {
+  // raccoonの特殊な移動を処理
+  if (movementType === 'special') {
     // 縦横に2マス進み、その後に曲がって1マス移動
     const orthogonalDirections = [
       { dx: 0, dy: -1 }, // 上
@@ -272,7 +272,7 @@ const filterDuplicatePositions = (data) => {
 const checkWouldLose = (data) => {
   const { candidatePositions, boardDogs, selectedDog, playerId } = data;
 
-  // 自分のボス犬を取得（仮想ボード上で再取得）
+  // 自分のbulldogを取得（仮想ボード上で再取得）
   const filteredPositions = candidatePositions.filter((pos) => {
     // 仮想的にコマを配置（元の位置から削除して新しい位置に追加）
     const hypotheticalBoardDogs = [
@@ -284,12 +284,12 @@ const checkWouldLose = (data) => {
       },
     ];
 
-    // 仮想ボード上での自分のボス犬を取得
+    // 仮想ボード上での自分のbulldogを取得
     const bossDog = hypotheticalBoardDogs.find(
-      (dog) => dog.name === 'ボス犬' && dog.player === playerId
+      (dog) => dog.name === 'bulldog' && dog.player === playerId
     );
 
-    // ボス犬が存在しない場合は除外しない
+    // bulldogが存在しない場合は除外しない
     if (!bossDog) {return true;}
 
     const boardBounds = calculateBoardBounds(hypotheticalBoardDogs);
@@ -331,13 +331,13 @@ const checkOverMaxBoard = (data) => {
 };
 
 /**
- * ボス犬を削除できないようにする
+ * bulldogを削除できないようにする
  * また、削除可能な場合は canRemove フラグを設定する
  */
 const checkBossCantRemove = (data) => {
   const { selectedDog } = data;
   let canRemove = true;
-  if (selectedDog && selectedDog.name === 'ボス犬') {
+  if (selectedDog && selectedDog.name === 'bulldog') {
     canRemove = false;
   }
 

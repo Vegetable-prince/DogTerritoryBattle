@@ -87,7 +87,7 @@ class DogViewSet(viewsets.ModelViewSet):
             restore_original_position(dog, original_position)
             dog.save()
             return Response(
-                {"error": "この移動はあなたのボス犬が囲まれるため、移動できません。"},
+                {"error": "この移動はあなたのbulldogが囲まれるため、移動できません。"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -127,9 +127,9 @@ class DogViewSet(viewsets.ModelViewSet):
                 {"error": "まだあなたのターンではありません！"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        if dog.dog_type.name == "ボス犬":
+        if dog.dog_type.name == "bulldog":
             return Response(
-                {"error": "ボス犬は手札に戻せません。"}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "bulldogは手札に戻せません。"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         if not can_remove_dog(dog):
@@ -200,7 +200,7 @@ class DogViewSet(viewsets.ModelViewSet):
             restore_original_state(dog, original_state)
             dog.save()
             return Response(
-                {"error": "この配置はあなたのボス犬が囲まれるため、配置できません。"},
+                {"error": "この配置はあなたのbulldogが囲まれるため、配置できません。"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
