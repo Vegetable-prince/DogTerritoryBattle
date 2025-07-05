@@ -7,7 +7,6 @@
   grid-template-columns: repeat(var(--board-width), var(--dog-size));
   grid-template-rows: repeat(var(--board-height), var(--dog-size));
   position: relative;
-  margin: 0 auto;
 }
 
 .board-square {
@@ -58,4 +57,11 @@
 
 .line-horizontal-bottom {
   bottom: 0;
+}
+
+.line-vertical-left,
+.line-vertical-right,
+.line-horizontal-top,
+.line-horizontal-bottom {
+  background-color: #D49E0C;
 }

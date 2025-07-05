@@ -1,21 +1,22 @@
 .hand-area {
-  aspect-ratio: 1.944 / 1;  /* = 420 / 216 */
-  width: 100%;             /* 画面幅いっぱい */
-  height: 100%;             /* 高さは自動で計算 */
-  
-  /* 背景画像 */
-  background-image: url('../../assets/images/handarea_image.svg'); /* 手札エリアの背景画像 */
-  background-size: contain; /* アスペクト比を守りつつフィット */
+  width: 100vw;
+  max-width: 390px;
+  aspect-ratio: 2.6 / 1; /* 390 / 150 */
+  height: auto;
+
+  background-image: url('../../assets/images/handarea_image.svg');
+  background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
 
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: end;
   flex-wrap: wrap;
   padding: 10px;
   box-sizing: border-box;
   gap: 5px;
+  position: relative;
 }
 
 /* 選択可能時のハイライトは擬似要素で上乗せ */
@@ -28,7 +29,7 @@
   height: 100%;
   background-color: rgba(144, 238, 144, 0.4);
   pointer-events: none;
-  border-radius: 8px; /* 画像に角丸があれば合わせてください */
+  border-radius: 8px;
 }
 
 .hand-dog-wrapper {

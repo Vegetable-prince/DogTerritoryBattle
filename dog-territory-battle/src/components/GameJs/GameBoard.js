@@ -241,32 +241,34 @@ const GameBoard = ({ initialData }) => {
         <div className="show-current-turn">
           <ShowCurrentTurn currentPlayerId={currentPlayerId} />
         </div>
-        <div className="handarea-player1">
-          <HandArea
-            handDogs={handDogs.filter((dog) => dog.player === 1)}
-            onHandDogClick={handleHandDogClick}
-            onHandAreaClick={handleHandAreaClick}
-            currentPlayerId={currentPlayerId}
-            isHighlighted={isHandAreaHighlighted && currentPlayerId === 1}
-          />
-        </div>
-        <div className="board-container">
-          <Board
-            boardDogs={boardDogs}
-            candidatePositions={candidatePositions}
-            onBoardDogClick={handleBoardDogClick}
-            onBoardSquareClick={handleBoardSquareClick}
-            currentPlayerId={currentPlayerId}
-          />
-        </div>
-        <div className="handarea-player2">
-          <HandArea
-            handDogs={handDogs.filter((dog) => dog.player === 2)}
-            onHandDogClick={handleHandDogClick}
-            onHandAreaClick={handleHandAreaClick}
-            currentPlayerId={currentPlayerId}
-            isHighlighted={isHandAreaHighlighted && currentPlayerId === 2}
-          />
+        <div className="game-section">
+          <div className="handarea-player1">
+            <HandArea
+              handDogs={handDogs.filter((dog) => dog.player === 1)}
+              onHandDogClick={handleHandDogClick}
+              onHandAreaClick={handleHandAreaClick}
+              currentPlayerId={currentPlayerId}
+              isHighlighted={isHandAreaHighlighted && currentPlayerId === 1}
+            />
+          </div>
+          <div className="board-container">
+            <Board
+              boardDogs={boardDogs}
+              candidatePositions={candidatePositions}
+              onBoardDogClick={handleBoardDogClick}
+              onBoardSquareClick={handleBoardSquareClick}
+              currentPlayerId={currentPlayerId}
+            />
+          </div>
+          <div className="handarea-player2">
+            <HandArea
+              handDogs={handDogs.filter((dog) => dog.player === 2)}
+              onHandDogClick={handleHandDogClick}
+              onHandAreaClick={handleHandAreaClick}
+              currentPlayerId={currentPlayerId}
+              isHighlighted={isHandAreaHighlighted && currentPlayerId === 2}
+            />
+          </div>
         </div>
 
         {/* WinnerModal を条件付きでレンダリング */}
