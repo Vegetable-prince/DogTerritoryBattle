@@ -30,3 +30,16 @@
   pointer-events: none;
   border-radius: 8px; /* 画像に角丸があれば合わせてください */
 }
+
+.hand-dog-wrapper {
+  width: 100%;
+  height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.hand-dog-wrapper .dog {
+  margin-bottom: -10px;
+}

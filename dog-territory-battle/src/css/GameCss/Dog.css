@@ -3,15 +3,15 @@
 }
 
 .dog {
-  width: var(--dog-size);
-  height: var(--dog-size);
-  left: calc(var(--x-position) * var(--dog-size));
-  top: calc(var(--y-position) * var(--dog-size));
-  border: 2px solid black;
+  width: 60px;
+  height: 100px;
+  border: none; /* border不要なら削除可能 */
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   box-sizing: border-box;
+  background: none;
+  padding: 0;
 }
 
 .dog.selected {
@@ -22,4 +22,10 @@
   border-color: gray; /* disabled状態の境界線色 */
   cursor: not-allowed;
   opacity: 0.6; /* 見た目の変化を追加 */
+}
+
+.dog-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }

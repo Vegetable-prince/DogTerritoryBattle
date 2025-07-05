@@ -10,8 +10,16 @@ const Dog = ({ dog, onClick, isSelected, isDisabled, style }) => {
   };
 
   const classNames = ['dog'];
-  if (isSelected) {classNames.push('selected');}
-  if (isDisabled) {classNames.push('disabled');}
+  if (isSelected) classNames.push('selected');
+  if (isDisabled) classNames.push('disabled');
+
+  const getImageFileName = (dog) => {
+    const base = dog.is_in_hand ? 'handarea' : 'board';
+    const name = dog.dog_type?.name?.toLowerCase().replace(/\s+/g, '_');
+    return `${base}_${name}_piece.svg`;
+  };
+
+  const imageFileName = getImageFileName(dog);
 
   return (
     <div
@@ -20,7 +28,11 @@ const Dog = ({ dog, onClick, isSelected, isDisabled, style }) => {
       onClick={handleClick}
       style={style}
     >
-      {dog.name}
+      <img
+        src={`/assets/images/hand_area_pieces/${imageFileName}`}
+        alt={dog.name}
+        className="dog-img"
+      />
     </div>
   );
 };
