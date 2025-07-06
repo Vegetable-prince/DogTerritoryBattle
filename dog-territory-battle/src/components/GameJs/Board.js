@@ -50,6 +50,7 @@ const Board = ({
         onClick={onBoardDogClick}
         isSelected={dog.isSelected}
         isDisabled={dog.player !== currentPlayerId}
+        currentPlayerId={currentPlayerId}
         style={{
           '--x-position': dog.x_position - minX,
           '--y-position': dog.y_position - minY,
