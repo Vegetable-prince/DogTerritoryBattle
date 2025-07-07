@@ -1,5 +1,31 @@
-.current-turn {
-  margin: 10px;
-  font-size: 1.2em;
+@import url('https://fonts.googleapis.com/css2?family=DotGothic16&display=swap');
+
+.current-turn-board {
+  position: absolute;
+  top: 5vh;
+  left: 51%;
+  transform: translateX(-50%);
+  width: 83vw;
+  height: 9vh;
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  z-index: 10;
+  font-size: clamp(0.8rem, 2vw, 1.2rem);
   font-weight: bold;
+  flex-flow: column;
+}
+
+.current-turn-box,
+.game-options {
+  padding: 6px;
+  align-items: center;
+  height: 100%;
+}
+
+/* ターンテキスト専用フォント */
+.current-turn-box {
+  font-family: 'DotGothic16', sans-serif;
+  font-size: 16px;
+  color: #fff;
 }
