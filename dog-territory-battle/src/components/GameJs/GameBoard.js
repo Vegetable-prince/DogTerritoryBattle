@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Background from './Background';
 import HandArea from './HandArea';
 import Board from './Board';
 import ShowCurrentTurn from './ShowCurrentTurn';
@@ -235,45 +236,49 @@ const GameBoard = ({ initialData }) => {
   };
 
   return (
-    <div id="game-board-container" data-testid="game-board-container" onClick={handleBackgroundClick}>
-      <div className="show-current-turn">
-        <ShowCurrentTurn currentPlayerId={currentPlayerId} />
-      </div>
-      <div className="hand-area">
-        <HandArea
-          handDogs={handDogs.filter((dog) => dog.player === 1)}
-          onHandDogClick={handleHandDogClick}
-          onHandAreaClick={handleHandAreaClick}
-          currentPlayerId={currentPlayerId}
-          isHighlighted={isHandAreaHighlighted && currentPlayerId === 1}
-        />
-      </div>
-      <div className="board-container">
-        <Board
-          boardDogs={boardDogs}
-          candidatePositions={candidatePositions}
-          onBoardDogClick={handleBoardDogClick}
-          onBoardSquareClick={handleBoardSquareClick}
-          currentPlayerId={currentPlayerId}
-        />
-      </div>
-      <div className="hand-area player2">
-        <HandArea
-          handDogs={handDogs.filter((dog) => dog.player === 2)}
-          onHandDogClick={handleHandDogClick}
-          onHandAreaClick={handleHandAreaClick}
-          currentPlayerId={currentPlayerId}
-          isHighlighted={isHandAreaHighlighted && currentPlayerId === 2}
-        />
-      </div>
+    <Background>
+      <div id="game-board-container" data-testid="game-board-container" onClick={handleBackgroundClick}>
+        <div className="show-current-turn">
+          <ShowCurrentTurn currentPlayerId={currentPlayerId} />
+        </div>
+        <div className="game-section">
+          <div className="handarea-player1">
+            <HandArea
+              handDogs={handDogs.filter((dog) => dog.player === 1)}
+              onHandDogClick={handleHandDogClick}
+              onHandAreaClick={handleHandAreaClick}
+              currentPlayerId={currentPlayerId}
+              isHighlighted={isHandAreaHighlighted && currentPlayerId === 1}
+            />
+          </div>
+          <div className="board-container">
+            <Board
+              boardDogs={boardDogs}
+              candidatePositions={candidatePositions}
+              onBoardDogClick={handleBoardDogClick}
+              onBoardSquareClick={handleBoardSquareClick}
+              currentPlayerId={currentPlayerId}
+            />
+          </div>
+          <div className="handarea-player2">
+            <HandArea
+              handDogs={handDogs.filter((dog) => dog.player === 2)}
+              onHandDogClick={handleHandDogClick}
+              onHandAreaClick={handleHandAreaClick}
+              currentPlayerId={currentPlayerId}
+              isHighlighted={isHandAreaHighlighted && currentPlayerId === 2}
+            />
+          </div>
+        </div>
 
-      {/* WinnerModal を条件付きでレンダリング */}
-      <WinnerModal
-        isOpen={isWinnerModalOpen}
-        winner={winner}
-        onClose={handleCloseWinnerModal}
-      />
-    </div>
+        {/* WinnerModal を条件付きでレンダリング */}
+        <WinnerModal
+          isOpen={isWinnerModalOpen}
+          winner={winner}
+          onClose={handleCloseWinnerModal}
+        />
+      </div>
+    </Background>
   );
 };
 

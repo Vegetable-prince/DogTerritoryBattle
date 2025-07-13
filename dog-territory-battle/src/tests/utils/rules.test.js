@@ -9,11 +9,11 @@ describe('Rules Utility Functions', () => {
    * 手札のコマを選択した場合のテスト
    */
   describe('Hand Area Rules', () => {
-    test('ボード上にプレイヤー1のボスが(1, 2)、プレイヤー2のボスが(1, 1)の場合、手札のアニキ犬の置ける場所を確認する', () => {
+    test('ボード上にプレイヤー1のボスが(1, 2)、プレイヤー2のボスが(1, 1)の場合、手札のcorgiの置ける場所を確認する', () => {
       const boardDogs = [
         {
           id: 1,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 1,
           y_position: 2,
           player: 1,
@@ -24,7 +24,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 2,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 1,
           y_position: 1,
           player: 2,
@@ -36,7 +36,7 @@ describe('Rules Utility Functions', () => {
       ];
       const selectedDog = {
         id: 3,
-        name: 'アニキ犬',
+        name: 'corgi',
         player: 1,
         dog_type: {
           movement_type: 'diagonal_orthogonal',
@@ -77,11 +77,11 @@ describe('Rules Utility Functions', () => {
       expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
 
-    test('ボード上にプレイヤー1のボスが(0, 0)、プレイヤー2のボスが(0, 1)の場合、手札のアニキ犬の置ける場所を確認する', () => {
+    test('ボード上にプレイヤー1のボスが(0, 0)、プレイヤー2のボスが(0, 1)の場合、手札のcorgiの置ける場所を確認する', () => {
       const boardDogs = [
         {
           id: 1,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 0,
           player: 1,
@@ -92,7 +92,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 2,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 1,
           player: 2,
@@ -104,7 +104,7 @@ describe('Rules Utility Functions', () => {
       ];
       const selectedDog = {
         id: 3,
-        name: 'アニキ犬',
+        name: 'corgi',
         player: 1,
         dog_type: {
           movement_type: 'diagonal_orthogonal',
@@ -135,11 +135,11 @@ describe('Rules Utility Functions', () => {
       expect(result.candidatePositions).toEqual(expectedPositions);
     });
 
-    test('ボード上にプレイヤー1のボスが(0, 0)、プレイヤー2のボスが(0, 1)、プレイヤー2のアニキ犬が(1, 0)、プレイヤー2のヤイバ犬が(-1, 0)の場合、手札のアニキ犬の置ける場所を確認する', () => {
+    test('ボード上にプレイヤー1のボスが(0, 0)、プレイヤー2のボスが(0, 1)、プレイヤー2のcorgiが(1, 0)、プレイヤー2のhuskyが(-1, 0)の場合、手札のcorgiの置ける場所を確認する', () => {
       const boardDogs = [
         {
           id: 1,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 0,
           player: 1,
@@ -150,7 +150,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 2,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 1,
           player: 2,
@@ -161,7 +161,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 3,
-          name: 'アニキ犬',
+          name: 'corgi',
           x_position: 1,
           y_position: 0,
           player: 2,
@@ -172,7 +172,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 4,
-          name: 'ヤイバ犬',
+          name: 'husky',
           x_position: -1,
           y_position: 0,
           player: 2,
@@ -184,7 +184,7 @@ describe('Rules Utility Functions', () => {
       ];
       const selectedDog = {
         id: 5,
-        name: 'アニキ犬',
+        name: 'corgi',
         player: 1,
         dog_type: {
           movement_type: 'diagonal_orthogonal',
@@ -222,11 +222,11 @@ describe('Rules Utility Functions', () => {
       expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
 
-    test('ボード上にプレイヤー1のボスが(0, 0)、プレイヤー2のボスが(0, 1)、プレイヤー2のアニキ犬が(1, 2)、プレイヤー2のヤイバ犬が(2, 3)、プレイヤー2の豆でっぽう犬が(1, 0)の場合、手札のアニキ犬の置ける場所を確認する', () => {
+    test('ボード上にプレイヤー1のボスが(0, 0)、プレイヤー2のボスが(0, 1)、プレイヤー2のcorgiが(1, 2)、プレイヤー2のhuskyが(2, 3)、プレイヤー2のshibaが(1, 0)の場合、手札のcorgiの置ける場所を確認する', () => {
       const boardDogs = [
         {
           id: 1,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 0,
           player: 1,
@@ -237,7 +237,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 2,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 1,
           player: 2,
@@ -248,7 +248,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 3,
-          name: 'アニキ犬',
+          name: 'corgi',
           x_position: 1,
           y_position: 2,
           player: 2,
@@ -259,7 +259,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 4,
-          name: 'ヤイバ犬',
+          name: 'husky',
           x_position: 2,
           y_position: 3,
           player: 2,
@@ -270,7 +270,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 5,
-          name: '豆でっぽう犬',
+          name: 'shiba',
           x_position: 1,
           y_position: 0,
           player: 2,
@@ -282,7 +282,7 @@ describe('Rules Utility Functions', () => {
       ];
       const selectedDog = {
         id: 6,
-        name: 'アニキ犬',
+        name: 'corgi',
         player: 1,
         dog_type: {
           movement_type: 'diagonal_orthogonal',
@@ -323,11 +323,11 @@ describe('Rules Utility Functions', () => {
    * ボード上のコマを選択した場合のテスト
    */
   describe('Board Rules', () => {
-    test('ボード上の(0, 0)のプレイヤー1のボス犬の移動可能マスを確認する', () => {
+    test('ボード上の(0, 0)のプレイヤー1のbulldogの移動可能マスを確認する', () => {
       const boardDogs = [
         {
           id: 1,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 0,
           player: 1,
@@ -338,7 +338,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 2,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 1,
           player: 2,
@@ -380,11 +380,11 @@ describe('Rules Utility Functions', () => {
       expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
 
-    test('ボード上の(1, 0)のプレイヤー1のヤイバ犬の移動可能マスを確認する', () => {
+    test('ボード上の(1, 0)のプレイヤー1のhuskyの移動可能マスを確認する', () => {
       const boardDogs = [
         {
           id: 1,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 0,
           player: 1,
@@ -395,7 +395,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 2,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 1,
           player: 2,
@@ -406,7 +406,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 3,
-          name: 'ヤイバ犬',
+          name: 'husky',
           x_position: 1,
           y_position: 0,
           player: 1,
@@ -446,11 +446,11 @@ describe('Rules Utility Functions', () => {
       expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
 
-    test('ボード上の(1, 0)のプレイヤー1の豆でっぽう犬の移動可能マスを確認する', () => {
+    test('ボード上の(1, 0)のプレイヤー1のshibaの移動可能マスを確認する', () => {
       const boardDogs = [
         {
           id: 1,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 0,
           player: 1,
@@ -461,7 +461,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 2,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 1,
           player: 2,
@@ -472,7 +472,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 3,
-          name: '豆でっぽう犬',
+          name: 'shiba',
           x_position: 1,
           y_position: 0,
           player: 1,
@@ -512,11 +512,11 @@ describe('Rules Utility Functions', () => {
       expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
 
-    test('ボード上の(1, 0)のプレイヤー1のトツ犬の移動可能マスを確認する', () => {
+    test('ボード上の(1, 0)のプレイヤー1のshepherdの移動可能マスを確認する', () => {
       const boardDogs = [
         {
           id: 1,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 0,
           player: 1,
@@ -527,7 +527,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 2,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 1,
           player: 2,
@@ -538,7 +538,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 3,
-          name: 'トツ犬',
+          name: 'shepherd',
           x_position: 1,
           y_position: 0,
           player: 1,
@@ -581,11 +581,11 @@ describe('Rules Utility Functions', () => {
       expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
 
-    test('ボード上の(1, 0)のプレイヤー1のハジケ犬の移動可能マスを確認する', () => {
+    test('ボード上の(1, 0)のプレイヤー1のraccoonの移動可能マスを確認する', () => {
       const boardDogs = [
         {
           id: 1,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 0,
           player: 1,
@@ -596,7 +596,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 2,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 1,
           player: 2,
@@ -607,12 +607,12 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 3,
-          name: 'ハジケ犬',
+          name: 'raccoon',
           x_position: 1,
           y_position: 0,
           player: 1,
           dog_type: {
-            movement_type: 'special_hajike',
+            movement_type: 'special',
             max_steps: null,
           },
         },
@@ -650,11 +650,11 @@ describe('Rules Utility Functions', () => {
       expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
 
-    test('ボード上にプレイヤー1のボスが(1, 2)、プレイヤー2のボスが(1, 1)、プレイヤー1のアニキ犬が(2, 0)の場合、アニキ犬の移動先を確認する', () => {
+    test('ボード上にプレイヤー1のボスが(1, 2)、プレイヤー2のボスが(1, 1)、プレイヤー1のcorgiが(2, 0)の場合、corgiの移動先を確認する', () => {
       const boardDogs = [
         {
           id: 1,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 1,
           y_position: 2,
           player: 1,
@@ -665,7 +665,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 2,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 1,
           y_position: 1,
           player: 2,
@@ -676,7 +676,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 3,
-          name: 'アニキ犬',
+          name: 'corgi',
           x_position: 2,
           y_position: 0,
           player: 1,
@@ -716,11 +716,11 @@ describe('Rules Utility Functions', () => {
       expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
 
-    test('ボード上にプレイヤー1のボスが(0, 0)、プレイヤー2のボスが(0, 1)、プレイヤー1のアニキ犬が(1, 0)の場合、アニキ犬の移動先を確認する', () => {
+    test('ボード上にプレイヤー1のボスが(0, 0)、プレイヤー2のボスが(0, 1)、プレイヤー1のcorgiが(1, 0)の場合、corgiの移動先を確認する', () => {
       const boardDogs = [
         {
           id: 1,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 0,
           player: 1,
@@ -731,7 +731,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 2,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 1,
           player: 2,
@@ -742,7 +742,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 3,
-          name: 'アニキ犬',
+          name: 'corgi',
           x_position: 1,
           y_position: 0,
           player: 1,
@@ -773,12 +773,12 @@ describe('Rules Utility Functions', () => {
       expect(result.candidatePositions).toEqual(expectedPositions);
     });
 
-    test('ボード上に(0, 0)のプレイヤー1のボス犬、(0, 1)のプレイヤー2のボス犬、(1, 0)のプレイヤー2のアニキ犬、(-1, 0)のプレイヤー2のヤイバ犬、(1, -1)のプレイヤー1のアニキ犬がある場合、プレイヤー1のアニキ犬の移動先を確認する', () => {
+    test('ボード上に(0, 0)のプレイヤー1のbulldog、(0, 1)のプレイヤー2のbulldog、(1, 0)のプレイヤー2のcorgi、(-1, 0)のプレイヤー2のhusky、(1, -1)のプレイヤー1のcorgiがある場合、プレイヤー1のcorgiの移動先を確認する', () => {
       const boardDogs = [
-        // プレイヤー1のボス犬
+        // プレイヤー1のbulldog
         {
           id: 1,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 0,
           player: 1,
@@ -787,10 +787,10 @@ describe('Rules Utility Functions', () => {
             max_steps: 1,
           },
         },
-        // プレイヤー2のボス犬
+        // プレイヤー2のbulldog
         {
           id: 2,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 1,
           player: 2,
@@ -799,10 +799,10 @@ describe('Rules Utility Functions', () => {
             max_steps: 1,
           },
         },
-        // プレイヤー2のアニキ犬
+        // プレイヤー2のcorgi
         {
           id: 3,
-          name: 'アニキ犬',
+          name: 'corgi',
           x_position: 1,
           y_position: 0,
           player: 2,
@@ -811,10 +811,10 @@ describe('Rules Utility Functions', () => {
             max_steps: 1,
           },
         },
-        // プレイヤー2のヤイバ犬
+        // プレイヤー2のhusky
         {
           id: 4,
-          name: 'ヤイバ犬',
+          name: 'husky',
           x_position: -1,
           y_position: 0,
           player: 2,
@@ -823,10 +823,10 @@ describe('Rules Utility Functions', () => {
             max_steps: null,
           },
         },
-        // プレイヤー1のアニキ犬（選択したコマ）
+        // プレイヤー1のcorgi（選択したコマ）
         {
           id: 5,
-          name: 'アニキ犬',
+          name: 'corgi',
           x_position: 1,
           y_position: -1,
           player: 1,
@@ -866,12 +866,12 @@ describe('Rules Utility Functions', () => {
       expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
 
-    test('ボード上に(0, 0)のプレイヤー1のボス犬、(2, 0)のプレイヤー1のアニキ犬、(2, 2)のプレイヤー1の豆でっぽう犬、(1, 0)のプレイヤー1のヤイバ犬、(0, 1)のプレイヤー2のボス犬、(1, 2)のプレイヤー2のアニキ犬、(3, 0)のプレイヤー2のヤイバ犬、プレイヤー1の豆でっぽう犬の移動先を確認する', () => {
+    test('ボード上に(0, 0)のプレイヤー1のbulldog、(2, 0)のプレイヤー1のcorgi、(2, 2)のプレイヤー1のshiba、(1, 0)のプレイヤー1のhusky、(0, 1)のプレイヤー2のbulldog、(1, 2)のプレイヤー2のcorgi、(3, 0)のプレイヤー2のhusky、プレイヤー1のshibaの移動先を確認する', () => {
       const boardDogs = [
-        // プレイヤー1のボス犬
+        // プレイヤー1のbulldog
         {
           id: 1,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 0,
           player: 1,
@@ -880,10 +880,10 @@ describe('Rules Utility Functions', () => {
             max_steps: 1,
           },
         },
-        // プレイヤー1のアニキ犬
+        // プレイヤー1のcorgi
         {
           id: 2,
-          name: 'アニキ犬',
+          name: 'corgi',
           x_position: 2,
           y_position: 0,
           player: 1,
@@ -892,10 +892,10 @@ describe('Rules Utility Functions', () => {
             max_steps: 1,
           },
         },
-        // プレイヤー1の豆でっぽう犬（選択したコマ）
+        // プレイヤー1のshiba（選択したコマ）
         {
           id: 3,
-          name: '豆でっぽう犬',
+          name: 'shiba',
           x_position: 2,
           y_position: 2,
           player: 1,
@@ -904,10 +904,10 @@ describe('Rules Utility Functions', () => {
             max_steps: 1,
           },
         },
-        // プレイヤー1のヤイバ犬
+        // プレイヤー1のhusky
         {
           id: 4,
-          name: 'ヤイバ犬',
+          name: 'husky',
           x_position: 1,
           y_position: 0,
           player: 1,
@@ -916,10 +916,10 @@ describe('Rules Utility Functions', () => {
             max_steps: null,
           },
         },
-        // プレイヤー2のボス犬
+        // プレイヤー2のbulldog
         {
           id: 5,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 1,
           player: 2,
@@ -928,10 +928,10 @@ describe('Rules Utility Functions', () => {
             max_steps: 1,
           },
         },
-        // プレイヤー2のアニキ犬
+        // プレイヤー2のcorgi
         {
           id: 6,
-          name: 'アニキ犬',
+          name: 'corgi',
           x_position: 1,
           y_position: 2,
           player: 2,
@@ -940,10 +940,10 @@ describe('Rules Utility Functions', () => {
             max_steps: 1,
           },
         },
-        // プレイヤー2のヤイバ犬
+        // プレイヤー2のhusky
         {
           id: 7,
-          name: 'ヤイバ犬',
+          name: 'husky',
           x_position: 3,
           y_position: 0,
           player: 2,
@@ -983,11 +983,11 @@ describe('Rules Utility Functions', () => {
       expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
 
-    test('ボス犬を削除できないことを確認する', () => {
+    test('bulldogを削除できないことを確認する', () => {
       const boardDogs = [
         {
           id: 1,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 1,
           y_position: 2,
           player: 1,
@@ -1012,11 +1012,11 @@ describe('Rules Utility Functions', () => {
       expect(result.canRemove).toBe(false);
     });
 
-    test('ボス犬以外のコマを削除できることを確認する', () => {
+    test('bulldog以外のコマを削除できることを確認する', () => {
       const boardDogs = [
         {
           id: 1,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 1,
           y_position: 2,
           player: 1,
@@ -1027,7 +1027,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 2,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 2,
           y_position: 2,
           player: 2,
@@ -1038,7 +1038,7 @@ describe('Rules Utility Functions', () => {
         },
         {
           id: 3,
-          name: 'アニキ犬',
+          name: 'corgi',
           x_position: 0,
           y_position: 2,
           player: 1,
@@ -1067,7 +1067,7 @@ describe('Rules Utility Functions', () => {
       const boardDogs = [
         {
           id: 1,
-          name: 'アニキ犬',
+          name: 'corgi',
           x_position: 1,
           y_position: 2,
           player: 1,
@@ -1092,12 +1092,12 @@ describe('Rules Utility Functions', () => {
       expect(result.canRemove).toBe(true);
     });
 
-    test('ボード上に（0, 0)のプレイヤー1のボス犬、(1, -1)のプレイヤー1のアニキ犬、(1, -2)のプレイヤー2のボス犬がある場合、プレイヤー1のアニキ犬の移動先を確認する（孤立を避ける）', () => {
+    test('ボード上に（0, 0)のプレイヤー1のbulldog、(1, -1)のプレイヤー1のcorgi、(1, -2)のプレイヤー2のbulldogがある場合、プレイヤー1のcorgiの移動先を確認する（孤立を避ける）', () => {
       const boardDogs = [
-        // プレイヤー1のボス犬
+        // プレイヤー1のbulldog
         {
           id: 1,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 0,
           player: 1,
@@ -1106,10 +1106,10 @@ describe('Rules Utility Functions', () => {
             max_steps: 1,
           },
         },
-        // プレイヤー1のアニキ犬（選択したコマ）
+        // プレイヤー1のcorgi（選択したコマ）
         {
           id: 2,
-          name: 'アニキ犬',
+          name: 'corgi',
           x_position: 1,
           y_position: -1,
           player: 1,
@@ -1118,10 +1118,10 @@ describe('Rules Utility Functions', () => {
             max_steps: 1,
           },
         },
-        // プレイヤー2のボス犬
+        // プレイヤー2のbulldog
         {
           id: 3,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 1,
           y_position: -2,
           player: 2,
@@ -1161,12 +1161,12 @@ describe('Rules Utility Functions', () => {
       expect(sortPositions(result.candidatePositions)).toEqual(sortPositions(expectedPositions));
     });
 
-    test('ボード上に（0, 0)のプレイヤー1のボス犬、(1, -1)のプレイヤー1のアニキ犬、(1, -2)のプレイヤー2のボス犬がある場合、プレイヤー1のアニキ犬は手札に戻せないことを確認する（孤立を避ける）', () => {
+    test('ボード上に（0, 0)のプレイヤー1のbulldog、(1, -1)のプレイヤー1のcorgi、(1, -2)のプレイヤー2のbulldogがある場合、プレイヤー1のcorgiは手札に戻せないことを確認する（孤立を避ける）', () => {
       const boardDogs = [
-        // プレイヤー1のボス犬
+        // プレイヤー1のbulldog
         {
           id: 1,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 0,
           y_position: 0,
           player: 1,
@@ -1175,10 +1175,10 @@ describe('Rules Utility Functions', () => {
             max_steps: 1,
           },
         },
-        // プレイヤー1のアニキ犬（選択したコマ）
+        // プレイヤー1のcorgi（選択したコマ）
         {
           id: 2,
-          name: 'アニキ犬',
+          name: 'corgi',
           x_position: 1,
           y_position: -1,
           player: 1,
@@ -1187,10 +1187,10 @@ describe('Rules Utility Functions', () => {
             max_steps: 1,
           },
         },
-        // プレイヤー2のボス犬
+        // プレイヤー2のbulldog
         {
           id: 3,
-          name: 'ボス犬',
+          name: 'bulldog',
           x_position: 1,
           y_position: -2,
           player: 2,

@@ -20,15 +20,17 @@ const HandArea = ({
         }
       }}
     >
-      {handDogs.map((dog) => (
-        <Dog
-          key={dog.id}
-          dog={dog}
-          onClick={(dog, e) => onHandDogClick(dog, e)}
-          isSelected={dog.isSelected}
-          isDisabled={dog.player !== currentPlayerId}
-        />
-      ))}
+      <div className="hand-dog-wrapper">
+        {handDogs.map((dog) => (
+          <Dog
+            key={dog.id}
+            dog={dog}
+            onClick={(dog, e) => onHandDogClick(dog, e)}
+            isSelected={dog.isSelected}
+            isDisabled={dog.player !== currentPlayerId}
+          />
+        ))}
+      </div>
     </div>
   );
 };

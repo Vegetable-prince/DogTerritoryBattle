@@ -37,7 +37,7 @@
     "model": "game.dogtype",
     "pk": 1,
     "fields": {
-      "name": "ボス犬",
+      "name": "bulldog",
       "movement_type": "diagonal_orthogonal",
       "max_steps": 1
     }
@@ -46,7 +46,7 @@
     "model": "game.dogtype",
     "pk": 2,
     "fields": {
-      "name": "アニキ犬",
+      "name": "corgi",
       "movement_type": "diagonal_orthogonal",
       "max_steps": 1
     }
@@ -55,7 +55,7 @@
     "model": "game.dogtype",
     "pk": 3,
     "fields": {
-      "name": "ヤイバ犬",
+      "name": "husky",
       "movement_type": "orthogonal",
       "max_steps": 1
     }
@@ -64,7 +64,7 @@
     "model": "game.dogtype",
     "pk": 4,
     "fields": {
-      "name": "豆でっぽう犬",
+      "name": "shiba",
       "movement_type": "diagonal",
       "max_steps": 1
     }
@@ -73,7 +73,7 @@
     "model": "game.dogtype",
     "pk": 5,
     "fields": {
-      "name": "トツ犬",
+      "name": "shepherd",
       "movement_type": "orthogonal",
       "max_steps": null
     }
@@ -82,8 +82,8 @@
     "model": "game.dogtype",
     "pk": 6,
     "fields": {
-      "name": "ハジケ犬",
-      "movement_type": "special_hajike",
+      "name": "raccoon",
+      "movement_type": "special",
       "max_steps": null
     }
   },

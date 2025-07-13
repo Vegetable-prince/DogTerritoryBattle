@@ -31,10 +31,10 @@ const mockOnHandAreaClick = jest.fn();
 
 const dogs = [
   {
-    dog_type: { id: 2, max_steps: 5, movement_type: 'diagonal_orthogonal', name: 'アニキ犬' },
+    dog_type: { id: 2, max_steps: 5, movement_type: 'diagonal_orthogonal', name: 'corgi' },
     id: 1,
     is_in_hand: true,
-    name: 'アニキ犬',
+    name: 'corgi',
     player: 1,
     isSelected: false,
   },
@@ -58,7 +58,7 @@ describe('HandArea Component', () => {
 
     // Dog.js のモックがレンダリングされていることを確認
     expect(dogElement).toBeInTheDocument();
-    expect(dogElement).toHaveTextContent('アニキ犬');
+    expect(dogElement).toHaveTextContent('corgi');
 
     // クリックイベントを発火
     fireEvent.click(dogElement);
@@ -83,7 +83,7 @@ describe('HandArea Component', () => {
 
     // Dog.js のモックがレンダリングされていることを確認
     expect(dogElement).toBeInTheDocument();
-    expect(dogElement).toHaveTextContent('アニキ犬');
+    expect(dogElement).toHaveTextContent('corgi');
 
     // クリックイベントを発火
     fireEvent.click(dogElement);

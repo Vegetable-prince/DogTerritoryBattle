@@ -26,12 +26,12 @@ class Command(BaseCommand):
 
         # 3. DogTypeを6つ作成
         dog_types = [
-            {"name": "ボス犬", "movement_type": "diagonal_orthogonal", "max_steps": 1},
-            {"name": "アニキ犬", "movement_type": "diagonal_orthogonal", "max_steps": 1},
-            {"name": "ヤイバ犬", "movement_type": "orthogonal", "max_steps": 1},
-            {"name": "豆でっぽう犬", "movement_type": "diagonal", "max_steps": 1},
-            {"name": "トツ犬", "movement_type": "orthogonal", "max_steps": None},
-            {"name": "ハジケ犬", "movement_type": "special_hajike", "max_steps": None},
+            {"name": "bulldog", "movement_type": "diagonal_orthogonal", "max_steps": 1},
+            {"name": "corgi", "movement_type": "diagonal_orthogonal", "max_steps": 1},
+            {"name": "husky", "movement_type": "orthogonal", "max_steps": 1},
+            {"name": "shiba", "movement_type": "diagonal", "max_steps": 1},
+            {"name": "shepherd", "movement_type": "orthogonal", "max_steps": None},
+            {"name": "raccoon", "movement_type": "special", "max_steps": None},
         ]
         dog_type_objects = []
         for data in dog_types:

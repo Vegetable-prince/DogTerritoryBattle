@@ -15,22 +15,22 @@ class BaseTestCase(TestCase):
 
         # 犬種の作成
         self.dog_type_boss = DogType.objects.create(
-            name="ボス犬", max_steps=1, movement_type="diagonal_orthogonal"
+            name="bulldog", max_steps=1, movement_type="diagonal_orthogonal"
         )
         self.dog_type_aniki = DogType.objects.create(
-            name="アニキ犬", max_steps=1, movement_type="diagonal_orthogonal"
+            name="corgi", max_steps=1, movement_type="diagonal_orthogonal"
         )
         self.dog_type_yaiba = DogType.objects.create(
-            name="ヤイバ犬", max_steps=1, movement_type="orthogonal"
+            name="husky", max_steps=1, movement_type="orthogonal"
         )
         self.dog_type_mame = DogType.objects.create(
-            name="豆でっぽう犬", max_steps=1, movement_type="diagonal"
+            name="shiba", max_steps=1, movement_type="diagonal"
         )
         self.dog_type_totsu = DogType.objects.create(
-            name="トツ犬", movement_type="orthogonal"
+            name="shepherd", movement_type="orthogonal"
         )
         self.dog_type_hajike = DogType.objects.create(
-            name="ハジケ犬", movement_type="special_hajike"
+            name="raccoon", movement_type="special"
         )
 
         # プレイヤーの作成

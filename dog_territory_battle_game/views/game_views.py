@@ -82,11 +82,11 @@ class GameViewSet(viewsets.ModelViewSet):
         player2 = game.player2
 
         # 犬種を取得
-        boss_dog_type = DogType.objects.get(name="ボス犬")
+        boss_dog_type = DogType.objects.get(name="bulldog")
         normal_dog_type = DogType.objects.get(name="普通の犬")
-        hajike_dog_type = DogType.objects.get(name="ハジケ犬")
+        hajike_dog_type = DogType.objects.get(name="raccoon")
 
-        # プレイヤー1のボス犬を作成してボード上に配置
+        # プレイヤー1のbulldogを作成してボード上に配置
         Dog.objects.create(
             game=game,
             player=player1,
@@ -96,7 +96,7 @@ class GameViewSet(viewsets.ModelViewSet):
             is_in_hand=False,
         )
 
-        # プレイヤー2のボス犬を作成してボード上に配置
+        # プレイヤー2のbulldogを作成してボード上に配置
         Dog.objects.create(
             game=game,
             player=player2,

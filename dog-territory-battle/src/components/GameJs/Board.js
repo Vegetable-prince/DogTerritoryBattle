@@ -9,29 +9,22 @@ const Board = ({
   onBoardSquareClick,
   currentPlayerId,
 }) => {
-  // 縦横の上限チェック（コマが4マス分並んだときに枠線を表示するため）
   const checkForLine = () => {
     const xPositions = boardDogs.map((dog) => dog.x_position);
     const yPositions = boardDogs.map((dog) => dog.y_position);
 
     const minX = Math.min(...xPositions);
     const maxX = Math.max(...xPositions);
-
     const minY = Math.min(...yPositions);
     const maxY = Math.max(...yPositions);
 
     const lineTypes = [];
-    if (maxX - minX === 3) {
-      lineTypes.push('vertical'); // 縦ライン
-    }
-    if (maxY - minY === 3) {
-      lineTypes.push('horizontal'); // 横ライン
-    }
+    if (maxX - minX === 3) lineTypes.push('vertical');
+    if (maxY - minY === 3) lineTypes.push('horizontal');
 
     return { lineTypes, minX, maxX, minY, maxY };
   };
 
-  // ライン判定結果を取得
   const { lineTypes, minX, maxX, minY, maxY } = checkForLine();
 
   const renderHighlightedSquares = () => {
@@ -57,10 +50,13 @@ const Board = ({
         onClick={onBoardDogClick}
         isSelected={dog.isSelected}
         isDisabled={dog.player !== currentPlayerId}
+        currentPlayerId={currentPlayerId}
         style={{
           '--x-position': dog.x_position - minX,
           '--y-position': dog.y_position - minY,
-          position: 'absolute'
+          position: 'absolute',
+          width: '75px',
+          height: '75px',
         }}
       />
     ));
@@ -75,37 +71,20 @@ const Board = ({
         '--board-height': maxY - minY + 1,
       }}
     >
-      {/* ハイライトされたマス */}
       {renderHighlightedSquares()}
-
-      {/* コマを描画 */}
       {renderDogs()}
 
-      {/* 縦の枠線（4マス分のライン条件が成立した場合） */}
       {lineTypes.includes('vertical') && (
         <>
-          <div
-            data-testid="line-vertical-left"
-            className="line-vertical-left"
-          ></div>
-          <div
-            data-testid="line-vertical-right"
-            className="line-vertical-right"
-          ></div>
+          <div data-testid="line-vertical-left" className="line-vertical-left"></div>
+          <div data-testid="line-vertical-right" className="line-vertical-right"></div>
         </>
       )}
 
-      {/* 横の枠線（4マス分のライン条件が成立した場合） */}
       {lineTypes.includes('horizontal') && (
         <>
-          <div
-            data-testid="line-horizontal-top"
-            className="line-horizontal-top"
-          ></div>
-          <div
-            data-testid="line-horizontal-bottom"
-            className="line-horizontal-bottom"
-          ></div>
+          <div data-testid="line-horizontal-top" className="line-horizontal-top"></div>
+          <div data-testid="line-horizontal-bottom" className="line-horizontal-bottom"></div>
         </>
       )}
     </div>

@@ -1,20 +1,46 @@
 .hand-area {
+  width: 100vw;
+  max-width: 390px;
+  aspect-ratio: 2.6 / 1; /* 390 / 150 */
+  height: auto;
+
+  background-image: url('../../assets/images/handarea_image.svg');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  display: flex;
+  justify-content: center;
+  align-items: end;
+  flex-wrap: wrap;
+  padding: 10px;
+  box-sizing: border-box;
+  gap: 5px;
   position: relative;
+}
+
+/* 選択可能時のハイライトは擬似要素で上乗せ */
+.hand-area.highlighted::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(144, 238, 144, 0.4);
+  pointer-events: none;
+  border-radius: 8px;
+}
+
+.hand-dog-wrapper {
+  width: 100%;
+  height: 120px;
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-wrap: wrap; /* コマが重ならないように折り返す */
-  gap: 5px; /* コマ同士の間隔を設定 */
-  background-color: #eee;
+  gap: 8px;
 }
 
-.empty-hand {
-  text-align: center;
-  padding: 20px;
-}
-
-.hand-area.highlighted {
-  background-color: rgba(144, 238, 144, 0.5);
-  transition: background-color 0.3s ease;
-  width: 100%;
+.hand-dog-wrapper .dog {
+  margin-bottom: -10px;
 }
