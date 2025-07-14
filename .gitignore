@@ -16,4 +16,3 @@ node_modules
 dog-territory-battle/.env.development
 dog-territory-battle/cypress/screenshots
 dog-territory-battle/public/assets/images
-dog-territory-battle/src/assets/images

@@ -12,16 +12,34 @@ describe('WinnerModal Component', () => {
     jest.clearAllMocks();
   });
 
-  test('モーダルが開いている場合、勝者の名前が表示される', () => {
+  test('player1が勝利した場合、敗北のモーダルが表示される', () => {
+    const winner = 'player1';
+
     render(<WinnerModal isOpen={true} winner={winner} onClose={mockOnClose} />);
 
     // モーダルが表示されていることを確認
     const modalElement = screen.getByTestId('winner-modal');
     expect(modalElement).toBeInTheDocument();
 
-    // 勝者の名前が表示されていることを確認
-    const winnerText = screen.getByText(`おめでとうございます、${winner}さん！`);
-    expect(winnerText).toBeInTheDocument();
+    // img要素の取得と検証
+    const image = screen.getByAltText('敗北モーダル画像');
+    expect(image).toBeInTheDocument();
+    expect(image).toHaveAttribute('src', '/assets/images/winner_modals/lose_modal.svg');
+  });
+
+  test('player2が勝利した場合、勝利のモーダルが表示される', () => {
+    const winner = 'player2';
+
+    render(<WinnerModal isOpen={true} winner={winner} onClose={mockOnClose} />);
+
+    // モーダルが表示されていることを確認
+    const modalElement = screen.getByTestId('winner-modal');
+    expect(modalElement).toBeInTheDocument();
+
+    // img要素の取得と検証
+    const image = screen.getByAltText('勝利モーダル画像');
+    expect(image).toBeInTheDocument();
+    expect(image).toHaveAttribute('src', '/assets/images/winner_modals/win_modal.svg');
   });
 
   test('モーダルが閉じている場合、何も表示されない', () => {
@@ -30,20 +48,6 @@ describe('WinnerModal Component', () => {
     // モーダルが存在しないことを確認
     const modalElement = screen.queryByTestId('winner-modal');
     expect(modalElement).not.toBeInTheDocument();
-  });
-
-  test('閉じるボタンをクリックすると onClose が呼ばれる', () => {
-    render(<WinnerModal isOpen={true} winner={winner} onClose={mockOnClose} />);
-
-    // 閉じるボタンを取得
-    const closeButton = screen.getByTestId('close-button');
-    expect(closeButton).toBeInTheDocument();
-
-    // 閉じるボタンをクリック
-    fireEvent.click(closeButton);
-
-    // onClose が呼ばれたことを確認
-    expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
   test('勝者が決定していない場合、モーダルが表示されない', () => {

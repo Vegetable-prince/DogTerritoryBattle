@@ -6,7 +6,7 @@ const ShowCurrentTurn = ({ currentPlayerId }) => {
     <div className="show-current-turn-wrapper">
       {/* 看板内に配置するdiv */}
       <div className="current-turn-board">
-        <div className="current-turn-box">
+        <div className="current-turn-box" data-testid="current-player">
           プレイヤー{currentPlayerId}のターン
         </div>
         <div className="game-options">

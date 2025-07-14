@@ -11,7 +11,7 @@ const WinnerModal = ({ isOpen, winner }) => {
       ? '/assets/images/winner_modals/win_modal.svg'
       : '';
 
-  const altText = winner === "player1" ? '敗北モーダル画像' : '勝者モーダル画像';
+  const altText = winner === "player1" ? '敗北モーダル画像' : '勝利モーダル画像';
 
   return (
     <div data-testid="winner-modal" className="modal">
