@@ -53,5 +53,15 @@ services:
       - backend
       - frontend
 
+  selenium:
+    image: seleniarm/standalone-chromium:114.0
+    container_name: selenium_chrome
+    ports:
+      - "4444:4444"
+      - "5900:5900"
+      - "7900:7900"
+    shm_size: 2gb 
+    platform: linux/arm64
+
 volumes:
   postgres_data:

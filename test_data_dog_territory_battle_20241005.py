@@ -37,7 +37,7 @@ def load_test_data():
     DogType.objects.create(name='husky', movement_type='orthogonal')
     DogType.objects.create(name='raccoon', movement_type='special')
 
-    game_player テーブルのデータ
+    # game_player テーブルのデータ
     player1 = User.objects.get(username='player1')
     player2 = User.objects.get(username='player2')
     Player.objects.create(user=player1)

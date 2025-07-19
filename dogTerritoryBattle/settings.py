@@ -166,3 +166,5 @@ LOGGING = {
         },
     },
 }
+
+SELENIUM_REMOTE_URL = os.getenv("SELENIUM_REMOTE_URL", "http://selenium_chrome:4444/wd/hub")
