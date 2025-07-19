@@ -4,7 +4,7 @@
   aspect-ratio: 2.6 / 1; /* 390 / 150 */
   height: auto;
 
-  background-image: url('../../assets/images/handarea_image.svg');
+  background-image: url('../../../public/assets/images/hand_area_pieces/handarea_image.svg');
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;

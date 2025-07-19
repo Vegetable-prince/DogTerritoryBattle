@@ -24,7 +24,7 @@ describe('Dog Component', () => {
     jest.clearAllMocks();
   });
 
-  test('Dog コンポーネントが正しくレンダリングされる', () => {
+  test('Dog コンポーネントが正しくレンダリングされ、画像が表示される', () => {
     const { getByTestId } = render(
       <Dog dog={dog} onClick={mockOnClick} isSelected={false} isDisabled={false} />
     );
@@ -33,7 +33,14 @@ describe('Dog Component', () => {
 
     // コンポーネントが正しくレンダリングされていることを確認
     expect(dogElement).toBeInTheDocument();
-    expect(dogElement).toHaveTextContent('bulldog');
+
+    const img = dogElement.querySelector('img');
+    expect(img).toBeInTheDocument();
+
+    // 画像のsrcが正しいか確認
+    const expectedSrc = `/assets/images/board_pieces/player_1/board_bulldog_piece_1.svg`;
+    expect(img.getAttribute('src')).toBe(expectedSrc);
+    expect(img.getAttribute('alt')).toBe('bulldog');
   });
 
   test('クリック可能な場合、クリックイベントが発火する', () => {
