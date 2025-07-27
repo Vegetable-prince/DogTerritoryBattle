@@ -61,7 +61,7 @@ jobs:
 
       - name: Run backend tests
         run: |
-          python manage.py test dog_territory_battle_game/test_views.py
+          python manage.py test dog_territory_battle_game.tests
 
 
   frontend-test:
